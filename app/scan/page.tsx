@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { addSubscription } from '../store'
+
 export default function ScanPage() {
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -28,7 +29,7 @@ export default function ScanPage() {
         if (data.error) throw new Error(data.error)
         setResult(data)
       } catch (err) {
-        setError('Impossible d\'analyser cette image. Réessaie.')
+        setError("Impossible d'analyser cette image. Réessaie.")
       } finally {
         setLoading(false)
       }
@@ -61,7 +62,6 @@ export default function ScanPage() {
       background: '#f5f5f5',
       minHeight: '100vh',
     }}>
-      {/* Header */}
       <div style={{
         background: 'white',
         padding: '20px 24px 16px',
@@ -81,18 +81,17 @@ export default function ScanPage() {
       </div>
 
       <div style={{ padding: '16px' }}>
-        {/* Zone upload */}
         {!preview && (
           <div
-            onClick={() => {
-  addSubscription({
-    company_name: result.company_name,
-    amount: result.amount,
-    billing_cycle: result.billing_cycle,
-    category: result.category,
-  })
-  router.push('/')
-}}
+            onClick={() => inputRef.current?.click()}
+            style={{
+              border: '2px dashed #d1d5db',
+              borderRadius: '16px',
+              padding: '48px 24px',
+              textAlign: 'center',
+              background: 'white',
+              cursor: 'pointer',
+            }}
           >
             <p style={{ fontSize: '48px', margin: '0 0 12px' }}>📷</p>
             <p style={{ fontWeight: '600', fontSize: '16px', margin: '0 0 6px' }}>Prendre une photo</p>
@@ -108,7 +107,6 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Aperçu photo */}
         {preview && (
           <div style={{ marginBottom: '16px' }}>
             <img src={preview} alt="Facture" style={{
@@ -120,7 +118,6 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Chargement */}
         {loading && (
           <div style={{
             background: 'white',
@@ -134,7 +131,6 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Erreur */}
         {error && (
           <div style={{
             background: '#fef2f2',
@@ -147,7 +143,6 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Résultat */}
         {result && !loading && (
           <div style={{
             background: 'white',
@@ -169,7 +164,15 @@ export default function ScanPage() {
                   {categoryLabel[result.category] || result.category}
                 </p>
                 <button
-                  onClick={() => router.push('/')}
+                  onClick={() => {
+                    addSubscription({
+                      company_name: result.company_name,
+                      amount: result.amount,
+                      billing_cycle: result.billing_cycle,
+                      category: result.category,
+                    })
+                    router.push('/')
+                  }}
                   style={{
                     width: '100%',
                     background: '#6c63ff',
@@ -189,7 +192,6 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Réessayer */}
         {preview && !loading && (
           <button
             onClick={() => { setPreview(null); setResult(null); setError(null) }}
