@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-
+import { addSubscription } from '../store'
 export default function ScanPage() {
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -84,15 +84,15 @@ export default function ScanPage() {
         {/* Zone upload */}
         {!preview && (
           <div
-            onClick={() => inputRef.current?.click()}
-            style={{
-              border: '2px dashed #d1d5db',
-              borderRadius: '16px',
-              padding: '48px 24px',
-              textAlign: 'center',
-              background: 'white',
-              cursor: 'pointer',
-            }}
+            onClick={() => {
+  addSubscription({
+    company_name: result.company_name,
+    amount: result.amount,
+    billing_cycle: result.billing_cycle,
+    category: result.category,
+  })
+  router.push('/')
+}}
           >
             <p style={{ fontSize: '48px', margin: '0 0 12px' }}>📷</p>
             <p style={{ fontWeight: '600', fontSize: '16px', margin: '0 0 6px' }}>Prendre une photo</p>
