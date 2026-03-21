@@ -86,8 +86,6 @@ function CompareContent() {
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: '#f8fafc', minHeight: '100vh', paddingBottom: '40px' }}>
-
-      {/* Header */}
       <div style={{ background: 'white', padding: '52px 24px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '16px' }}>
         <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #f1f5f9', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
         <div>
@@ -97,13 +95,11 @@ function CompareContent() {
       </div>
 
       <div style={{ padding: '20px 16px' }}>
-
-        {/* Offre actuelle */}
         <div style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', borderRadius: '16px', padding: '20px', color: 'white', marginBottom: '20px' }}>
           <p style={{ fontSize: '11px', opacity: 0.6, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Offre actuelle</p>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p style={{ fontWeight: '700', fontSize: '18px', margin: '0' }}>{name}</p>
-            <p style={{ fontWeight: '800', fontSize: '22px', margin: '0' }}>{amount.toFixed(2)} €/mois</p>
+            <p style={{ fontWeight: '800', fontSize: '22px', margin: '0' }}>{amount.toFixed(2)} euros/mois</p>
           </div>
         </div>
 
@@ -115,13 +111,7 @@ function CompareContent() {
           const saving = amount - offer.price
           const isBest = i === 0 && saving > 0
           return (
-            <div key={i} style={{
-              background: 'white',
-              borderRadius: '16px',
-              padding: '18px',
-              marginBottom: '10px',
-              border: isBest ? '2px solid #4f46e5' : '1px solid #f1f5f9',
-            }}>
+            <div key={i} style={{ background: 'white', borderRadius: '16px', padding: '18px', marginBottom: '10px', border: isBest ? '2px solid #4f46e5' : '1px solid #f1f5f9' }}>
               {isBest && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
                   <span style={{ fontSize: '14px' }}>⭐</span>
@@ -150,6 +140,7 @@ function CompareContent() {
                 </div>
               </div>
               
+<a
                 href={offer.url}
                 target="_blank"
                 rel="noopener noreferrer"
