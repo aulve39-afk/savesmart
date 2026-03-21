@@ -18,7 +18,6 @@ export default function ScanPage() {
       setPreview(base64)
       setLoading(true)
       setError(null)
-
       try {
         const res = await fetch('/api/scan', {
           method: 'POST',
@@ -28,8 +27,8 @@ export default function ScanPage() {
         const data = await res.json()
         if (data.error) throw new Error(data.error)
         setResult(data)
-      } catch (err) {
-        setError("Impossible d'analyser cette image. Réessaie.")
+      } catch {
+        setError("Impossible d'analyser cette image. Reessaie.")
       } finally {
         setLoading(false)
       }
@@ -37,154 +36,128 @@ export default function ScanPage() {
     reader.readAsDataURL(file)
   }
 
-  const categoryLabel: Record<string, string> = {
-    streaming: 'Streaming',
-    telecom: 'Télécom',
-    energie: 'Énergie',
-    assurance: 'Assurance',
-    saas: 'SaaS',
-    other: 'Autre',
+  const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
+    streaming: { label: 'Streaming', icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
+    telecom:   { label: 'Telecom',   icon: '📶', color: '#0284c7', bg: '#f0f9ff' },
+    energie:   { label: 'Energie',   icon: '⚡', color: '#d97706', bg: '#fffbeb' },
+    assurance: { label: 'Assurance', icon: '🛡', color: '#059669', bg: '#f0fdf4' },
+    saas:      { label: 'SaaS',      icon: '☁', color: '#db2777', bg: '#fdf2f8' },
+    other:     { label: 'Autre',     icon: '●',  color: '#6b7280', bg: '#f9fafb' },
   }
 
   const cycleLabel: Record<string, string> = {
-    monthly: 'par mois',
-    yearly: 'par an',
-    quarterly: 'par trimestre',
-    one_time: 'unique',
-    unknown: '',
+    monthly: 'par mois', yearly: 'par an', quarterly: 'par trimestre', one_time: 'unique', unknown: '',
   }
 
+  const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+
   return (
-    <main style={{
-      fontFamily: 'system-ui, sans-serif',
-      maxWidth: '430px',
-      margin: '0 auto',
-      background: '#f5f5f5',
-      minHeight: '100vh',
-    }}>
-      <div style={{
-        background: 'white',
-        padding: '20px 24px 16px',
-        borderBottom: '1px solid #eee',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-      }}>
-        <button onClick={() => router.push('/')} style={{
-          background: 'none',
-          border: 'none',
-          fontSize: '20px',
-          cursor: 'pointer',
-          padding: '0',
-        }}>←</button>
-        <h1 style={{ fontSize: '18px', fontWeight: '600', margin: '0' }}>Scanner une facture</h1>
+    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: '#f8fafc', minHeight: '100vh', paddingBottom: '40px' }}>
+
+      {/* Header */}
+      <div style={{ background: 'white', padding: '52px 24px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #f1f5f9', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
+        <div>
+          <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px' }}>Scanner</h1>
+          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0' }}>Photo ou import depuis la galerie</p>
+        </div>
       </div>
 
-      <div style={{ padding: '16px' }}>
+      <div style={{ padding: '20px 16px' }}>
+
+        {/* Zone upload */}
         {!preview && (
           <div
             onClick={() => inputRef.current?.click()}
-            style={{
-              border: '2px dashed #d1d5db',
-              borderRadius: '16px',
-              padding: '48px 24px',
-              textAlign: 'center',
-              background: 'white',
-              cursor: 'pointer',
-            }}
+            style={{ border: '2px dashed #e2e8f0', borderRadius: '20px', padding: '56px 24px', textAlign: 'center', background: 'white', cursor: 'pointer' }}
           >
-            <p style={{ fontSize: '48px', margin: '0 0 12px' }}>📷</p>
-            <p style={{ fontWeight: '600', fontSize: '16px', margin: '0 0 6px' }}>Prendre une photo</p>
-            <p style={{ fontSize: '13px', color: '#888', margin: '0' }}>ou importer depuis ta galerie</p>
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              style={{ display: 'none' }}
-              onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-            />
+            <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>📷</div>
+            <p style={{ fontWeight: '700', fontSize: '17px', margin: '0 0 6px', color: '#1e293b' }}>Prendre une photo</p>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px' }}>JPG, PNG, PDF — max 10 MB</p>
+            <span style={{ background: '#4f46e5', color: 'white', padding: '10px 24px', borderRadius: '10px', fontSize: '14px', fontWeight: '600' }}>
+              Choisir un fichier
+            </span>
+            <input ref={inputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
           </div>
         )}
 
+        {/* Apercu */}
         {preview && (
-          <div style={{ marginBottom: '16px' }}>
-            <img src={preview} alt="Facture" style={{
-              width: '100%',
-              borderRadius: '12px',
-              maxHeight: '200px',
-              objectFit: 'cover',
-            }} />
+          <div style={{ marginBottom: '16px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
+            <img src={preview} alt="Facture" style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', display: 'block' }} />
           </div>
         )}
 
+        {/* Chargement */}
         {loading && (
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '24px',
-            textAlign: 'center',
-          }}>
-            <p style={{ fontSize: '24px', margin: '0 0 8px' }}>🔍</p>
-            <p style={{ fontWeight: '600', margin: '0 0 4px' }}>Analyse en cours...</p>
-            <p style={{ fontSize: '13px', color: '#888', margin: '0' }}>L'IA analyse ta facture</p>
+          <div style={{ background: 'white', borderRadius: '16px', padding: '32px 24px', textAlign: 'center', border: '1px solid #f1f5f9' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '24px' }}>🔍</div>
+            <p style={{ fontWeight: '700', fontSize: '16px', margin: '0 0 4px', color: '#1e293b' }}>Analyse en cours...</p>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0' }}>Detection automatique par IA</p>
           </div>
         )}
 
+        {/* Erreur */}
         {error && (
-          <div style={{
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '12px',
-            padding: '16px',
-            marginBottom: '16px',
-          }}>
-            <p style={{ color: '#dc2626', margin: '0', fontSize: '14px' }}>{error}</p>
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '14px', padding: '16px', marginBottom: '12px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '18px' }}>⚠️</span>
+            <p style={{ color: '#dc2626', margin: '0', fontSize: '14px', fontWeight: '500' }}>{error}</p>
           </div>
         )}
 
+        {/* Resultat */}
         {result && !loading && (
-          <div style={{
-            background: 'white',
-            borderRadius: '16px',
-            padding: '20px',
-            marginBottom: '16px',
-          }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '24px', marginBottom: '12px', border: '1px solid #f1f5f9' }}>
             {result.is_invoice === false ? (
-              <p style={{ textAlign: 'center', color: '#888' }}>Ce document ne semble pas être une facture.</p>
+              <p style={{ textAlign: 'center', color: '#94a3b8', margin: '0' }}>Ce document ne semble pas etre une facture.</p>
             ) : (
               <>
-                <p style={{ fontSize: '13px', color: '#22c55e', fontWeight: '600', margin: '0 0 12px' }}>✓ Facture détectée</p>
-                <p style={{ fontSize: '22px', fontWeight: '700', margin: '0 0 4px' }}>{result.company_name}</p>
-                <p style={{ fontSize: '32px', fontWeight: '700', color: '#6c63ff', margin: '0 0 4px' }}>
-                  {result.amount} €
-                  <span style={{ fontSize: '14px', fontWeight: '400', color: '#888' }}> {cycleLabel[result.billing_cycle] || ''}</span>
-                </p>
-                <p style={{ fontSize: '13px', color: '#888', margin: '0 0 20px' }}>
-                  {categoryLabel[result.category] || result.category}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+                  <p style={{ fontSize: '13px', color: '#22c55e', fontWeight: '700', margin: '0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Facture detectee</p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+                  <div style={{
+                    width: '52px', height: '52px', borderRadius: '14px',
+                    background: (categoryConfig[result.category] || categoryConfig.other).bg,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0,
+                  }}>
+                    {(categoryConfig[result.category] || categoryConfig.other).icon}
+                  </div>
+                  <div>
+                    <p style={{ fontWeight: '700', fontSize: '20px', margin: '0 0 2px', color: '#1e293b' }}>{result.company_name}</p>
+                    <span style={{
+                      fontSize: '11px', fontWeight: '700',
+                      color: (categoryConfig[result.category] || categoryConfig.other).color,
+                      background: (categoryConfig[result.category] || categoryConfig.other).bg,
+                      padding: '2px 8px', borderRadius: '6px',
+                    }}>
+                      {(categoryConfig[result.category] || categoryConfig.other).label}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0' }}>Montant detecte</p>
+                  <p style={{ fontWeight: '800', fontSize: '24px', color: '#4f46e5', margin: '0' }}>
+                    {result.amount} €
+                    <span style={{ fontSize: '13px', fontWeight: '400', color: '#94a3b8' }}> {cycleLabel[result.billing_cycle] || ''}</span>
+                  </p>
+                </div>
+
                 <button
                   onClick={() => {
-  addSubscription({
-    company_name: result.company_name,
-    amount: result.amount,
-    billing_cycle: result.billing_cycle,
-    category: result.category,
-    details: result.details || {},
-  })
-  router.push('/')
-}}
-                  style={{
-                    width: '100%',
-                    background: '#6c63ff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '14px',
-                    fontWeight: '600',
-                    fontSize: '15px',
-                    cursor: 'pointer',
+                    addSubscription({
+                      company_name: result.company_name,
+                      amount: result.amount,
+                      billing_cycle: result.billing_cycle,
+                      category: result.category,
+                      details: result.details || {},
+                    })
+                    router.push('/')
                   }}
+                  style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '15px', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}
                 >
                   Ajouter au dashboard
                 </button>
@@ -196,17 +169,7 @@ export default function ScanPage() {
         {preview && !loading && (
           <button
             onClick={() => { setPreview(null); setResult(null); setError(null) }}
-            style={{
-              width: '100%',
-              background: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              padding: '14px',
-              fontWeight: '600',
-              fontSize: '15px',
-              cursor: 'pointer',
-              color: '#374151',
-            }}
+            style={{ width: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', color: '#64748b' }}
           >
             Scanner une autre facture
           </button>

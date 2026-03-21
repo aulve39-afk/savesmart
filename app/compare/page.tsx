@@ -23,13 +23,12 @@ const allOffers: Record<string, Offer[]> = {
     { name: 'Disney+', price: 5.99, description: '4 ecrans, 4K, telechargements', url: 'https://www.disneyplus.com', details: { screens: 4, quality: '4K', downloads: true } },
     { name: 'Apple TV+', price: 4.99, description: '6 ecrans, 4K, telechargements', url: 'https://tv.apple.com', details: { screens: 6, quality: '4K', downloads: true } },
     { name: 'Paramount+', price: 5.99, description: '3 ecrans, Full HD', url: 'https://www.paramountplus.com', details: { screens: 3, quality: 'HD', downloads: true } },
-    { name: 'Salto', price: 6.99, description: '3 ecrans, HD, telechargements', url: 'https://www.salto.fr', details: { screens: 3, quality: 'HD', downloads: true } },
   ],
   energie: [
-    { name: 'TotalEnergies', price: 74.00, description: 'Offre verte, tarif fixe', url: 'https://www.totalenergies.fr', details: { kwh_monthly: 350, type: 'electricite', contract: 'fixe' } },
-    { name: 'Engie', price: 71.00, description: 'Tarif fixe garanti 1 an', url: 'https://www.engie.fr', details: { kwh_monthly: 350, type: 'electricite', contract: 'fixe' } },
-    { name: 'Vattenfall', price: 68.00, description: 'Electricite verte certifiee', url: 'https://www.vattenfall.fr', details: { kwh_monthly: 350, type: 'electricite', contract: 'vert' } },
-    { name: 'OHM Energie', price: 65.00, description: 'Petit fournisseur, prix bas', url: 'https://www.ohm-energie.com', details: { kwh_monthly: 350, type: 'electricite', contract: 'base' } },
+    { name: 'TotalEnergies', price: 74.00, description: 'Offre verte, tarif fixe', url: 'https://www.totalenergies.fr', details: { kwh_monthly: 350, type: 'electricite' } },
+    { name: 'Engie', price: 71.00, description: 'Tarif fixe garanti 1 an', url: 'https://www.engie.fr', details: { kwh_monthly: 350, type: 'electricite' } },
+    { name: 'Vattenfall', price: 68.00, description: 'Electricite verte certifiee', url: 'https://www.vattenfall.fr', details: { kwh_monthly: 350, type: 'electricite' } },
+    { name: 'OHM Energie', price: 65.00, description: 'Petit fournisseur, prix bas', url: 'https://www.ohm-energie.com', details: { kwh_monthly: 350, type: 'electricite' } },
   ],
   assurance: [
     { name: 'Luko', price: 4.90, description: 'Habitation 100% digitale', url: 'https://www.getluko.com', details: { type: 'habitation' } },
@@ -48,30 +47,23 @@ const allOffers: Record<string, Offer[]> = {
 
 function scoreOffer(offer: Offer, currentDetails: Record<string, any>, category: string): number {
   if (!currentDetails || Object.keys(currentDetails).length === 0) return 1
-
   let score = 0
-
   if (category === 'telecom') {
     const currentData = currentDetails.data_go || 0
     const offerData = offer.details.data_go || 0
     if (offerData >= currentData) score += 2
     else if (offerData >= currentData * 0.8) score += 1
     if (offer.details.calls === currentDetails.calls) score += 1
-    if (offer.details.sms === currentDetails.sms) score += 1
   }
-
   if (category === 'streaming') {
     const currentScreens = currentDetails.screens || 1
     const offerScreens = offer.details.screens || 1
     if (offerScreens >= currentScreens) score += 2
     if (offer.details.quality === currentDetails.quality) score += 2
-    if (offer.details.downloads === currentDetails.downloads) score += 1
   }
-
   if (category === 'energie') {
     if (offer.details.type === currentDetails.type) score += 3
   }
-
   return score
 }
 
@@ -90,86 +82,90 @@ function CompareContent() {
     .sort((a, b) => b.score - a.score || (amount - a.price) - (amount - b.price))
     .slice(0, 4)
 
-  const detailLabel: Record<string, string> = {
-    data_go: 'Go de data',
-    screens: 'ecrans',
-    kwh_monthly: 'kWh/mois',
-    quality: 'Qualite',
-    calls: 'Appels',
-  }
+  const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto', background: '#f5f5f5', minHeight: '100vh', paddingBottom: '32px' }}>
-      <div style={{ background: 'white', padding: '20px 24px 16px', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', padding: '0' }}>←</button>
+    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: '#f8fafc', minHeight: '100vh', paddingBottom: '40px' }}>
+
+      {/* Header */}
+      <div style={{ background: 'white', padding: '52px 24px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #f1f5f9', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
         <div>
-          <h1 style={{ fontSize: '18px', fontWeight: '600', margin: '0' }}>Comparer</h1>
-          <p style={{ fontSize: '12px', color: '#888', margin: '0' }}>{name}</p>
+          <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px' }}>Comparer</h1>
+          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0' }}>{name}</p>
         </div>
       </div>
 
-      <div style={{ padding: '16px' }}>
-        <div style={{ background: '#1a1a2e', borderRadius: '12px', padding: '16px', color: 'white', marginBottom: '8px' }}>
-          <p style={{ fontSize: '12px', opacity: 0.6, margin: '0 0 4px' }}>Ton offre actuelle</p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+      <div style={{ padding: '20px 16px' }}>
+
+        {/* Offre actuelle */}
+        <div style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', borderRadius: '16px', padding: '20px', color: 'white', marginBottom: '20px' }}>
+          <p style={{ fontSize: '11px', opacity: 0.6, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Offre actuelle</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p style={{ fontWeight: '700', fontSize: '18px', margin: '0' }}>{name}</p>
-            <p style={{ fontWeight: '700', fontSize: '22px', margin: '0' }}>{amount.toFixed(2)} euros/mois</p>
+            <p style={{ fontWeight: '800', fontSize: '22px', margin: '0' }}>{amount.toFixed(2)} €/mois</p>
           </div>
-          {Object.keys(currentDetails).length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {Object.entries(currentDetails).map(([key, val]) => (
-                detailLabel[key] ? (
-                  <span key={key} style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px' }}>
-                    {String(val)} {detailLabel[key]}
-                  </span>
-                ) : null
-              ))}
-            </div>
-          )}
         </div>
 
-        <p style={{ fontSize: '13px', color: '#888', fontWeight: '600', margin: '12px 0 10px' }}>OFFRES EQUIVALENTES</p>
+        <p style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          Offres equivalentes
+        </p>
 
         {offers.map((offer, i) => {
           const saving = amount - offer.price
-          const btnStyle = {
-            display: 'block',
-            background: saving > 0 ? '#6c63ff' : '#f3f4f6',
-            color: saving > 0 ? 'white' : '#374151',
-            textAlign: 'center' as const,
-            padding: '10px',
-            borderRadius: '8px',
-            fontWeight: '600',
-            fontSize: '13px',
-            textDecoration: 'none',
-          }
+          const isBest = i === 0 && saving > 0
           return (
-            <div key={i} style={{ background: 'white', borderRadius: '12px', padding: '16px', marginBottom: '8px', border: i === 0 && saving > 0 ? '1.5px solid #6c63ff' : '1px solid #e5e7eb' }}>
-              {i === 0 && saving > 0 && (
-                <p style={{ fontSize: '11px', color: '#6c63ff', fontWeight: '600', margin: '0 0 8px' }}>MEILLEURE OFFRE</p>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                <div>
-                  <p style={{ fontWeight: '600', fontSize: '15px', margin: '0 0 2px' }}>{offer.name}</p>
-                  <p style={{ fontSize: '12px', color: '#888', margin: '0' }}>{offer.description}</p>
+            <div key={i} style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '18px',
+              marginBottom: '10px',
+              border: isBest ? '2px solid #4f46e5' : '1px solid #f1f5f9',
+            }}>
+              {isBest && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '14px' }}>⭐</span>
+                  <p style={{ fontSize: '11px', color: '#4f46e5', fontWeight: '700', margin: '0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Meilleure offre</p>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontWeight: '700', fontSize: '16px', margin: '0 0 2px' }}>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                <div>
+                  <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 4px', color: '#1e293b' }}>{offer.name}</p>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0' }}>{offer.description}</p>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '12px' }}>
+                  <p style={{ fontWeight: '800', fontSize: '17px', margin: '0 0 2px', color: '#1e293b' }}>
                     {offer.price === 0 ? 'Gratuit' : offer.price.toFixed(2) + ' euros/mois'}
                   </p>
                   {saving > 0 && (
-                    <p style={{ fontSize: '12px', color: '#22c55e', fontWeight: '600', margin: '0' }}>
+                    <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: '700', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px' }}>
                       -{saving.toFixed(2)} euros/mois
-                    </p>
+                    </span>
                   )}
                   {saving < 0 && (
-                    <p style={{ fontSize: '12px', color: '#ef4444', fontWeight: '600', margin: '0' }}>
+                    <span style={{ fontSize: '12px', color: '#dc2626', fontWeight: '700', background: '#fef2f2', padding: '2px 8px', borderRadius: '6px' }}>
                       +{Math.abs(saving).toFixed(2)} euros/mois
-                    </p>
+                    </span>
                   )}
                 </div>
               </div>
-              <a href={offer.url} target="_blank" rel="noopener noreferrer" style={btnStyle}>
+              
+                href={offer.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block',
+                  background: isBest ? '#4f46e5' : '#f8fafc',
+                  color: isBest ? 'white' : '#64748b',
+                  textAlign: 'center',
+                  padding: '11px',
+                  borderRadius: '10px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  textDecoration: 'none',
+                  border: isBest ? 'none' : '1px solid #e2e8f0',
+                }}
+              >
                 Voir offre
               </a>
             </div>
@@ -182,7 +178,7 @@ function CompareContent() {
 
 export default function ComparePage() {
   return (
-    <Suspense fallback={<div style={{ padding: '32px', textAlign: 'center' }}>Chargement...</div>}>
+    <Suspense fallback={<div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>Chargement...</div>}>
       <CompareContent />
     </Suspense>
   )
