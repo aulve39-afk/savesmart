@@ -5,8 +5,8 @@ import { getSubscriptions, removeSubscription, type Subscription } from './store
 
 const categoryLabel: Record<string, string> = {
   streaming: 'Streaming',
-  telecom: 'Télécom',
-  energie: 'Énergie',
+  telecom: 'Telecom',
+  energie: 'Energie',
   assurance: 'Assurance',
   saas: 'SaaS',
   other: 'Autre',
@@ -49,7 +49,7 @@ export default function Home() {
         padding: '20px 24px 16px',
         borderBottom: '1px solid #eeeeee',
       }}>
-        <p style={{ color: '#888', fontSize: '13px', margin: '0 0 2px' }}>Bonjour 👋</p>
+        <p style={{ color: '#888', fontSize: '13px', margin: '0 0 2px' }}>Bonjour</p>
         <h1 style={{ fontSize: '22px', fontWeight: '600', margin: '0' }}>SaveSmart</h1>
       </div>
 
@@ -60,13 +60,13 @@ export default function Home() {
         padding: '24px',
         color: 'white',
       }}>
-        <p style={{ fontSize: '13px', opacity: 0.6, margin: '0 0 6px' }}>Total mensuel détecté</p>
+        <p style={{ fontSize: '13px', opacity: 0.6, margin: '0 0 6px' }}>Total mensuel</p>
         <p style={{ fontSize: '36px', fontWeight: '700', margin: '0 0 4px' }}>
-          {total.toFixed(2)} €
+          {total.toFixed(2)} euros
           <span style={{ fontSize: '16px', fontWeight: '400' }}>/mois</span>
         </p>
         <p style={{ fontSize: '13px', opacity: 0.5, margin: '0' }}>
-          {subscriptions.length} abonnement{subscriptions.length !== 1 ? 's' : ''} détecté{subscriptions.length !== 1 ? 's' : ''}
+          {subscriptions.length} abonnement{subscriptions.length !== 1 ? 's' : ''} detecte{subscriptions.length !== 1 ? 's' : ''}
         </p>
       </div>
 
@@ -85,7 +85,7 @@ export default function Home() {
             cursor: 'pointer',
           }}
         >
-          📷 Scanner une facture
+          Scanner une facture
         </button>
       </div>
 
@@ -104,7 +104,7 @@ export default function Home() {
         ) : (
           <>
             <p style={{ fontSize: '13px', color: '#888', fontWeight: '600', margin: '0 0 10px' }}>
-              ABONNEMENTS DÉTECTÉS
+              ABONNEMENTS DETECTES
             </p>
             {subscriptions.map((sub) => (
               <div key={sub.id} style={{
@@ -112,52 +112,68 @@ export default function Home() {
                 borderRadius: '12px',
                 padding: '14px 16px',
                 marginBottom: '8px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
               }}>
-                <div>
-                  <p style={{ fontWeight: '600', fontSize: '15px', margin: '0 0 2px' }}>{sub.company_name}</p>
-                  <p style={{ fontSize: '12px', color: '#888', margin: '0' }}>
-                    {categoryLabel[sub.category] || sub.category}
-                  </p>
-                </div>
-                <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <div>
-                    <p style={{ fontWeight: '600', fontSize: '15px', margin: '0' }}>
-                      {sub.amount.toFixed(2)} €{cycleLabel[sub.billing_cycle] || ''}
+                    <p style={{ fontWeight: '600', fontSize: '15px', margin: '0 0 2px' }}>{sub.company_name}</p>
+                    <p style={{ fontSize: '12px', color: '#888', margin: '0' }}>
+                      {categoryLabel[sub.category] || sub.category}
                     </p>
                   </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontWeight: '600', fontSize: '15px', margin: '0' }}>
+                      {sub.amount.toFixed(2)} euros{cycleLabel[sub.billing_cycle] || ''}
+                    </p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <button
-                    onClick={() => handleRemove(sub.id)}
+                    onClick={() => router.push('/compare?name=' + sub.company_name + '&amount=' + sub.amount + '&category=' + sub.category + '&details=' + encodeURIComponent(JSON.stringify(sub.details || {})))}
                     style={{
-                      background: '#fef2f2',
+                      flex: 1,
+                      background: '#f0f0ff',
                       border: 'none',
                       borderRadius: '8px',
-                      padding: '6px 10px',
-                      color: '#dc2626',
-                      fontSize: '12px',
+                      padding: '8px',
+                      color: '#6c63ff',
+                      fontSize: '13px',
                       cursor: 'pointer',
                       fontWeight: '600',
                     }}
                   >
-                    ✕
+                    Comparer
                   </button>
                   <button
-  onClick={() => router.push(`/compare?name=${sub.company_name}&amount=${sub.amount}&category=${sub.category}`)}
-  style={{
-    background: '#f0f0ff',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '6px 10px',
-    color: '#6c63ff',
-    fontSize: '12px',
-    cursor: 'pointer',
-    fontWeight: '600',
-  }}
->
-  Comparer
-</button>
+                    onClick={() => router.push('/resiliation?name=' + sub.company_name)}
+                    style={{
+                      flex: 1,
+                      background: '#fef2f2',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px',
+                      color: '#dc2626',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                    }}
+                  >
+                    Resilier
+                  </button>
+                  <button
+                    onClick={() => handleRemove(sub.id)}
+                    style={{
+                      background: '#f3f4f6',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      color: '#374151',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                    }}
+                  >
+                    X
+                  </button>
                 </div>
               </div>
             ))}
