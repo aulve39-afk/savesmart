@@ -46,7 +46,6 @@ export default function Home() {
 
   const total = subscriptions.reduce((sum, s) => sum + s.amount, 0)
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-
   const categories = [...new Set(subscriptions.map(s => s.category))]
 
   return (
@@ -89,10 +88,21 @@ export default function Home() {
         </button>
       </div>
 
-      <div style={{ padding: '8px 16px 16px' }}>
-        <button onClick={() => router.push('/gmail')} style={{ width: '100%', background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '16px', fontWeight: '600', fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '18px' }}>📧</span>
+      <div style={{ padding: '4px 16px' }}>
+        <button onClick={() => router.push('/gmail')} style={{ width: '100%', background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>📧</span>
           Scanner mes emails Gmail
+        </button>
+      </div>
+
+      <div style={{ padding: '4px 16px 16px', display: 'flex', gap: '8px' }}>
+        <button onClick={() => router.push('/ajouter')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '16px' }}>➕</span>
+          Ajouter
+        </button>
+        <button onClick={() => router.push('/historique')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '16px' }}>💰</span>
+          Economies
         </button>
       </div>
 
@@ -105,7 +115,6 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* Barre filtres/tri */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px' }}>
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', margin: '0', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 {filtered.length} abonnement{filtered.length !== 1 ? 's' : ''}
@@ -118,7 +127,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Panel filtres */}
             {showFilters && (
               <div style={{ background: 'var(--bg-card)', borderRadius: '14px', padding: '16px', marginBottom: '12px', border: '1px solid var(--border)' }}>
                 <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Trier par</p>
@@ -126,7 +134,7 @@ export default function Home() {
                   {([
                     ['amount_desc', 'Plus cher'],
                     ['amount_asc', 'Moins cher'],
-                    ['name_asc', 'A → Z'],
+                    ['name_asc', 'A Z'],
                     ['recent', 'Recent'],
                   ] as [SortOption, string][]).map(([val, label]) => (
                     <button
@@ -138,7 +146,6 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-
                 <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Filtrer par</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   <button
