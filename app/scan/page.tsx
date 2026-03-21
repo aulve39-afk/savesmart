@@ -164,15 +164,16 @@ export default function ScanPage() {
                   {categoryLabel[result.category] || result.category}
                 </p>
                 <button
-                  onClick={() => {
-                    addSubscription({
-                      company_name: result.company_name,
-                      amount: result.amount,
-                      billing_cycle: result.billing_cycle,
-                      category: result.category,
-                    })
-                    router.push('/')
-                  }}
+                  oonClick={() => {
+  addSubscription({
+    company_name: result.company_name,
+    amount: result.amount,
+    billing_cycle: result.billing_cycle,
+    category: result.category,
+    details: result.details || {},
+  })
+  router.push('/')
+}}
                   style={{
                     width: '100%',
                     background: '#6c63ff',

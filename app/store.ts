@@ -4,6 +4,7 @@ export type Subscription = {
   amount: number
   billing_cycle: string
   category: string
+  details?: Record<string, any>
   detected_at: string
 }
 
