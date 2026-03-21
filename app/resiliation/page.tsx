@@ -33,9 +33,42 @@ function ResiliationContent() {
     outline: 'none',
   }
 
+  const handlePrint = () => {
+    const lettre = document.getElementById('lettre-print')?.innerHTML
+    const win = window.open('', '_blank')
+    if (!win || !lettre) return
+    win.document.write(`
+      <html>
+        <head>
+          <title>Lettre de resiliation - ${name}</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+              max-width: 700px;
+              margin: 60px auto;
+              padding: 0 40px;
+              font-size: 15px;
+              line-height: 1.8;
+              color: #334155;
+            }
+            p { margin: 0 0 14px; }
+            .bold { font-weight: 700; color: #1e293b; }
+            .muted { color: #64748b; }
+            hr { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0; }
+          </style>
+        </head>
+        <body>${lettre}</body>
+      </html>
+    `)
+    win.document.close()
+    win.focus()
+    win.print()
+  }
+
   if (generated) {
     return (
       <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: '#f8fafc', minHeight: '100vh', paddingBottom: '40px' }}>
+
         <div style={{ background: 'white', padding: '52px 24px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button onClick={() => setGenerated(false)} style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #f1f5f9', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
           <div>
@@ -52,51 +85,44 @@ function ResiliationContent() {
             </p>
           </div>
 
-          {/* Lettre */}
-          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', marginBottom: '16px', border: '1px solid #f1f5f9', fontSize: '14px', lineHeight: '1.8', color: '#334155' }}>
-            <div style={{ marginBottom: '28px' }}>
-              <p style={{ margin: '0', fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>{prenom} {nom}</p>
-              <p style={{ margin: '0', color: '#64748b' }}>{adresse}</p>
-              <p style={{ margin: '0', color: '#64748b' }}>{ville}</p>
-            </div>
+          <div id="lettre-print" style={{ background: 'white', borderRadius: '20px', padding: '28px', marginBottom: '16px', border: '1px solid #f1f5f9', fontSize: '14px', lineHeight: '1.8', color: '#334155' }}>
+            <p style={{ margin: '0', fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>{prenom} {nom}</p>
+            <p style={{ margin: '0', color: '#64748b' }}>{adresse}</p>
+            <p style={{ margin: '0 0 28px', color: '#64748b' }}>{ville}</p>
 
-            <div style={{ marginBottom: '28px' }}>
-              <p style={{ margin: '0', fontWeight: '700', color: '#1e293b' }}>Service Resiliation</p>
-              <p style={{ margin: '0', color: '#64748b' }}>{name}</p>
-            </div>
+            <p style={{ margin: '0', fontWeight: '700', color: '#1e293b' }}>Service Resiliation</p>
+            <p style={{ margin: '0 0 28px', color: '#64748b' }}>{name}</p>
 
-            <p style={{ margin: '0 0 20px', color: '#94a3b8', fontSize: '13px' }}>
-              Fait le {today}
+            <p style={{ margin: '0 0 20px', color: '#94a3b8', fontSize: '13px' }}>Fait le {today}</p>
+
+            <hr style={{ border: 'none', borderTop: '1px solid #f1f5f9', margin: '0 0 20px' }} />
+
+            <p style={{ margin: '0 0 16px', fontWeight: '700', color: '#1e293b' }}>
+              Objet : Demande de resiliation de mon abonnement
             </p>
 
-            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
-              <p style={{ margin: '0 0 16px', fontWeight: '700', color: '#1e293b' }}>
-                Objet : Demande de resiliation de mon abonnement
-              </p>
+            <p style={{ margin: '0 0 14px' }}>Madame, Monsieur,</p>
 
-              <p style={{ margin: '0 0 14px' }}>Madame, Monsieur,</p>
+            <p style={{ margin: '0 0 14px' }}>
+              Je soussigne(e) {prenom} {nom}, titulaire d un abonnement aupres de {name},
+              vous informe par la presente de ma volonte de resilier mon contrat
+              dans les meilleurs delais, conformement aux conditions generales de vente.
+            </p>
 
-              <p style={{ margin: '0 0 14px' }}>
-                Je soussigne(e) {prenom} {nom}, titulaire d un abonnement aupres de {name},
-                vous informe par la presente de ma volonte de resilier mon contrat
-                dans les meilleurs delais, conformement aux conditions generales de vente.
-              </p>
+            <p style={{ margin: '0 0 14px' }}>
+              Je vous demande de bien vouloir confirmer la bonne reception de ce courrier
+              ainsi que la date effective de resiliation de mon abonnement.
+            </p>
 
-              <p style={{ margin: '0 0 14px' }}>
-                Je vous demande de bien vouloir confirmer la bonne reception de ce courrier
-                ainsi que la date effective de resiliation de mon abonnement.
-              </p>
+            <p style={{ margin: '0 0 28px' }}>
+              Veuillez agreer, Madame, Monsieur, mes salutations distinguees.
+            </p>
 
-              <p style={{ margin: '0 0 28px' }}>
-                Veuillez agreer, Madame, Monsieur, mes salutations distinguees.
-              </p>
-
-              <p style={{ margin: '0', fontWeight: '700', color: '#1e293b' }}>{prenom} {nom}</p>
-            </div>
+            <p style={{ margin: '0', fontWeight: '700', color: '#1e293b' }}>{prenom} {nom}</p>
           </div>
 
           <button
-            onClick={() => window.print()}
+            onClick={handlePrint}
             style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: 'pointer', marginBottom: '10px' }}
           >
             Imprimer / Sauvegarder en PDF
