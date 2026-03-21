@@ -189,16 +189,16 @@ export default function Home() {
                       <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>{cycleLabel[sub.billing_cycle] || ''}</p>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     <button
                       onClick={() => router.push('/compare?name=' + sub.company_name + '&amount=' + sub.amount + '&category=' + sub.category + '&details=' + encodeURIComponent(JSON.stringify(sub.details || {})))}
-                      style={{ flex: 1, background: '#f5f3ff', border: 'none', borderRadius: '10px', padding: '9px', color: '#7c3aed', fontSize: '13px', cursor: 'pointer', fontWeight: '600' }}
+                      style={{ flex: 1, background: '#f5f3ff', border: 'none', borderRadius: '10px', padding: '9px', color: '#7c3aed', fontSize: '12px', cursor: 'pointer', fontWeight: '600', minWidth: '70px' }}
                     >
                       Comparer
                     </button>
                     <button
-                      onClick={() => router.push('/resiliation?name=' + sub.company_name)}
-                      style={{ flex: 1, background: '#fef2f2', border: 'none', borderRadius: '10px', padding: '9px', color: '#dc2626', fontSize: '13px', cursor: 'pointer', fontWeight: '600' }}
+                      onClick={() => router.push('/negocier?name=' + sub.company_name + '&amount=' + sub.amount + '&category=' + sub.category)}
+                      style={{ flex: 1, background: '#f0fdf4', border: 'none', borderRadius: '10px', padding: '9px', color: '#16a34a', fontSize: '12px', cursor: 'pointer', fontWeight: '600', minWidth: '70px' }}
                     >
                       Resilier
                     </button>
