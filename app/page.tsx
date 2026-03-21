@@ -3,21 +3,27 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSubscriptions, removeSubscription, type Subscription } from './store'
 
-const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string; darkBg: string }> = {
-  streaming: { label: 'Streaming', icon: '▶', color: '#7c3aed', bg: '#f5f3ff', darkBg: '#2e1065' },
-  telecom:   { label: 'Telecom',   icon: '📶', color: '#0284c7', bg: '#f0f9ff', darkBg: '#0c4a6e' },
-  energie:   { label: 'Energie',   icon: '⚡', color: '#d97706', bg: '#fffbeb', darkBg: '#451a03' },
-  assurance: { label: 'Assurance', icon: '🛡', color: '#059669', bg: '#f0fdf4', darkBg: '#052e16' },
-  saas:      { label: 'SaaS',      icon: '☁', color: '#db2777', bg: '#fdf2f8', darkBg: '#4a044e' },
-  other:     { label: 'Autre',     icon: '●',  color: '#6b7280', bg: '#f9fafb', darkBg: '#1f2937' },
+const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
+  streaming: { label: 'Streaming', icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
+  telecom:   { label: 'Telecom',   icon: '📶', color: '#0284c7', bg: '#f0f9ff' },
+  energie:   { label: 'Energie',   icon: '⚡', color: '#d97706', bg: '#fffbeb' },
+  assurance: { label: 'Assurance', icon: '🛡', color: '#059669', bg: '#f0fdf4' },
+  saas:      { label: 'SaaS',      icon: '☁', color: '#db2777', bg: '#fdf2f8' },
+  other:     { label: 'Autre',     icon: '●',  color: '#6b7280', bg: '#f9fafb' },
 }
 
 const cycleLabel: Record<string, string> = {
   monthly: '/mois', yearly: '/an', quarterly: '/trim.', one_time: '', unknown: '',
 }
 
+type SortOption = 'amount_desc' | 'amount_asc' | 'name_asc' | 'recent'
+type FilterOption = 'all' | 'streaming' | 'telecom' | 'energie' | 'assurance' | 'saas' | 'other'
+
 export default function Home() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [sort, setSort] = useState<SortOption>('amount_desc')
+  const [filter, setFilter] = useState<FilterOption>('all')
+  const [showFilters, setShowFilters] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -29,15 +35,37 @@ export default function Home() {
     setSubscriptions(getSubscriptions())
   }
 
+  const filtered = subscriptions
+    .filter(s => filter === 'all' || s.category === filter)
+    .sort((a, b) => {
+      if (sort === 'amount_desc') return b.amount - a.amount
+      if (sort === 'amount_asc') return a.amount - b.amount
+      if (sort === 'name_asc') return a.company_name.localeCompare(b.company_name)
+      return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime()
+    })
+
   const total = subscriptions.reduce((sum, s) => sum + s.amount, 0)
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+
+  const categories = [...new Set(subscriptions.map(s => s.category))]
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
 
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)' }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '0 0 2px' }}>Bonjour 👋</p>
-        <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>SaveSmart</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '0 0 2px' }}>Bonjour 👋</p>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>SaveSmart</h1>
+          </div>
+          <button
+            onClick={() => router.push('/stats')}
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <span style={{ fontSize: '16px' }}>📊</span>
+            Stats
+          </button>
+        </div>
       </div>
 
       <div style={{ padding: '20px 16px 0' }}>
@@ -77,10 +105,65 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', margin: '8px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Abonnements
-            </p>
-            {subscriptions.map((sub) => {
+            {/* Barre filtres/tri */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', margin: '0', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                {filtered.length} abonnement{filtered.length !== 1 ? 's' : ''}
+              </p>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                style={{ background: showFilters ? '#4f46e5' : 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', color: showFilters ? 'white' : 'var(--text-primary)' }}
+              >
+                Filtrer / Trier
+              </button>
+            </div>
+
+            {/* Panel filtres */}
+            {showFilters && (
+              <div style={{ background: 'var(--bg-card)', borderRadius: '14px', padding: '16px', marginBottom: '12px', border: '1px solid var(--border)' }}>
+                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Trier par</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+                  {([
+                    ['amount_desc', 'Plus cher'],
+                    ['amount_asc', 'Moins cher'],
+                    ['name_asc', 'A → Z'],
+                    ['recent', 'Recent'],
+                  ] as [SortOption, string][]).map(([val, label]) => (
+                    <button
+                      key={val}
+                      onClick={() => setSort(val)}
+                      style={{ background: sort === val ? '#4f46e5' : 'var(--bg-secondary)', color: sort === val ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Filtrer par</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  <button
+                    onClick={() => setFilter('all')}
+                    style={{ background: filter === 'all' ? '#4f46e5' : 'var(--bg-secondary)', color: filter === 'all' ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                  >
+                    Tous
+                  </button>
+                  {categories.map(cat => {
+                    const config = categoryConfig[cat] || categoryConfig.other
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setFilter(cat as FilterOption)}
+                        style={{ background: filter === cat ? config.color : 'var(--bg-secondary)', color: filter === cat ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                      >
+                        {config.icon} {config.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {filtered.map((sub) => {
               const config = categoryConfig[sub.category] || categoryConfig.other
               return (
                 <div key={sub.id} style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', marginBottom: '10px', border: '1px solid var(--border)' }}>
