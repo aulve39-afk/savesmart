@@ -164,7 +164,7 @@ export default function ScanPage() {
                   {categoryLabel[result.category] || result.category}
                 </p>
                 <button
-                  oonClick={() => {
+                  onClick={() => {
   addSubscription({
     company_name: result.company_name,
     amount: result.amount,
