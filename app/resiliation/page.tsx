@@ -23,13 +23,13 @@ function ResiliationContent() {
     width: '100%',
     padding: '14px 16px',
     borderRadius: '12px',
-    border: '1px solid #e2e8f0',
+    border: '1px solid var(--border-input)',
     fontSize: '15px',
     marginBottom: '10px',
     boxSizing: 'border-box' as const,
     fontFamily: font,
-    background: '#f8fafc',
-    color: '#1e293b',
+    background: 'var(--bg)',
+    color: 'var(--text-primary)',
     outline: 'none',
   }
 
@@ -52,8 +52,6 @@ function ResiliationContent() {
               color: #334155;
             }
             p { margin: 0 0 14px; }
-            .bold { font-weight: 700; color: #1e293b; }
-            .muted { color: #64748b; }
             hr { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0; }
           </style>
         </head>
@@ -65,15 +63,37 @@ function ResiliationContent() {
     win.print()
   }
 
+  const handleEmail = () => {
+    const sujet = encodeURIComponent('Demande de resiliation - ' + name)
+    const corps = encodeURIComponent(
+      prenom + ' ' + nom + '\n' +
+      adresse + '\n' +
+      ville + '\n\n' +
+      'Service Resiliation\n' +
+      name + '\n\n' +
+      'Fait le ' + today + '\n\n' +
+      'Objet : Demande de resiliation de mon abonnement\n\n' +
+      'Madame, Monsieur,\n\n' +
+      'Je soussigne(e) ' + prenom + ' ' + nom + ', titulaire d un abonnement aupres de ' + name + ', ' +
+      'vous informe par la presente de ma volonte de resilier mon contrat ' +
+      'dans les meilleurs delais, conformement aux conditions generales de vente.\n\n' +
+      'Je vous demande de bien vouloir confirmer la bonne reception de ce courrier ' +
+      'ainsi que la date effective de resiliation de mon abonnement.\n\n' +
+      'Veuillez agreer, Madame, Monsieur, mes salutations distinguees.\n\n' +
+      prenom + ' ' + nom
+    )
+    window.location.href = 'mailto:?subject=' + sujet + '&body=' + corps
+  }
+
   if (generated) {
     return (
-      <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: '#f8fafc', minHeight: '100vh', paddingBottom: '40px' }}>
+      <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
 
-        <div style={{ background: 'white', padding: '52px 24px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button onClick={() => setGenerated(false)} style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #f1f5f9', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
+        <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button onClick={() => setGenerated(false)} style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
           <div>
-            <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px' }}>Lettre generee</h1>
-            <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0' }}>{name}</p>
+            <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>Lettre generee</h1>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>{name}</p>
           </div>
         </div>
 
@@ -81,23 +101,23 @@ function ResiliationContent() {
           <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '14px', padding: '14px 16px', marginBottom: '16px', display: 'flex', gap: '10px', alignItems: 'center' }}>
             <span style={{ fontSize: '20px' }}>✅</span>
             <p style={{ color: '#16a34a', fontWeight: '600', fontSize: '14px', margin: '0' }}>
-              Lettre prete — Imprime pour sauvegarder en PDF
+              Lettre prete — Imprime ou envoie par email
             </p>
           </div>
 
-          <div id="lettre-print" style={{ background: 'white', borderRadius: '20px', padding: '28px', marginBottom: '16px', border: '1px solid #f1f5f9', fontSize: '14px', lineHeight: '1.8', color: '#334155' }}>
-            <p style={{ margin: '0', fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>{prenom} {nom}</p>
-            <p style={{ margin: '0', color: '#64748b' }}>{adresse}</p>
-            <p style={{ margin: '0 0 28px', color: '#64748b' }}>{ville}</p>
+          <div id="lettre-print" style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '28px', marginBottom: '16px', border: '1px solid var(--border)', fontSize: '14px', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
+            <p style={{ margin: '0', fontWeight: '700', color: 'var(--text-primary)', fontSize: '15px' }}>{prenom} {nom}</p>
+            <p style={{ margin: '0', color: 'var(--text-secondary)' }}>{adresse}</p>
+            <p style={{ margin: '0 0 28px', color: 'var(--text-secondary)' }}>{ville}</p>
 
-            <p style={{ margin: '0', fontWeight: '700', color: '#1e293b' }}>Service Resiliation</p>
-            <p style={{ margin: '0 0 28px', color: '#64748b' }}>{name}</p>
+            <p style={{ margin: '0', fontWeight: '700', color: 'var(--text-primary)' }}>Service Resiliation</p>
+            <p style={{ margin: '0 0 28px', color: 'var(--text-secondary)' }}>{name}</p>
 
-            <p style={{ margin: '0 0 20px', color: '#94a3b8', fontSize: '13px' }}>Fait le {today}</p>
+            <p style={{ margin: '0 0 20px', color: 'var(--text-muted)', fontSize: '13px' }}>Fait le {today}</p>
 
-            <hr style={{ border: 'none', borderTop: '1px solid #f1f5f9', margin: '0 0 20px' }} />
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '0 0 20px' }} />
 
-            <p style={{ margin: '0 0 16px', fontWeight: '700', color: '#1e293b' }}>
+            <p style={{ margin: '0 0 16px', fontWeight: '700', color: 'var(--text-primary)' }}>
               Objet : Demande de resiliation de mon abonnement
             </p>
 
@@ -118,7 +138,7 @@ function ResiliationContent() {
               Veuillez agreer, Madame, Monsieur, mes salutations distinguees.
             </p>
 
-            <p style={{ margin: '0', fontWeight: '700', color: '#1e293b' }}>{prenom} {nom}</p>
+            <p style={{ margin: '0', fontWeight: '700', color: 'var(--text-primary)' }}>{prenom} {nom}</p>
           </div>
 
           <button
@@ -129,8 +149,16 @@ function ResiliationContent() {
           </button>
 
           <button
+            onClick={handleEmail}
+            style={{ width: '100%', background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '15px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          >
+            <span style={{ fontSize: '16px' }}>✉️</span>
+            Envoyer par email
+          </button>
+
+          <button
             onClick={() => router.push('/')}
-            style={{ width: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '15px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', color: '#64748b' }}
+            style={{ width: '100%', background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '15px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}
           >
             Retour au dashboard
           </button>
@@ -140,12 +168,12 @@ function ResiliationContent() {
   }
 
   return (
-    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: '#f8fafc', minHeight: '100vh', paddingBottom: '40px' }}>
-      <div style={{ background: 'white', padding: '52px 24px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #f1f5f9', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
+    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
+      <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px' }}>Resilier</h1>
-          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0' }}>{name}</p>
+          <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>Resilier</h1>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>{name}</p>
         </div>
       </div>
 
@@ -157,8 +185,8 @@ function ResiliationContent() {
           </p>
         </div>
 
-        <div style={{ background: 'white', borderRadius: '20px', padding: '20px', marginBottom: '16px', border: '1px solid #f1f5f9' }}>
-          <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 16px', color: '#1e293b' }}>Tes informations</p>
+        <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', marginBottom: '16px', border: '1px solid var(--border)' }}>
+          <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 16px', color: 'var(--text-primary)' }}>Tes informations</p>
           <input style={inputStyle} placeholder="Prenom" value={prenom} onChange={e => setPrenom(e.target.value)} />
           <input style={inputStyle} placeholder="Nom" value={nom} onChange={e => setNom(e.target.value)} />
           <input style={inputStyle} placeholder="Adresse" value={adresse} onChange={e => setAdresse(e.target.value)} />
@@ -184,7 +212,7 @@ function ResiliationContent() {
 
 export default function ResiliationPage() {
   return (
-    <Suspense fallback={<div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>Chargement...</div>}>
+    <Suspense fallback={<div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>Chargement...</div>}>
       <ResiliationContent />
     </Suspense>
   )
