@@ -3,6 +3,29 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSubscriptions, removeSubscription, type Subscription } from './store'
 
+const competitorGroups: { name: string; keywords: string[] }[] = [
+  { name: 'Musique', keywords: ['spotify', 'deezer', 'apple music', 'tidal', 'amazon music', 'youtube music', 'qobuz'] },
+  { name: 'Streaming video', keywords: ['netflix', 'disney', 'amazon prime', 'canal+', 'hulu', 'apple tv', 'paramount', 'salto', 'ocs', 'max'] },
+  { name: 'Stockage cloud', keywords: ['dropbox', 'google drive', 'icloud', 'onedrive', 'box', 'mega'] },
+  { name: 'Bureautique', keywords: ['microsoft 365', 'google workspace', 'notion', 'zoho', 'office'] },
+  { name: 'Telecom mobile', keywords: ['free', 'sfr', 'orange', 'bouygues', 'sosh', 'red', 'prixtel', 'nrj mobile'] },
+  { name: 'Energie', keywords: ['edf', 'engie', 'totalenergies', 'vattenfall', 'ohm', 'ekwateur'] },
+  { name: 'Livraison repas', keywords: ['deliveroo', 'uber eats', 'just eat', 'frichti'] },
+]
+
+function detectDoublons(subs: Subscription[]): { group: string; names: string[] }[] {
+  const alerts: { group: string; names: string[] }[] = []
+  for (const group of competitorGroups) {
+    const matches = subs.filter(s =>
+      group.keywords.some(kw => s.company_name.toLowerCase().includes(kw))
+    )
+    if (matches.length >= 2) {
+      alerts.push({ group: group.name, names: matches.map(m => m.company_name) })
+    }
+  }
+  return alerts
+}
+
 const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   streaming: { label: 'Streaming', icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
   telecom:   { label: 'Telecom',   icon: '📶', color: '#0284c7', bg: '#f0f9ff' },
@@ -47,6 +70,7 @@ export default function Home() {
   const total = subscriptions.reduce((sum, s) => sum + s.amount, 0)
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
   const categories = [...new Set(subscriptions.map(s => s.category))]
+  const doublons = detectDoublons(subscriptions)
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
@@ -107,6 +131,43 @@ export default function Home() {
       </div>
 
       <div style={{ padding: '0 16px' }}>
+
+        {/* Alertes doublons */}
+        {doublons.length > 0 && (
+          <div style={{ marginBottom: '16px' }}>
+            <p style={{ fontSize: '11px', color: '#d97706', fontWeight: '700', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Doublons detectes
+            </p>
+            {doublons.map((d, i) => (
+              <div key={i} style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '14px', padding: '14px 16px', marginBottom: '8px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '20px', flexShrink: 0 }}>⚠️</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontWeight: '700', fontSize: '14px', color: '#92400e', margin: '0 0 4px' }}>
+                    {d.group} — services en double
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#b45309', margin: '0 0 10px' }}>
+                    Tu paies pour : {d.names.join(' et ')}
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => router.push('/compare?name=' + d.names[0] + '&amount=0&category=streaming&details=%7B%7D')}
+                      style={{ background: '#fef3c7', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#92400e', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}
+                    >
+                      Comparer
+                    </button>
+                    <button
+                      onClick={() => router.push('/resiliation?name=' + d.names[1])}
+                      style={{ background: '#fef2f2', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}
+                    >
+                      Resilier un doublon
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {subscriptions.length === 0 ? (
           <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '24px' }}>📄</div>
@@ -197,8 +258,8 @@ export default function Home() {
                       Comparer
                     </button>
                     <button
-                      onClick={() => router.push('/negocier?name=' + sub.company_name + '&amount=' + sub.amount + '&category=' + sub.category)}
-                      style={{ flex: 1, background: '#f0fdf4', border: 'none', borderRadius: '10px', padding: '9px', color: '#16a34a', fontSize: '12px', cursor: 'pointer', fontWeight: '600', minWidth: '70px' }}
+                      onClick={() => router.push('/resiliation?name=' + sub.company_name)}
+                      style={{ flex: 1, background: '#fef2f2', border: 'none', borderRadius: '10px', padding: '9px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600', minWidth: '70px' }}
                     >
                       Resilier
                     </button>
