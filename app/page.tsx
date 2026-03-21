@@ -50,12 +50,12 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    setSubscriptions(getSubscriptions())
+    getSubscriptions().then(setSubscriptions)
   }, [])
 
-  const handleRemove = (id: string) => {
-    removeSubscription(id)
-    setSubscriptions(getSubscriptions())
+  const handleRemove = async (id: string) => {
+    await removeSubscription(id)
+    getSubscriptions().then(setSubscriptions)
   }
 
   const filtered = subscriptions
@@ -131,8 +131,6 @@ export default function Home() {
       </div>
 
       <div style={{ padding: '0 16px' }}>
-
-        {/* Alertes doublons */}
         {doublons.length > 0 && (
           <div style={{ marginBottom: '16px' }}>
             <p style={{ fontSize: '11px', color: '#d97706', fontWeight: '700', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>

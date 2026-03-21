@@ -27,8 +27,8 @@ export default function HistoriquePage() {
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
   useEffect(() => {
-    setSubscriptions(getSubscriptions())
-  }, [])
+  getSubscriptions().then(setSubscriptions)
+}, [])
 
   const economies = subscriptions.map(sub => {
     const offers = alternatives[sub.category] || alternatives.other

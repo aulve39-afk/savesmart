@@ -18,8 +18,8 @@ export default function StatsPage() {
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
   useEffect(() => {
-    setSubscriptions(getSubscriptions())
-  }, [])
+  getSubscriptions().then(setSubscriptions)
+}, [])
 
   const total = subscriptions.reduce((sum, s) => sum + s.amount, 0)
   const totalYear = total * 12

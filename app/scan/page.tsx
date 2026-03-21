@@ -52,28 +52,24 @@ export default function ScanPage() {
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
   return (
-    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: '#f8fafc', minHeight: '100vh', paddingBottom: '40px' }}>
-
-      {/* Header */}
-      <div style={{ background: 'white', padding: '52px 24px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #f1f5f9', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
+    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
+      <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px' }}>Scanner</h1>
-          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0' }}>Photo ou import depuis la galerie</p>
+          <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>Scanner</h1>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Photo ou import depuis la galerie</p>
         </div>
       </div>
 
       <div style={{ padding: '20px 16px' }}>
-
-        {/* Zone upload */}
         {!preview && (
           <div
             onClick={() => inputRef.current?.click()}
-            style={{ border: '2px dashed #e2e8f0', borderRadius: '20px', padding: '56px 24px', textAlign: 'center', background: 'white', cursor: 'pointer' }}
+            style={{ border: '2px dashed var(--border-input)', borderRadius: '20px', padding: '56px 24px', textAlign: 'center', background: 'var(--bg-card)', cursor: 'pointer' }}
           >
             <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>📷</div>
-            <p style={{ fontWeight: '700', fontSize: '17px', margin: '0 0 6px', color: '#1e293b' }}>Prendre une photo</p>
-            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px' }}>JPG, PNG, PDF — max 10 MB</p>
+            <p style={{ fontWeight: '700', fontSize: '17px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Prendre une photo</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 20px' }}>JPG, PNG, PDF — max 10 MB</p>
             <span style={{ background: '#4f46e5', color: 'white', padding: '10px 24px', borderRadius: '10px', fontSize: '14px', fontWeight: '600' }}>
               Choisir un fichier
             </span>
@@ -81,23 +77,20 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Apercu */}
         {preview && (
-          <div style={{ marginBottom: '16px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
+          <div style={{ marginBottom: '16px', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)' }}>
             <img src={preview} alt="Facture" style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', display: 'block' }} />
           </div>
         )}
 
-        {/* Chargement */}
         {loading && (
-          <div style={{ background: 'white', borderRadius: '16px', padding: '32px 24px', textAlign: 'center', border: '1px solid #f1f5f9' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '32px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '24px' }}>🔍</div>
-            <p style={{ fontWeight: '700', fontSize: '16px', margin: '0 0 4px', color: '#1e293b' }}>Analyse en cours...</p>
-            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0' }}>Detection automatique par IA</p>
+            <p style={{ fontWeight: '700', fontSize: '16px', margin: '0 0 4px', color: 'var(--text-primary)' }}>Analyse en cours...</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Detection automatique par IA</p>
           </div>
         )}
 
-        {/* Erreur */}
         {error && (
           <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '14px', padding: '16px', marginBottom: '12px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '18px' }}>⚠️</span>
@@ -105,11 +98,10 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Resultat */}
         {result && !loading && (
-          <div style={{ background: 'white', borderRadius: '20px', padding: '24px', marginBottom: '12px', border: '1px solid #f1f5f9' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '24px', marginBottom: '12px', border: '1px solid var(--border)' }}>
             {result.is_invoice === false ? (
-              <p style={{ textAlign: 'center', color: '#94a3b8', margin: '0' }}>Ce document ne semble pas etre une facture.</p>
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', margin: '0' }}>Ce document ne semble pas etre une facture.</p>
             ) : (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
@@ -118,37 +110,28 @@ export default function ScanPage() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
-                  <div style={{
-                    width: '52px', height: '52px', borderRadius: '14px',
-                    background: (categoryConfig[result.category] || categoryConfig.other).bg,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0,
-                  }}>
+                  <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: (categoryConfig[result.category] || categoryConfig.other).bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
                     {(categoryConfig[result.category] || categoryConfig.other).icon}
                   </div>
                   <div>
-                    <p style={{ fontWeight: '700', fontSize: '20px', margin: '0 0 2px', color: '#1e293b' }}>{result.company_name}</p>
-                    <span style={{
-                      fontSize: '11px', fontWeight: '700',
-                      color: (categoryConfig[result.category] || categoryConfig.other).color,
-                      background: (categoryConfig[result.category] || categoryConfig.other).bg,
-                      padding: '2px 8px', borderRadius: '6px',
-                    }}>
+                    <p style={{ fontWeight: '700', fontSize: '20px', margin: '0 0 2px', color: 'var(--text-primary)' }}>{result.company_name}</p>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: (categoryConfig[result.category] || categoryConfig.other).color, background: (categoryConfig[result.category] || categoryConfig.other).bg, padding: '2px 8px', borderRadius: '6px' }}>
                       {(categoryConfig[result.category] || categoryConfig.other).label}
                     </span>
                   </div>
                 </div>
 
-                <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0' }}>Montant detecte</p>
+                <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Montant detecte</p>
                   <p style={{ fontWeight: '800', fontSize: '24px', color: '#4f46e5', margin: '0' }}>
                     {result.amount} €
-                    <span style={{ fontSize: '13px', fontWeight: '400', color: '#94a3b8' }}> {cycleLabel[result.billing_cycle] || ''}</span>
+                    <span style={{ fontSize: '13px', fontWeight: '400', color: 'var(--text-muted)' }}> {cycleLabel[result.billing_cycle] || ''}</span>
                   </p>
                 </div>
 
                 <button
-                  onClick={() => {
-                    addSubscription({
+                  onClick={async () => {
+                    await addSubscription({
                       company_name: result.company_name,
                       amount: result.amount,
                       billing_cycle: result.billing_cycle,
@@ -169,7 +152,7 @@ export default function ScanPage() {
         {preview && !loading && (
           <button
             onClick={() => { setPreview(null); setResult(null); setError(null) }}
-            style={{ width: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', color: '#64748b' }}
+            style={{ width: '100%', background: 'var(--btn-secondary-bg)', border: '1px solid var(--btn-secondary-border)', borderRadius: '12px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', color: 'var(--btn-secondary-color)' }}
           >
             Scanner une autre facture
           </button>

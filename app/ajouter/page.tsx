@@ -43,18 +43,19 @@ export default function AjouterPage() {
     outline: 'none',
   }
 
-  const handleSubmit = () => {
-    if (!name.trim()) { setError('Entre le nom du service'); return }
-    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) { setError('Entre un montant valide'); return }
-    addSubscription({
-      company_name: name.trim(),
-      amount: parseFloat(amount),
-      billing_cycle: cycle,
-      category,
-      details: {},
-    })
-    router.push('/')
-  }
+  const handleSubmit = async () => {
+  if (!name.trim()) { setError('Entre le nom du service'); return }
+  if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) { setError('Entre un montant valide'); return }
+  await addSubscription({
+    company_name: name.trim(),
+    amount: parseFloat(amount),
+    billing_cycle: cycle,
+    category,
+    details: {},
+  })
+  router.push('/')
+}
+  
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>

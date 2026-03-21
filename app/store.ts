@@ -1,5 +1,8 @@
+import { supabase } from '../lib/supabase'
+
 export type Subscription = {
   id: string
+  user_id: string
   company_name: string
   amount: number
   billing_cycle: string
@@ -8,25 +11,41 @@ export type Subscription = {
   detected_at: string
 }
 
-export function getSubscriptions(): Subscription[] {
-  if (typeof window === 'undefined') return []
-  const data = localStorage.getItem('savesmart_subscriptions')
-  return data ? JSON.parse(data) : []
-}
+const USER_ID = 'local-user'
 
-export function addSubscription(sub: Omit<Subscription, 'id' | 'detected_at'>): Subscription {
-  const subscriptions = getSubscriptions()
-  const newSub: Subscription = {
-    ...sub,
-    id: Date.now().toString(),
-    detected_at: new Date().toISOString(),
+export async function getSubscriptions(): Promise<Subscription[]> {
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', USER_ID)
+    .order('detected_at', { ascending: false })
+  if (error) {
+    console.error('Error fetching subscriptions:', error)
+    return []
   }
-  subscriptions.push(newSub)
-  localStorage.setItem('savesmart_subscriptions', JSON.stringify(subscriptions))
-  return newSub
+  return data || []
 }
 
-export function removeSubscription(id: string): void {
-  const subscriptions = getSubscriptions().filter(s => s.id !== id)
-  localStorage.setItem('savesmart_subscriptions', JSON.stringify(subscriptions))
+export async function addSubscription(
+  sub: Omit<Subscription, 'id' | 'detected_at' | 'user_id'>
+): Promise<Subscription | null> {
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .insert({ ...sub, user_id: USER_ID })
+    .select()
+    .single()
+  if (error) {
+    console.error('Error adding subscription:', error)
+    return null
+  }
+  return data
+}
+
+export async function removeSubscription(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('subscriptions')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', USER_ID)
+  if (error) console.error('Error removing subscription:', error)
 }
