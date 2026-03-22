@@ -1,43 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server'
+import OpenAI from 'openai'
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 export async function POST(req: NextRequest) {
-  await new Promise(resolve => setTimeout(resolve, 2000))
+  try {
+    const { image } = await req.json()
 
-  const results = [
-    {
-      is_invoice: true,
-      company_name: 'Free Mobile',
-      amount: 29.99,
-      billing_cycle: 'monthly',
-      category: 'telecom',
-      details: { data_go: 100, calls: 'illimites', sms: 'illimites' }
-    },
-    {
-      is_invoice: true,
-      company_name: 'Netflix',
-      amount: 17.99,
-      billing_cycle: 'monthly',
-      category: 'streaming',
-      details: { screens: 4, quality: '4K', downloads: true }
-    },
-    {
-      is_invoice: true,
-      company_name: 'EDF',
-      amount: 89.00,
-      billing_cycle: 'monthly',
-      category: 'energie',
-      details: { kwh_monthly: 350, type: 'electricite', contract: 'base' }
-    },
-    {
-      is_invoice: true,
-      company_name: 'Spotify',
-      amount: 10.99,
-      billing_cycle: 'monthly',
-      category: 'streaming',
-      details: { screens: 1, quality: 'standard', downloads: true }
-    },
-  ]
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      max_tokens: 500,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: image, detail: 'high' },
+            },
+            {
+              type: 'text',
+              text: `Analyse cette image de facture ou abonnement. Reponds UNIQUEMENT en JSON sans markdown :
+{
+  "is_invoice": true,
+  "company_name": "nom du service",
+  "amount": 12.99,
+  "billing_cycle": "monthly",
+  "category": "streaming",
+  "details": {}
+}
+billing_cycle : monthly, yearly, quarterly ou one_time
+category : streaming, telecom, energie, assurance, saas ou other
+Si ce n'est pas une facture reponds uniquement: {"is_invoice": false}`,
+            },
+          ],
+        },
+      ],
+    })
 
-  const random = results[Math.floor(Math.random() * results.length)]
-  return NextResponse.json(random)
+    const content = response.choices[0].message.content || '{}'
+    const cleaned = content.replace(/\`\`\`json|\`\`\`/g, '').trim()
+    const result = JSON.parse(cleaned)
+
+    return NextResponse.json(result)
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json({ error: 'Erreur analyse' }, { status: 500 })
+  }
 }
