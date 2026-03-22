@@ -43,6 +43,16 @@ export async function addSubscription(
   return data
 }
 
+export async function updateSubscriptionDetails(id: string, details: Record<string, any>): Promise<void> {
+  const supabase = getSupabase()
+  const { error } = await supabase
+    .from('subscriptions')
+    .update({ details } as any)
+    .eq('id', id)
+    .eq('user_id', USER_ID)
+  if (error) console.error('Error updating subscription:', error)
+}
+
 export async function removeSubscription(id: string): Promise<void> {
   const supabase = getSupabase()
   const { error } = await supabase

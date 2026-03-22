@@ -114,26 +114,53 @@ export default function Home() {
         </button>
       </div>
 
-      <div style={{ padding: '4px 16px 16px', display: 'flex', gap: '8px' }}>
+      <div style={{ padding: '4px 16px 4px', display: 'flex', gap: '8px' }}>
         <button onClick={() => router.push('/ajouter')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
           <span style={{ fontSize: '14px' }}>➕</span>
           Ajouter
         </button>
         <button onClick={() => router.push('/releve')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
           <span style={{ fontSize: '14px' }}>🏦</span>
-          Releve
+          Relevé
         </button>
         <button onClick={() => router.push('/historique')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
           <span style={{ fontSize: '14px' }}>💰</span>
-          Economies
+          Éco.
         </button>
         <button onClick={() => router.push('/partage')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
           <span style={{ fontSize: '14px' }}>👨‍👩‍👧‍👦</span>
           Partage
         </button>
       </div>
+      <div style={{ padding: '4px 16px 16px' }}>
+        <button onClick={() => router.push('/calendrier')} style={{ width: '100%', background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>📅</span>
+          Calendrier & Coût annuel
+        </button>
+      </div>
 
       <div style={{ padding: '0 16px' }}>
+        {/* Trial end alerts */}
+        {subscriptions.filter(s => {
+          if (!s.details?.is_trial || !s.details?.trial_end_date) return false
+          const diff = Math.ceil((new Date(s.details.trial_end_date).getTime() - Date.now()) / 86400000)
+          return diff <= 2 && diff >= 0
+        }).map(s => {
+          const diff = Math.ceil((new Date(s.details!.trial_end_date).getTime() - Date.now()) / 86400000)
+          return (
+            <div key={s.id} style={{ background: '#fef2f2', border: '2px solid #fca5a5', borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <span style={{ fontSize: '20px' }}>🚨</span>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: '700', fontSize: '13px', color: '#991b1b', margin: '0 0 2px' }}>Fin d'essai {diff === 0 ? "aujourd'hui" : diff === 1 ? 'demain' : `dans ${diff} jours`}</p>
+                <p style={{ fontSize: '12px', color: '#dc2626', margin: '0' }}>{s.company_name} — tu vas être prélevé !</p>
+              </div>
+              <button onClick={() => router.push('/resiliation?name=' + s.company_name)} style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: '8px', padding: '7px 12px', fontSize: '12px', cursor: 'pointer', fontWeight: '700', whiteSpace: 'nowrap' }}>
+                Résilier
+              </button>
+            </div>
+          )
+        })}
+
         {doublons.length > 0 && (
           <div style={{ marginBottom: '16px' }}>
             <p style={{ fontSize: '11px', color: '#d97706', fontWeight: '700', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Doublons detectes</p>
