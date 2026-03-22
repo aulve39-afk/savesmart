@@ -40,6 +40,40 @@ const cycleLabel: Record<string, string> = {
 type SortOption = 'amount_desc' | 'amount_asc' | 'name_asc' | 'recent'
 type FilterOption = 'all' | 'streaming' | 'telecom' | 'telecom_mobile' | 'telecom_box' | 'energie' | 'assurance' | 'saas' | 'other'
 
+const MONTHS_FR = ['jan','fév','mar','avr','mai','juin','juil','août','sep','oct','nov','déc']
+
+function fmtDate(d: Date): string {
+  return `${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`
+}
+
+function daysUntil(d: Date): number {
+  const now = new Date(); now.setHours(0,0,0,0)
+  return Math.ceil((d.getTime() - now.getTime()) / 86400000)
+}
+
+function getNextRenewal(sub: Subscription): Date | null {
+  if (sub.billing_cycle === 'one_time' || sub.billing_cycle === 'unknown') return null
+  const now = new Date(); now.setHours(0,0,0,0)
+  const d = new Date(sub.detected_at)
+  if (sub.billing_cycle === 'monthly')   { while (d <= now) d.setMonth(d.getMonth() + 1) }
+  if (sub.billing_cycle === 'yearly')    { while (d <= now) d.setFullYear(d.getFullYear() + 1) }
+  if (sub.billing_cycle === 'quarterly') { while (d <= now) d.setMonth(d.getMonth() + 3) }
+  return d
+}
+
+// Catalogue partage pour les suggestions contextuelles
+const SHAREABLE_CATALOG = [
+  { keywords: ['spotify'],                   label: 'Spotify',         tip: 'jusqu\'à 3 €/mois/personne avec la formule Famille' },
+  { keywords: ['netflix'],                   label: 'Netflix',         tip: 'partage avec 1 proche hors foyer (+5.99 €/mois)' },
+  { keywords: ['disney'],                    label: 'Disney+',         tip: 'jusqu\'à 4 profils simultanés dans le foyer' },
+  { keywords: ['deezer'],                    label: 'Deezer',          tip: 'jusqu\'à 3 €/mois/personne avec la formule Famille' },
+  { keywords: ['youtube premium'],           label: 'YouTube Premium', tip: 'jusqu\'à 3.83 €/mois/personne avec la formule Famille' },
+  { keywords: ['apple tv', 'icloud'],        label: 'Apple',           tip: 'partage automatique via le Partage familial Apple' },
+  { keywords: ['microsoft 365', 'office 365'], label: 'Microsoft 365', tip: 'jusqu\'à 1.67 €/mois/personne avec la formule Famille' },
+  { keywords: ['amazon prime'],              label: 'Amazon Prime',    tip: 'partage inclus avec 1 membre adulte du foyer' },
+  { keywords: ['canal+', 'canal plus'],      label: 'Canal+',          tip: 'jusqu\'à 4 profils dans le foyer' },
+]
+
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas')
@@ -135,6 +169,35 @@ export default function Home() {
   const categories = [...new Set(subscriptions.map(s => s.category))]
   const doublons = detectDoublons(subscriptions)
 
+  // Widget conseillère — alerte la plus urgente
+  const nextAlert = (() => {
+    // 1. Essai gratuit qui se termine bientôt
+    const trials = subscriptions
+      .filter(s => s.details?.is_trial && s.details?.trial_end_date)
+      .map(s => ({ sub: s, date: new Date(s.details!.trial_end_date), type: 'trial' as const }))
+      .filter(t => daysUntil(t.date) >= 0)
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
+    if (trials.length > 0) return trials[0]
+    // 2. Prochain prélèvement
+    const renewals = subscriptions
+      .map(s => ({ sub: s, date: getNextRenewal(s), type: 'renewal' as const }))
+      .filter((r): r is { sub: Subscription; date: Date; type: 'renewal' } => r.date !== null)
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
+    if (renewals.length > 0) return renewals[0]
+    return null
+  })()
+
+  // Suggestion de partage — premier abonnement compatible trouvé
+  const shareableSuggestion = (() => {
+    for (const entry of SHAREABLE_CATALOG) {
+      const match = subscriptions.find(s =>
+        entry.keywords.some(kw => s.company_name.toLowerCase().includes(kw))
+      )
+      if (match) return { sub: match, label: entry.label, tip: entry.tip }
+    }
+    return null
+  })()
+
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
 
@@ -165,6 +228,70 @@ export default function Home() {
           </p>
         </div>
       </div>
+
+      {/* ── WIDGET CONSEILLÈRE ── */}
+      {nextAlert && (
+        <div style={{ padding: '12px 16px 0' }}>
+          {nextAlert.type === 'trial' ? (
+            <div
+              onClick={() => router.push('/calendrier')}
+              style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: '14px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
+            >
+              <span style={{ fontSize: '22px', flexShrink: 0 }}>🚨</span>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '11px', fontWeight: '700', color: '#991b1b', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Alerte essai gratuit</p>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: '#dc2626', margin: '0' }}>
+                  Ton essai <strong>{nextAlert.sub.company_name}</strong> se termine le {fmtDate(nextAlert.date)}
+                  {' '}({nextAlert.sub.amount.toFixed(2)} €{cycleLabel[nextAlert.sub.billing_cycle] || ''})
+                </p>
+                <p style={{ fontSize: '11px', color: '#b91c1c', margin: '3px 0 0' }}>
+                  {daysUntil(nextAlert.date) === 0 ? "Aujourd'hui !" : daysUntil(nextAlert.date) === 1 ? 'Demain !' : `Dans ${daysUntil(nextAlert.date)} jours`} · Tape pour agir →
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => router.push('/calendrier')}
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
+            >
+              <span style={{ fontSize: '20px', flexShrink: 0 }}>📅</span>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Prochain prélèvement</p>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', margin: '0' }}>
+                  <strong>{nextAlert.sub.company_name}</strong> — {nextAlert.sub.amount.toFixed(2)} €
+                  {cycleLabel[nextAlert.sub.billing_cycle] || ''}
+                </p>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '3px 0 0' }}>
+                  Le {fmtDate(nextAlert.date)} · {daysUntil(nextAlert.date) === 0 ? "Aujourd'hui" : daysUntil(nextAlert.date) === 1 ? 'Demain' : `Dans ${daysUntil(nextAlert.date)} jours`} · Voir le calendrier →
+                </p>
+              </div>
+              <p style={{ fontWeight: '800', fontSize: '16px', color: '#4f46e5', margin: '0', flexShrink: 0 }}>{nextAlert.sub.amount.toFixed(2)} €</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SUGGESTION PARTAGE ── */}
+      {shareableSuggestion && (
+        <div style={{ padding: '8px 16px 0' }}>
+          <div
+            onClick={() => router.push('/partage')}
+            style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #86efac', borderRadius: '14px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
+          >
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>💡</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '11px', fontWeight: '700', color: '#15803d', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Astuce partage</p>
+              <p style={{ fontSize: '13px', fontWeight: '600', color: '#166534', margin: '0' }}>
+                Partage ton <strong>{shareableSuggestion.label}</strong> avec ta famille
+              </p>
+              <p style={{ fontSize: '11px', color: '#16a34a', margin: '3px 0 0' }}>
+                {shareableSuggestion.tip} · Voir le module →
+              </p>
+            </div>
+            <span style={{ fontSize: '16px', flexShrink: 0 }}>👨‍👩‍👧‍👦</span>
+          </div>
+        </div>
+      )}
 
       {/* ── SUPER-BARRE DE SCAN ── */}
       <div style={{ padding: '16px 16px 4px' }}>
@@ -418,6 +545,52 @@ export default function Home() {
                       <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>{cycleLabel[sub.billing_cycle] || ''}</p>
                     </div>
                   </div>
+
+                  {/* ── MICRO-DÉTAILS TECHNIQUES ── */}
+                  {(() => {
+                    const details = sub.details || {}
+                    const rows: { icon: string; text: string; color?: string }[] = []
+                    if (details.engagement_end_date) {
+                      const engDate = new Date(details.engagement_end_date)
+                      const engDays = daysUntil(engDate)
+                      const canCancel = engDays <= 0
+                      rows.push({
+                        icon: '📋',
+                        text: canCancel
+                          ? `Engagement terminé — résiliation sans frais`
+                          : `Engagement jusqu'au ${fmtDate(engDate)} (${engDays} j)`,
+                        color: canCancel ? '#16a34a' : engDays <= 60 ? '#d97706' : undefined,
+                      })
+                    }
+                    if (details.is_trial && details.trial_end_date) {
+                      const trialDate = new Date(details.trial_end_date)
+                      const trialDays = daysUntil(trialDate)
+                      rows.push({
+                        icon: '⏱',
+                        text: trialDays <= 0 ? `Essai terminé` : `Essai gratuit — fin le ${fmtDate(trialDate)} (${trialDays} j)`,
+                        color: trialDays <= 2 ? '#dc2626' : '#d97706',
+                      })
+                    }
+                    const renewal = getNextRenewal(sub)
+                    if (renewal) {
+                      const days = daysUntil(renewal)
+                      rows.push({
+                        icon: '🔄',
+                        text: `Renouvellement le ${fmtDate(renewal)} · ${days === 0 ? "aujourd'hui" : days === 1 ? 'demain' : `dans ${days} j`}`,
+                        color: days <= 3 ? '#d97706' : undefined,
+                      })
+                    }
+                    if (rows.length === 0) return null
+                    return (
+                      <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '9px 12px', marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        {rows.map((row, i) => (
+                          <p key={i} style={{ fontSize: '11px', color: row.color || 'var(--text-muted)', margin: '0', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: row.color ? '600' : '400' }}>
+                            <span style={{ fontSize: '12px', flexShrink: 0 }}>{row.icon}</span>{row.text}
+                          </p>
+                        ))}
+                      </div>
+                    )
+                  })()}
 
                   {/* Action buttons */}
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>

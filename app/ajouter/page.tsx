@@ -26,6 +26,9 @@ export default function AjouterPage() {
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('other')
   const [cycle, setCycle] = useState('monthly')
+  const [engagementDate, setEngagementDate] = useState('')
+  const [isTrial, setIsTrial] = useState(false)
+  const [trialEndDate, setTrialEndDate] = useState('')
   const [error, setError] = useState('')
 
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
@@ -45,17 +48,20 @@ export default function AjouterPage() {
   }
 
   const handleSubmit = async () => {
-  if (!name.trim()) { setError('Entre le nom du service'); return }
-  if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) { setError('Entre un montant valide'); return }
-  await addSubscription({
-    company_name: name.trim(),
-    amount: parseFloat(amount),
-    billing_cycle: cycle,
-    category,
-    details: {},
-  })
-  router.push('/')
-}
+    if (!name.trim()) { setError('Entre le nom du service'); return }
+    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) { setError('Entre un montant valide'); return }
+    const details: Record<string, any> = {}
+    if (engagementDate) details.engagement_end_date = engagementDate
+    if (isTrial && trialEndDate) { details.is_trial = true; details.trial_end_date = trialEndDate }
+    await addSubscription({
+      company_name: name.trim(),
+      amount: parseFloat(amount),
+      billing_cycle: cycle,
+      category,
+      details,
+    })
+    router.push('/')
+  }
   
 
   return (
@@ -152,6 +158,43 @@ export default function AjouterPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Détails optionnels */}
+        <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', marginBottom: '16px', border: '1px solid var(--border)' }}>
+          <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 4px', color: 'var(--text-primary)' }}>Détails optionnels</p>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 16px' }}>Pour des alertes et conseils personnalisés</p>
+
+          <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📋 Fin d'engagement</p>
+          <input
+            type="date"
+            style={{ ...inputStyle, marginBottom: '14px' }}
+            value={engagementDate}
+            onChange={e => setEngagementDate(e.target.value)}
+          />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: isTrial ? '10px' : '0' }}>
+            <button
+              onClick={() => setIsTrial(!isTrial)}
+              style={{ width: '44px', height: '24px', borderRadius: '12px', border: 'none', background: isTrial ? '#4f46e5' : 'var(--bg-secondary)', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
+            >
+              <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'white', position: 'absolute', top: '3px', transition: 'left 0.2s', left: isTrial ? '23px' : '3px' }} />
+            </button>
+            <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', margin: '0' }}>⏱ C'est un essai gratuit</p>
+          </div>
+
+          {isTrial && (
+            <>
+              <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', margin: '10px 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date de fin de l'essai</p>
+              <input
+                type="date"
+                style={{ ...inputStyle, marginBottom: '0' }}
+                value={trialEndDate}
+                onChange={e => setTrialEndDate(e.target.value)}
+              />
+              <p style={{ fontSize: '11px', color: '#d97706', margin: '6px 0 0' }}>Tu seras alerté 2 jours avant la fin</p>
+            </>
+          )}
         </div>
 
         <button
