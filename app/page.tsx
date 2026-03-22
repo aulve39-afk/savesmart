@@ -16,25 +16,21 @@ const competitorGroups: { name: string; keywords: string[] }[] = [
 function detectDoublons(subs: Subscription[]): { group: string; names: string[] }[] {
   const alerts: { group: string; names: string[] }[] = []
   for (const group of competitorGroups) {
-    const matches = subs.filter(s =>
-      group.keywords.some(kw => s.company_name.toLowerCase().includes(kw))
-    )
-    if (matches.length >= 2) {
-      alerts.push({ group: group.name, names: matches.map(m => m.company_name) })
-    }
+    const matches = subs.filter(s => group.keywords.some(kw => s.company_name.toLowerCase().includes(kw)))
+    if (matches.length >= 2) alerts.push({ group: group.name, names: matches.map(m => m.company_name) })
   }
   return alerts
 }
 
 const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
-  streaming:      { label: 'Streaming', icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
-  telecom:        { label: 'Telecom',   icon: '📶', color: '#0284c7', bg: '#f0f9ff' },
-  telecom_mobile: { label: 'Mobile',    icon: '📱', color: '#0284c7', bg: '#f0f9ff' },
-  telecom_box:    { label: 'Box/Fibre', icon: '🌐', color: '#0369a1', bg: '#e0f2fe' },
-  energie:        { label: 'Energie',   icon: '⚡', color: '#d97706', bg: '#fffbeb' },
-  assurance:      { label: 'Assurance', icon: '🛡', color: '#059669', bg: '#f0fdf4' },
-  saas:           { label: 'SaaS',      icon: '☁', color: '#db2777', bg: '#fdf2f8' },
-  other:          { label: 'Autre',     icon: '●',  color: '#6b7280', bg: '#f9fafb' },
+  streaming:      { label: 'Streaming',  icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
+  telecom:        { label: 'Telecom',    icon: '📶', color: '#0284c7', bg: '#f0f9ff' },
+  telecom_mobile: { label: 'Mobile',     icon: '📱', color: '#0284c7', bg: '#f0f9ff' },
+  telecom_box:    { label: 'Box/Fibre',  icon: '🌐', color: '#0369a1', bg: '#e0f2fe' },
+  energie:        { label: 'Energie',    icon: '⚡', color: '#d97706', bg: '#fffbeb' },
+  assurance:      { label: 'Assurance',  icon: '🛡', color: '#059669', bg: '#f0fdf4' },
+  saas:           { label: 'SaaS',       icon: '☁', color: '#db2777', bg: '#fdf2f8' },
+  other:          { label: 'Autre',      icon: '●',  color: '#6b7280', bg: '#f9fafb' },
 }
 
 const cycleLabel: Record<string, string> = {
@@ -42,7 +38,7 @@ const cycleLabel: Record<string, string> = {
 }
 
 type SortOption = 'amount_desc' | 'amount_asc' | 'name_asc' | 'recent'
-type FilterOption = 'all' | 'streaming' | 'telecom' | 'energie' | 'assurance' | 'saas' | 'other'
+type FilterOption = 'all' | 'streaming' | 'telecom' | 'telecom_mobile' | 'telecom_box' | 'energie' | 'assurance' | 'saas' | 'other'
 
 export default function Home() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
@@ -83,10 +79,7 @@ export default function Home() {
             <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '0 0 2px' }}>Bonjour 👋</p>
             <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>SaveSmart</h1>
           </div>
-          <button
-            onClick={() => router.push('/stats')}
-            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
+          <button onClick={() => router.push('/stats')} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '16px' }}>📊</span>
             Stats
           </button>
@@ -122,12 +115,16 @@ export default function Home() {
       </div>
 
       <div style={{ padding: '4px 16px 16px', display: 'flex', gap: '8px' }}>
-        <button onClick={() => router.push('/ajouter')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '16px' }}>➕</span>
+        <button onClick={() => router.push('/ajouter')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '14px' }}>➕</span>
           Ajouter
         </button>
-        <button onClick={() => router.push('/historique')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '16px' }}>💰</span>
+        <button onClick={() => router.push('/releve')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '14px' }}>🏦</span>
+          Releve
+        </button>
+        <button onClick={() => router.push('/historique')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '14px' }}>💰</span>
           Economies
         </button>
       </div>
@@ -135,32 +132,16 @@ export default function Home() {
       <div style={{ padding: '0 16px' }}>
         {doublons.length > 0 && (
           <div style={{ marginBottom: '16px' }}>
-            <p style={{ fontSize: '11px', color: '#d97706', fontWeight: '700', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Doublons detectes
-            </p>
+            <p style={{ fontSize: '11px', color: '#d97706', fontWeight: '700', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Doublons detectes</p>
             {doublons.map((d, i) => (
               <div key={i} style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '14px', padding: '14px 16px', marginBottom: '8px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '20px', flexShrink: 0 }}>⚠️</span>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: '700', fontSize: '14px', color: '#92400e', margin: '0 0 4px' }}>
-                    {d.group} — services en double
-                  </p>
-                  <p style={{ fontSize: '13px', color: '#b45309', margin: '0 0 10px' }}>
-                    Tu paies pour : {d.names.join(' et ')}
-                  </p>
+                  <p style={{ fontWeight: '700', fontSize: '14px', color: '#92400e', margin: '0 0 4px' }}>{d.group} — services en double</p>
+                  <p style={{ fontSize: '13px', color: '#b45309', margin: '0 0 10px' }}>Tu paies pour : {d.names.join(' et ')}</p>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={() => router.push('/compare?name=' + d.names[0] + '&amount=0&category=streaming&details=%7B%7D')}
-                      style={{ background: '#fef3c7', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#92400e', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}
-                    >
-                      Comparer
-                    </button>
-                    <button
-                      onClick={() => router.push('/resiliation?name=' + d.names[1])}
-                      style={{ background: '#fef2f2', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}
-                    >
-                      Resilier un doublon
-                    </button>
+                    <button onClick={() => router.push('/compare?name=' + d.names[0] + '&amount=0&category=streaming&details=%7B%7D')} style={{ background: '#fef3c7', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#92400e', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Comparer</button>
+                    <button onClick={() => router.push('/resiliation?name=' + d.names[1])} style={{ background: '#fef2f2', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Resilier un doublon</button>
                   </div>
                 </div>
               </div>
@@ -180,10 +161,7 @@ export default function Home() {
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', margin: '0', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 {filtered.length} abonnement{filtered.length !== 1 ? 's' : ''}
               </p>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                style={{ background: showFilters ? '#4f46e5' : 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', color: showFilters ? 'white' : 'var(--text-primary)' }}
-              >
+              <button onClick={() => setShowFilters(!showFilters)} style={{ background: showFilters ? '#4f46e5' : 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', color: showFilters ? 'white' : 'var(--text-primary)' }}>
                 Filtrer / Trier
               </button>
             </div>
@@ -192,37 +170,17 @@ export default function Home() {
               <div style={{ background: 'var(--bg-card)', borderRadius: '14px', padding: '16px', marginBottom: '12px', border: '1px solid var(--border)' }}>
                 <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Trier par</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
-                  {([
-                    ['amount_desc', 'Plus cher'],
-                    ['amount_asc', 'Moins cher'],
-                    ['name_asc', 'A Z'],
-                    ['recent', 'Recent'],
-                  ] as [SortOption, string][]).map(([val, label]) => (
-                    <button
-                      key={val}
-                      onClick={() => setSort(val)}
-                      style={{ background: sort === val ? '#4f46e5' : 'var(--bg-secondary)', color: sort === val ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                    >
-                      {label}
-                    </button>
+                  {([['amount_desc', 'Plus cher'], ['amount_asc', 'Moins cher'], ['name_asc', 'A Z'], ['recent', 'Recent']] as [SortOption, string][]).map(([val, label]) => (
+                    <button key={val} onClick={() => setSort(val)} style={{ background: sort === val ? '#4f46e5' : 'var(--bg-secondary)', color: sort === val ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{label}</button>
                   ))}
                 </div>
                 <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Filtrer par</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  <button
-                    onClick={() => setFilter('all')}
-                    style={{ background: filter === 'all' ? '#4f46e5' : 'var(--bg-secondary)', color: filter === 'all' ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                  >
-                    Tous
-                  </button>
+                  <button onClick={() => setFilter('all')} style={{ background: filter === 'all' ? '#4f46e5' : 'var(--bg-secondary)', color: filter === 'all' ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Tous</button>
                   {categories.map(cat => {
                     const config = categoryConfig[cat] || categoryConfig.other
                     return (
-                      <button
-                        key={cat}
-                        onClick={() => setFilter(cat as FilterOption)}
-                        style={{ background: filter === cat ? config.color : 'var(--bg-secondary)', color: filter === cat ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                      >
+                      <button key={cat} onClick={() => setFilter(cat as FilterOption)} style={{ background: filter === cat ? config.color : 'var(--bg-secondary)', color: filter === cat ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
                         {config.icon} {config.label}
                       </button>
                     )
@@ -236,14 +194,10 @@ export default function Home() {
               return (
                 <div key={sub.id} style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', marginBottom: '10px', border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
-                      {config.icon}
-                    </div>
+                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>{config.icon}</div>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: '600', fontSize: '15px', margin: '0 0 2px', color: 'var(--text-primary)' }}>{sub.company_name}</p>
-                      <span style={{ fontSize: '11px', fontWeight: '600', color: config.color, background: config.bg, padding: '2px 8px', borderRadius: '6px' }}>
-                        {config.label}
-                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: '600', color: config.color, background: config.bg, padding: '2px 8px', borderRadius: '6px' }}>{config.label}</span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <p style={{ fontWeight: '700', fontSize: '16px', margin: '0', color: 'var(--text-primary)' }}>{sub.amount.toFixed(2)} €</p>
@@ -251,24 +205,9 @@ export default function Home() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => router.push('/compare?name=' + sub.company_name + '&amount=' + sub.amount + '&category=' + sub.category + '&details=' + encodeURIComponent(JSON.stringify(sub.details || {})))}
-                      style={{ flex: 1, background: '#f5f3ff', border: 'none', borderRadius: '10px', padding: '9px', color: '#7c3aed', fontSize: '12px', cursor: 'pointer', fontWeight: '600', minWidth: '70px' }}
-                    >
-                      Comparer
-                    </button>
-                    <button
-                      onClick={() => router.push('/resiliation?name=' + sub.company_name)}
-                      style={{ flex: 1, background: '#fef2f2', border: 'none', borderRadius: '10px', padding: '9px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600', minWidth: '70px' }}
-                    >
-                      Resilier
-                    </button>
-                    <button
-                      onClick={() => handleRemove(sub.id)}
-                      style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '10px', padding: '9px 12px', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', fontWeight: '600' }}
-                    >
-                      ✕
-                    </button>
+                    <button onClick={() => router.push('/compare?name=' + sub.company_name + '&amount=' + sub.amount + '&category=' + sub.category + '&details=' + encodeURIComponent(JSON.stringify(sub.details || {})))} style={{ flex: 1, background: '#f5f3ff', border: 'none', borderRadius: '10px', padding: '9px', color: '#7c3aed', fontSize: '12px', cursor: 'pointer', fontWeight: '600', minWidth: '70px' }}>Comparer</button>
+                    <button onClick={() => router.push('/resiliation?name=' + sub.company_name)} style={{ flex: 1, background: '#fef2f2', border: 'none', borderRadius: '10px', padding: '9px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600', minWidth: '70px' }}>Resilier</button>
+                    <button onClick={() => handleRemove(sub.id)} style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '10px', padding: '9px 12px', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', fontWeight: '600' }}>✕</button>
                   </div>
                 </div>
               )
