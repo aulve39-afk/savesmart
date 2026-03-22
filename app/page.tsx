@@ -127,6 +127,10 @@ export default function Home() {
           <span style={{ fontSize: '14px' }}>💰</span>
           Economies
         </button>
+        <button onClick={() => router.push('/partage')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '14px' }}>👨‍👩‍👧‍👦</span>
+          Partage
+        </button>
       </div>
 
       <div style={{ padding: '0 16px' }}>
