@@ -11,7 +11,6 @@ export default function ScanPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  const handleFile = async (file: File) => {
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve) => {
       const canvas = document.createElement('canvas')
@@ -36,37 +35,36 @@ export default function ScanPage() {
     })
   }
 
-  const base64 = await compressImage(file)
-  setPreview(base64)
-  setLoading(true)
-  setError(null)
-
-  try {
-    const res = await fetch('/api/scan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64 }),
-    })
-    const data = await res.json()
-    if (data.error) throw new Error(data.error)
-    setResult(data)
-  } catch {
-    setError("Impossible d'analyser cette image. Reessaie.")
-  } finally {
-    setLoading(false)
-  }
-}
-    
-    reader.readAsDataURL(file)
+  const handleFile = async (file: File) => {
+    const base64 = await compressImage(file)
+    setPreview(base64)
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setResult(data)
+    } catch {
+      setError("Impossible d'analyser cette image. Reessaie.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
-    streaming: { label: 'Streaming', icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
-    telecom:   { label: 'Telecom',   icon: '📶', color: '#0284c7', bg: '#f0f9ff' },
-    energie:   { label: 'Energie',   icon: '⚡', color: '#d97706', bg: '#fffbeb' },
-    assurance: { label: 'Assurance', icon: '🛡', color: '#059669', bg: '#f0fdf4' },
-    saas:      { label: 'SaaS',      icon: '☁', color: '#db2777', bg: '#fdf2f8' },
-    other:     { label: 'Autre',     icon: '●',  color: '#6b7280', bg: '#f9fafb' },
+    streaming:      { label: 'Streaming',  icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
+    telecom:        { label: 'Telecom',    icon: '📶', color: '#0284c7', bg: '#f0f9ff' },
+    telecom_mobile: { label: 'Mobile',     icon: '📱', color: '#0284c7', bg: '#f0f9ff' },
+    telecom_box:    { label: 'Box/Fibre',  icon: '🌐', color: '#0369a1', bg: '#e0f2fe' },
+    energie:        { label: 'Energie',    icon: '⚡', color: '#d97706', bg: '#fffbeb' },
+    assurance:      { label: 'Assurance',  icon: '🛡', color: '#059669', bg: '#f0fdf4' },
+    saas:           { label: 'SaaS',       icon: '☁', color: '#db2777', bg: '#fdf2f8' },
+    other:          { label: 'Autre',      icon: '●',  color: '#6b7280', bg: '#f9fafb' },
   }
 
   const cycleLabel: Record<string, string> = {
@@ -93,7 +91,7 @@ export default function ScanPage() {
           >
             <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>📷</div>
             <p style={{ fontWeight: '700', fontSize: '17px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Prendre une photo</p>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 20px' }}>JPG, PNG, PDF — max 10 MB</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 20px' }}>JPG, PNG — max 10 MB</p>
             <span style={{ background: '#4f46e5', color: 'white', padding: '10px 24px', borderRadius: '10px', fontSize: '14px', fontWeight: '600' }}>
               Choisir un fichier
             </span>
@@ -132,7 +130,6 @@ export default function ScanPage() {
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
                   <p style={{ fontSize: '13px', color: '#22c55e', fontWeight: '700', margin: '0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Facture detectee</p>
                 </div>
-
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
                   <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: (categoryConfig[result.category] || categoryConfig.other).bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
                     {(categoryConfig[result.category] || categoryConfig.other).icon}
@@ -144,7 +141,6 @@ export default function ScanPage() {
                     </span>
                   </div>
                 </div>
-
                 <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Montant detecte</p>
                   <p style={{ fontWeight: '800', fontSize: '24px', color: '#4f46e5', margin: '0' }}>
@@ -152,7 +148,6 @@ export default function ScanPage() {
                     <span style={{ fontSize: '13px', fontWeight: '400', color: 'var(--text-muted)' }}> {cycleLabel[result.billing_cycle] || ''}</span>
                   </p>
                 </div>
-
                 <button
                   onClick={async () => {
                     await addSubscription({
