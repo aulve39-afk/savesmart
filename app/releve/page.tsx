@@ -34,7 +34,9 @@ export default function RelevePage() {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
+  const filesRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
@@ -82,27 +84,6 @@ export default function RelevePage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const openCamera = () => {
-    if (!inputRef.current) return
-    inputRef.current.accept = 'image/*'
-    inputRef.current.setAttribute('capture', 'environment')
-    inputRef.current.click()
-  }
-
-  const openGallery = () => {
-    if (!inputRef.current) return
-    inputRef.current.accept = 'image/*'
-    inputRef.current.removeAttribute('capture')
-    inputRef.current.click()
-  }
-
-  const openFiles = () => {
-    if (!inputRef.current) return
-    inputRef.current.accept = 'image/*,application/pdf,.pdf'
-    inputRef.current.removeAttribute('capture')
-    inputRef.current.click()
   }
 
   const toggleSelect = (i: number) => {
@@ -157,20 +138,22 @@ export default function RelevePage() {
                 <p style={{ fontWeight: '700', fontSize: '17px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Importer mon releve</p>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 24px' }}>Photo, galerie ou fichier PDF</p>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={openCamera} style={{ flex: 1, background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                  <button onClick={() => cameraRef.current?.click()} style={{ flex: 1, background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                     <span style={{ fontSize: '16px' }}>📷</span>
                     Camera
                   </button>
-                  <button onClick={openGallery} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                  <button onClick={() => galleryRef.current?.click()} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                     <span style={{ fontSize: '16px' }}>🖼️</span>
                     Galerie
                   </button>
-                  <button onClick={openFiles} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                  <button onClick={() => filesRef.current?.click()} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                     <span style={{ fontSize: '16px' }}>📁</span>
                     Fichiers
                   </button>
                 </div>
-                <input ref={inputRef} type="file" style={{ display: 'none' }} onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+                <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+                <input ref={galleryRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+                <input ref={filesRef} type="file" accept="image/*,application/pdf,.pdf" style={{ display: 'none' }} onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
               </div>
             )}
 
