@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSubscriptions, removeSubscription, addSubscription, type Subscription } from './store'
+import { useUserId } from './hooks/useUserId'
 
 const competitorGroups: { name: string; keywords: string[] }[] = [
   { name: 'Musique', keywords: ['spotify', 'deezer', 'apple music', 'tidal', 'amazon music', 'youtube music', 'qobuz'] },
@@ -110,6 +111,7 @@ function compressImage(file: File): Promise<string> {
 }
 
 export default function Home() {
+  const { userId, user, isLoading } = useUserId()
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [sort, setSort] = useState<SortOption>('amount_desc')
   const [filter, setFilter] = useState<FilterOption>('all')
@@ -127,12 +129,13 @@ export default function Home() {
   const router = useRouter()
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
-  useEffect(() => { getSubscriptions().then(setSubscriptions) }, [])
+  useEffect(() => { if (userId) getSubscriptions(userId).then(setSubscriptions) }, [userId])
 
-  const reload = () => getSubscriptions().then(setSubscriptions)
+  const reload = () => { if (userId) getSubscriptions(userId).then(setSubscriptions) }
 
   const handleRemove = async (id: string) => {
-    await removeSubscription(id)
+    if (!userId) return
+    await removeSubscription(id, userId)
     reload()
   }
 
@@ -159,17 +162,24 @@ export default function Home() {
   }
 
   const handleAddFromScan = async () => {
-    if (!scanResult) return
+    if (!scanResult || !userId) return
     await addSubscription({
       company_name: scanResult.company_name,
       amount: scanResult.amount,
       billing_cycle: scanResult.billing_cycle,
       category: scanResult.category,
       details: scanResult.details || {},
-    })
+    }, userId)
     setScanAdded(true)
     reload()
   }
+
+  if (isLoading || !userId) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
 
   const filtered = subscriptions
     .filter(s => filter === 'all' || s.category === filter)
@@ -226,12 +236,23 @@ export default function Home() {
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '0 0 2px' }}>Bonjour 👋</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '0 0 2px' }}>Bonjour {user?.name?.split(' ')[0] ?? ''} 👋</p>
             <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>SaveSmart</h1>
           </div>
-          <button onClick={() => router.push('/stats')} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '16px' }}>📊</span>Stats
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button onClick={() => router.push('/stats')} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '16px' }}>📊</span>Stats
+            </button>
+            <button
+              onClick={() => router.push('/compte')}
+              style={{ width: '38px', height: '38px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #4f46e5', cursor: 'pointer', padding: '0', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            >
+              {user?.image
+                ? <img src={user.image} alt="profil" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <span style={{ color: 'white', fontSize: '14px', fontWeight: '800' }}>{(user?.name ?? user?.email ?? '?').slice(0, 1).toUpperCase()}</span>
+              }
+            </button>
+          </div>
         </div>
       </div>
 

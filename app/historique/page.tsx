@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { getSubscriptions, type Subscription } from '../store'
+import { useUserId } from '../hooks/useUserId'
 
 const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   streaming:      { label: 'Streaming', icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
@@ -25,12 +26,13 @@ const alternatives: Record<string, { price: number }[]> = {
 
 export default function HistoriquePage() {
   const router = useRouter()
+  const { userId, isLoading } = useUserId()
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
   useEffect(() => {
-  getSubscriptions().then(setSubscriptions)
-}, [])
+  if (userId) getSubscriptions(userId).then(setSubscriptions)
+}, [userId])
 
   const economies = subscriptions.map(sub => {
     const offers = alternatives[sub.category] || alternatives.other
@@ -41,6 +43,13 @@ export default function HistoriquePage() {
 
   const totalSavingMonthly = economies.reduce((sum, s) => sum + s.saving, 0)
   const totalSavingYearly = totalSavingMonthly * 12
+
+  if (isLoading || !userId) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>

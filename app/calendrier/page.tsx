@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSubscriptions, updateSubscriptionDetails, type Subscription } from '../store'
+import { useUserId } from '../hooks/useUserId'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
@@ -56,16 +57,17 @@ type Tab = 'calendrier' | 'annuel'
 
 export default function CalendrierPage() {
   const router = useRouter()
+  const { userId, isLoading } = useUserId()
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [tab, setTab] = useState<Tab>('calendrier')
   const [editTrialId, setEditTrialId] = useState<string | null>(null)
   const [trialDate, setTrialDate] = useState('')
 
   useEffect(() => {
-    getSubscriptions().then(setSubscriptions)
-  }, [])
+    if (userId) getSubscriptions(userId).then(setSubscriptions)
+  }, [userId])
 
-  const reload = () => getSubscriptions().then(setSubscriptions)
+  const reload = () => { if (userId) getSubscriptions(userId).then(setSubscriptions) }
 
   // --- Trial logic ---
   const trials = subscriptions.filter(s => s.details?.is_trial && s.details?.trial_end_date)
@@ -75,18 +77,19 @@ export default function CalendrierPage() {
   })
 
   async function saveTrial(sub: Subscription) {
-    if (!trialDate) return
-    await updateSubscriptionDetails(sub.id, { ...sub.details, is_trial: true, trial_end_date: trialDate })
+    if (!trialDate || !userId) return
+    await updateSubscriptionDetails(sub.id, { ...sub.details, is_trial: true, trial_end_date: trialDate }, userId)
     setEditTrialId(null)
     setTrialDate('')
     reload()
   }
 
   async function removeTrial(sub: Subscription) {
+    if (!userId) return
     const newDetails = { ...sub.details }
     delete newDetails.is_trial
     delete newDetails.trial_end_date
-    await updateSubscriptionDetails(sub.id, newDetails)
+    await updateSubscriptionDetails(sub.id, newDetails, userId)
     reload()
   }
 
@@ -117,6 +120,13 @@ export default function CalendrierPage() {
   const annualSubs = [...subscriptions].sort((a, b) => getAnnualCost(b) - getAnnualCost(a))
   const totalAnnual = subscriptions.reduce((s, sub) => s + getAnnualCost(sub), 0)
   const totalMonthly = subscriptions.reduce((s, sub) => s + sub.amount, 0)
+
+  if (isLoading || !userId) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>

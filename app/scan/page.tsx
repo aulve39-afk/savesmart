@@ -2,8 +2,10 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { addSubscription } from '../store'
+import { useUserId } from '../hooks/useUserId'
 
 export default function ScanPage() {
+  const { userId, isLoading } = useUserId()
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
@@ -94,6 +96,13 @@ export default function ScanPage() {
 
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
+  if (isLoading || !userId) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
+
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -179,13 +188,14 @@ export default function ScanPage() {
                 </div>
                 <button
                   onClick={async () => {
+                    if (!userId) return
                     await addSubscription({
                       company_name: result.company_name,
                       amount: result.amount,
                       billing_cycle: result.billing_cycle,
                       category: result.category,
                       details: result.details || {},
-                    })
+                    }, userId)
                     router.push('/')
                   }}
                   style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '15px', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}

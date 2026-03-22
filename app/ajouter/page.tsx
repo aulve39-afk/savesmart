@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { addSubscription } from '../store'
+import { useUserId } from '../hooks/useUserId'
 
 const categories = [
   { value: 'streaming', label: 'Streaming', icon: '▶' },
@@ -22,6 +23,7 @@ const cycles = [
 
 export default function AjouterPage() {
   const router = useRouter()
+  const { userId, isLoading } = useUserId()
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('other')
@@ -48,6 +50,7 @@ export default function AjouterPage() {
   }
 
   const handleSubmit = async () => {
+    if (!userId) return
     if (!name.trim()) { setError('Entre le nom du service'); return }
     if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) { setError('Entre un montant valide'); return }
     const details: Record<string, any> = {}
@@ -59,10 +62,17 @@ export default function AjouterPage() {
       billing_cycle: cycle,
       category,
       details,
-    })
+    }, userId)
     router.push('/')
   }
   
+
+  if (isLoading || !userId) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>

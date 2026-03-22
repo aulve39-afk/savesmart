@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { addSubscription } from '../store'
+import { useUserId } from '../hooks/useUserId'
 
 const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   streaming:      { label: 'Streaming',  icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
@@ -39,6 +40,7 @@ const BANKS = [
 ]
 
 export default function RelevePage() {
+  const { userId, isLoading } = useUserId()
   const [tab, setTab] = useState<'bank' | 'scan'>('bank')
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -103,6 +105,7 @@ export default function RelevePage() {
   }
 
   const handleSave = async () => {
+    if (!userId) return
     setSaving(true)
     const toSave = detected.filter(s => s.selected)
     for (const sub of toSave) {
@@ -112,11 +115,18 @@ export default function RelevePage() {
         billing_cycle: sub.billing_cycle,
         category: sub.category,
         details: sub.details || {},
-      })
+      }, userId)
     }
     setSaving(false)
     setDone(true)
   }
+
+  if (isLoading || !userId) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
