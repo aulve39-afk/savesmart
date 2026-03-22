@@ -56,6 +56,27 @@ export default function ScanPage() {
     }
   }
 
+  const openCamera = () => {
+    if (!inputRef.current) return
+    inputRef.current.accept = 'image/*'
+    inputRef.current.setAttribute('capture', 'environment')
+    inputRef.current.click()
+  }
+
+  const openGallery = () => {
+    if (!inputRef.current) return
+    inputRef.current.accept = 'image/*'
+    inputRef.current.removeAttribute('capture')
+    inputRef.current.click()
+  }
+
+  const openFiles = () => {
+    if (!inputRef.current) return
+    inputRef.current.accept = 'image/*,application/pdf,.pdf'
+    inputRef.current.removeAttribute('capture')
+    inputRef.current.click()
+  }
+
   const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
     streaming:      { label: 'Streaming',  icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
     telecom:        { label: 'Telecom',    icon: '📶', color: '#0284c7', bg: '#f0f9ff' },
@@ -79,23 +100,31 @@ export default function ScanPage() {
         <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
         <div>
           <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>Scanner</h1>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Photo ou import depuis la galerie</p>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Photo, galerie ou fichier</p>
         </div>
       </div>
 
       <div style={{ padding: '20px 16px' }}>
         {!preview && (
-          <div
-            onClick={() => inputRef.current?.click()}
-            style={{ border: '2px dashed var(--border-input)', borderRadius: '20px', padding: '56px 24px', textAlign: 'center', background: 'var(--bg-card)', cursor: 'pointer' }}
-          >
+          <div style={{ border: '2px dashed var(--border-input)', borderRadius: '20px', padding: '40px 24px', textAlign: 'center', background: 'var(--bg-card)' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>📷</div>
-            <p style={{ fontWeight: '700', fontSize: '17px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Prendre une photo</p>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 20px' }}>JPG, PNG — max 10 MB</p>
-            <span style={{ background: '#4f46e5', color: 'white', padding: '10px 24px', borderRadius: '10px', fontSize: '14px', fontWeight: '600' }}>
-              Choisir un fichier
-            </span>
-            <input ref={inputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+            <p style={{ fontWeight: '700', fontSize: '17px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Analyser une facture</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 24px' }}>Choisis comment importer ton document</p>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={openCamera} style={{ flex: 1, background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '16px' }}>📷</span>
+                Camera
+              </button>
+              <button onClick={openGallery} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '16px' }}>🖼️</span>
+                Galerie
+              </button>
+              <button onClick={openFiles} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '16px' }}>📁</span>
+                Fichiers
+              </button>
+            </div>
+            <input ref={inputRef} type="file" style={{ display: 'none' }} onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
           </div>
         )}
 

@@ -84,6 +84,27 @@ export default function RelevePage() {
     }
   }
 
+  const openCamera = () => {
+    if (!inputRef.current) return
+    inputRef.current.accept = 'image/*'
+    inputRef.current.setAttribute('capture', 'environment')
+    inputRef.current.click()
+  }
+
+  const openGallery = () => {
+    if (!inputRef.current) return
+    inputRef.current.accept = 'image/*'
+    inputRef.current.removeAttribute('capture')
+    inputRef.current.click()
+  }
+
+  const openFiles = () => {
+    if (!inputRef.current) return
+    inputRef.current.accept = 'image/*,application/pdf,.pdf'
+    inputRef.current.removeAttribute('capture')
+    inputRef.current.click()
+  }
+
   const toggleSelect = (i: number) => {
     setDetected(prev => prev.map((s, idx) => idx === i ? { ...s, selected: !s.selected } : s))
   }
@@ -115,7 +136,6 @@ export default function RelevePage() {
       </div>
 
       <div style={{ padding: '20px 16px' }}>
-
         {done ? (
           <div>
             <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '14px', padding: '20px', marginBottom: '16px', textAlign: 'center' }}>
@@ -125,27 +145,32 @@ export default function RelevePage() {
               </p>
               <p style={{ fontSize: '13px', color: '#16a34a', margin: '0' }}>Retrouve-les dans ton dashboard</p>
             </div>
-            <button
-              onClick={() => router.push('/')}
-              style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}
-            >
+            <button onClick={() => router.push('/')} style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>
               Voir le dashboard
             </button>
           </div>
         ) : (
           <>
             {!preview && (
-              <div
-                onClick={() => inputRef.current?.click()}
-                style={{ border: '2px dashed var(--border-input)', borderRadius: '20px', padding: '48px 24px', textAlign: 'center', background: 'var(--bg-card)', cursor: 'pointer', marginBottom: '16px' }}
-              >
+              <div style={{ border: '2px dashed var(--border-input)', borderRadius: '20px', padding: '40px 24px', textAlign: 'center', background: 'var(--bg-card)', marginBottom: '16px' }}>
                 <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>🏦</div>
                 <p style={{ fontWeight: '700', fontSize: '17px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Importer mon releve</p>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 20px' }}>Photo ou capture d ecran de ton releve bancaire</p>
-                <span style={{ background: '#4f46e5', color: 'white', padding: '10px 24px', borderRadius: '10px', fontSize: '14px', fontWeight: '600' }}>
-                  Choisir un fichier
-                </span>
-                <input ref={inputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 24px' }}>Photo, galerie ou fichier PDF</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={openCamera} style={{ flex: 1, background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '16px' }}>📷</span>
+                    Camera
+                  </button>
+                  <button onClick={openGallery} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '16px' }}>🖼️</span>
+                    Galerie
+                  </button>
+                  <button onClick={openFiles} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '16px' }}>📁</span>
+                    Fichiers
+                  </button>
+                </div>
+                <input ref={inputRef} type="file" style={{ display: 'none' }} onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
               </div>
             )}
 
@@ -190,29 +215,13 @@ export default function RelevePage() {
                 {detected.map((sub, i) => {
                   const config = categoryConfig[sub.category] || categoryConfig.other
                   return (
-                    <div
-                      key={i}
-                      onClick={() => toggleSelect(i)}
-                      style={{
-                        background: 'var(--bg-card)',
-                        borderRadius: '14px',
-                        padding: '14px 16px',
-                        marginBottom: '8px',
-                        border: sub.selected ? '2px solid #4f46e5' : '1px solid var(--border)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                      }}
-                    >
+                    <div key={i} onClick={() => toggleSelect(i)} style={{ background: 'var(--bg-card)', borderRadius: '14px', padding: '14px 16px', marginBottom: '8px', border: sub.selected ? '2px solid #4f46e5' : '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
                         {config.icon}
                       </div>
                       <div style={{ flex: 1 }}>
                         <p style={{ fontWeight: '600', fontSize: '14px', margin: '0 0 2px', color: 'var(--text-primary)' }}>{sub.company_name}</p>
-                        <span style={{ fontSize: '11px', fontWeight: '600', color: config.color, background: config.bg, padding: '1px 6px', borderRadius: '4px' }}>
-                          {config.label}
-                        </span>
+                        <span style={{ fontSize: '11px', fontWeight: '600', color: config.color, background: config.bg, padding: '1px 6px', borderRadius: '4px' }}>{config.label}</span>
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <p style={{ fontWeight: '700', fontSize: '15px', margin: '0', color: 'var(--text-primary)' }}>
@@ -226,18 +235,11 @@ export default function RelevePage() {
                   )
                 })}
 
-                <button
-                  onClick={handleSave}
-                  disabled={saving || detected.filter(s => s.selected).length === 0}
-                  style={{ width: '100%', background: saving ? '#a5b4fc' : '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: 'pointer', marginTop: '8px' }}
-                >
+                <button onClick={handleSave} disabled={saving || detected.filter(s => s.selected).length === 0} style={{ width: '100%', background: saving ? '#a5b4fc' : '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: 'pointer', marginTop: '8px' }}>
                   {saving ? 'Sauvegarde...' : `Ajouter ${detected.filter(s => s.selected).length} abonnement${detected.filter(s => s.selected).length > 1 ? 's' : ''} au dashboard`}
                 </button>
 
-                <button
-                  onClick={() => { setPreview(null); setDetected([]); setError(null) }}
-                  style={{ width: '100%', background: 'var(--btn-secondary-bg)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', color: 'var(--btn-secondary-color)', marginTop: '8px' }}
-                >
+                <button onClick={() => { setPreview(null); setDetected([]); setError(null) }} style={{ width: '100%', background: 'var(--btn-secondary-bg)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', color: 'var(--btn-secondary-color)', marginTop: '8px' }}>
                   Importer un autre releve
                 </button>
               </div>
