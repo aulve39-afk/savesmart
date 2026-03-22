@@ -13,11 +13,24 @@ const competitorGroups: { name: string; keywords: string[] }[] = [
   { name: 'Livraison repas', keywords: ['deliveroo', 'uber eats', 'just eat', 'frichti'] },
 ]
 
-function detectDoublons(subs: Subscription[]): { group: string; names: string[] }[] {
-  const alerts: { group: string; names: string[] }[] = []
+type DoublonAlert = { group: string; names: string[]; subIds: string[]; type: 'same_operator' | 'competitors' }
+
+function detectDoublons(subs: Subscription[]): DoublonAlert[] {
+  const alerts: DoublonAlert[] = []
   for (const group of competitorGroups) {
     const matches = subs.filter(s => group.keywords.some(kw => s.company_name.toLowerCase().includes(kw)))
-    if (matches.length >= 2) alerts.push({ group: group.name, names: matches.map(m => m.company_name) })
+    if (matches.length >= 2) {
+      // Si tous les abonnements partagent le même mot-clé → même opérateur (ex: Bouygues Box + Bouygues Mobile)
+      // Sinon → services concurrents (ex: Spotify + Deezer)
+      const matchedKws = matches.map(m => group.keywords.find(kw => m.company_name.toLowerCase().includes(kw)))
+      const uniqueKws = new Set(matchedKws.filter(Boolean))
+      alerts.push({
+        group: group.name,
+        names: matches.map(m => m.company_name),
+        subIds: matches.map(m => m.id),
+        type: uniqueKws.size === 1 ? 'same_operator' : 'competitors',
+      })
+    }
   }
   return alerts
 }
@@ -101,6 +114,8 @@ export default function Home() {
   const [sort, setSort] = useState<SortOption>('amount_desc')
   const [filter, setFilter] = useState<FilterOption>('all')
   const [showFilters, setShowFilters] = useState(false)
+  const [scanExpanded, setScanExpanded] = useState(false)
+  const [groupedDoublons, setGroupedDoublons] = useState<number[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [scanning, setScanning] = useState(false)
   const [scanResult, setScanResult] = useState<any>(null)
@@ -169,6 +184,12 @@ export default function Home() {
   const categories = [...new Set(subscriptions.map(s => s.category))]
   const doublons = detectDoublons(subscriptions)
 
+  // Économies potentielles via partage famille (estimation ~50% pour les services éligibles)
+  const ecoSavings = subscriptions.reduce((sum, sub) => {
+    const match = SHAREABLE_CATALOG.find(e => e.keywords.some(kw => sub.company_name.toLowerCase().includes(kw)))
+    return match ? sum + sub.amount * 0.5 : sum
+  }, 0)
+
   // Widget conseillère — alerte la plus urgente
   const nextAlert = (() => {
     // 1. Essai gratuit qui se termine bientôt
@@ -223,8 +244,8 @@ export default function Home() {
           <p style={{ fontSize: '42px', fontWeight: '800', margin: '0 0 4px', letterSpacing: '-1px' }}>
             {total.toFixed(2)}<span style={{ fontSize: '20px', fontWeight: '400', opacity: 0.7 }}> €</span>
           </p>
-          <p style={{ fontSize: '13px', opacity: 0.5, margin: '0' }}>
-            {subscriptions.length} abonnement{subscriptions.length !== 1 ? 's' : ''} detecte{subscriptions.length !== 1 ? 's' : ''}
+          <p style={{ fontSize: '13px', opacity: 0.75, margin: '0', fontWeight: '700' }}>
+            {subscriptions.length} abonnement{subscriptions.length !== 1 ? 's' : ''} · {(total * 12).toFixed(0)} €/an
           </p>
         </div>
       </div>
@@ -295,6 +316,24 @@ export default function Home() {
 
       {/* ── SUPER-BARRE DE SCAN ── */}
       <div style={{ padding: '16px 16px 4px' }}>
+
+        {/* Compact row when subscriptions exist and bar not expanded */}
+        {subscriptions.length > 0 && !scanExpanded && !scanning && (
+          <button
+            onClick={() => setScanExpanded(true)}
+            style={{ width: '100%', background: 'var(--bg-card)', border: '1.5px dashed var(--border)', borderRadius: '16px', padding: '12px 18px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', textAlign: 'left', marginBottom: '0' }}
+          >
+            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>📎</div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontWeight: '700', fontSize: '13px', margin: '0', color: 'var(--text-primary)' }}>Scanner une facture</p>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>PDF, screenshot ou photo</p>
+            </div>
+            <span style={{ fontSize: '20px', color: '#4f46e5', fontWeight: '300' }}>+</span>
+          </button>
+        )}
+
+        {/* Full scan bar */}
+        {(subscriptions.length === 0 || scanExpanded || scanning) && (
         <div
           onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
           onDragLeave={() => setIsDragging(false)}
@@ -357,6 +396,7 @@ export default function Home() {
           <input ref={galleryRef} type="file" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && handleScanFile(e.target.files[0])} />
           <input ref={filesRef}   type="file" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && handleScanFile(e.target.files[0])} />
         </div>
+        )}
 
         {/* Scan loading */}
         {scanning && (
@@ -409,6 +449,7 @@ export default function Home() {
                   <div style={{ background: '#f0fdf4', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '18px' }}>✅</span>
                     <p style={{ color: '#16a34a', fontWeight: '700', fontSize: '14px', margin: '0' }}>Ajouté au dashboard !</p>
+                    <button onClick={() => { setScanResult(null); setScanAdded(false); setScanExpanded(false) }} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#16a34a', cursor: 'pointer', fontSize: '16px' }}>✕</button>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -432,8 +473,13 @@ export default function Home() {
         <button onClick={() => router.push('/releve')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
           <span style={{ fontSize: '13px' }}>🏦</span> Relevé
         </button>
-        <button onClick={() => router.push('/historique')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+        <button onClick={() => router.push('/historique')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', position: 'relative' }}>
           <span style={{ fontSize: '13px' }}>💰</span> Éco.
+          {ecoSavings > 1 && (
+            <span style={{ position: 'absolute', top: '-5px', right: '-3px', background: '#16a34a', color: 'white', fontSize: '9px', fontWeight: '800', borderRadius: '6px', padding: '1px 4px', lineHeight: '14px' }}>
+              -{ecoSavings.toFixed(0)}€
+            </span>
+          )}
         </button>
         <button onClick={() => router.push('/partage')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
           <span style={{ fontSize: '13px' }}>👨‍👩‍👧‍👦</span> Partage
@@ -470,22 +516,49 @@ export default function Home() {
         })}
 
         {/* Doublons */}
-        {doublons.length > 0 && (
+        {doublons.filter((_, i) => !groupedDoublons.includes(i)).length > 0 && (
           <div style={{ marginBottom: '16px' }}>
-            <p style={{ fontSize: '11px', color: '#d97706', fontWeight: '700', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Doublons detectes</p>
-            {doublons.map((d, i) => (
-              <div key={i} style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '14px', padding: '14px 16px', marginBottom: '8px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '20px', flexShrink: 0 }}>⚠️</span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: '700', fontSize: '14px', color: '#92400e', margin: '0 0 4px' }}>{d.group} — services en double</p>
-                  <p style={{ fontSize: '13px', color: '#b45309', margin: '0 0 10px' }}>Tu paies pour : {d.names.join(' et ')}</p>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => router.push('/compare?name=' + d.names[0] + '&amount=0&category=streaming&details=%7B%7D')} style={{ background: '#fef3c7', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#92400e', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Comparer</button>
-                    <button onClick={() => router.push('/resiliation?name=' + d.names[1])} style={{ background: '#fef2f2', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Résilier un doublon</button>
+            <p style={{ fontSize: '11px', color: '#d97706', fontWeight: '700', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>⚠️ Doublons détectés</p>
+            {doublons.map((d, i) => {
+              if (groupedDoublons.includes(i)) return null
+              const isSameOp = d.type === 'same_operator'
+              return (
+                <div key={i} style={{ background: isSameOp ? '#eff6ff' : '#fffbeb', border: `1px solid ${isSameOp ? '#bfdbfe' : '#fde68a'}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '20px', flexShrink: 0 }}>{isSameOp ? '🔵' : '⚠️'}</span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontWeight: '700', fontSize: '14px', color: isSameOp ? '#1d4ed8' : '#92400e', margin: '0 0 2px' }}>
+                        {isSameOp ? `Deux abonnements ${d.group}` : `Services ${d.group} en double`}
+                      </p>
+                      <p style={{ fontSize: '12px', color: isSameOp ? '#3b82f6' : '#b45309', margin: '0' }}>
+                        {isSameOp
+                          ? `Tu as ${d.names.join(' et ')} chez le même opérateur — abonnements distincts légitimes ?`
+                          : `Tu paies ${d.names.join(' et ')} — deux services similaires`}
+                      </p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {isSameOp ? (
+                      <>
+                        <button
+                          onClick={() => setGroupedDoublons(prev => [...prev, i])}
+                          style={{ background: '#dbeafe', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#1d4ed8', fontSize: '12px', cursor: 'pointer', fontWeight: '700' }}
+                        >
+                          👁️ Grouper les abonnements
+                        </button>
+                        <button onClick={() => router.push('/resiliation?name=' + encodeURIComponent(d.names[0]))} style={{ background: '#fef2f2', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Résilier l'un</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => router.push('/compare?name=' + encodeURIComponent(d.names[0]) + '&amount=0&category=streaming&details=%7B%7D')} style={{ background: '#fef3c7', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#92400e', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>🔍 Comparer</button>
+                        <button onClick={() => router.push('/resiliation?name=' + encodeURIComponent(d.names[1]))} style={{ background: '#fef2f2', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>✂️ Résilier un doublon</button>
+                        <button onClick={() => setGroupedDoublons(prev => [...prev, i])} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 12px', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Ignorer</button>
+                      </>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
@@ -497,35 +570,33 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px' }}>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', margin: '0', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                {filtered.length} abonnement{filtered.length !== 1 ? 's' : ''}
-              </p>
-              <button onClick={() => setShowFilters(!showFilters)} style={{ background: showFilters ? '#4f46e5' : 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', color: showFilters ? 'white' : 'var(--text-primary)' }}>
-                Filtrer / Trier
+            {/* Category filter chips — always visible */}
+            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', marginBottom: '10px', scrollbarWidth: 'none' }}>
+              <button onClick={() => setFilter('all')} style={{ flexShrink: 0, background: filter === 'all' ? '#4f46e5' : 'var(--bg-secondary)', color: filter === 'all' ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '20px', padding: '5px 13px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                Tous ({subscriptions.length})
+              </button>
+              {categories.map(cat => {
+                const cfg = categoryConfig[cat] || categoryConfig.other
+                const count = subscriptions.filter(s => s.category === cat).length
+                const catTotal = subscriptions.filter(s => s.category === cat).reduce((sum, s) => sum + s.amount, 0)
+                return (
+                  <button key={cat} onClick={() => setFilter(filter === cat ? 'all' : cat as FilterOption)} style={{ flexShrink: 0, background: filter === cat ? cfg.color : 'var(--bg-secondary)', color: filter === cat ? 'white' : 'var(--text-secondary)', border: `1px solid ${filter === cat ? cfg.color : 'var(--border)'}`, borderRadius: '20px', padding: '5px 12px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span style={{ fontSize: '12px' }}>{cfg.icon}</span>
+                    {cfg.label}
+                    <span style={{ opacity: 0.75, fontWeight: '400' }}>{catTotal.toFixed(0)}€</span>
+                  </button>
+                )
+              })}
+              <button onClick={() => setShowFilters(!showFilters)} style={{ flexShrink: 0, background: showFilters ? '#f5f3ff' : 'var(--bg-secondary)', color: showFilters ? '#7c3aed' : 'var(--text-muted)', border: `1px solid ${showFilters ? '#c4b5fd' : 'var(--border)'}`, borderRadius: '20px', padding: '5px 11px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                ↕ Trier
               </button>
             </div>
 
             {showFilters && (
-              <div style={{ background: 'var(--bg-card)', borderRadius: '14px', padding: '16px', marginBottom: '12px', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Trier par</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
-                  {([['amount_desc', 'Plus cher'], ['amount_asc', 'Moins cher'], ['name_asc', 'A→Z'], ['recent', 'Récent']] as [SortOption, string][]).map(([val, label]) => (
-                    <button key={val} onClick={() => setSort(val)} style={{ background: sort === val ? '#4f46e5' : 'var(--bg-secondary)', color: sort === val ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{label}</button>
-                  ))}
-                </div>
-                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Filtrer par</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  <button onClick={() => setFilter('all')} style={{ background: filter === 'all' ? '#4f46e5' : 'var(--bg-secondary)', color: filter === 'all' ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Tous</button>
-                  {categories.map(cat => {
-                    const config = categoryConfig[cat] || categoryConfig.other
-                    return (
-                      <button key={cat} onClick={() => setFilter(cat as FilterOption)} style={{ background: filter === cat ? config.color : 'var(--bg-secondary)', color: filter === cat ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-                        {config.icon} {config.label}
-                      </button>
-                    )
-                  })}
-                </div>
+              <div style={{ background: 'var(--bg-card)', borderRadius: '12px', padding: '10px 14px', marginBottom: '10px', border: '1px solid var(--border)', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {([['amount_desc', '💰 Plus cher'], ['amount_asc', '🪙 Moins cher'], ['name_asc', '🔤 A→Z'], ['recent', '🕐 Récent']] as [SortOption, string][]).map(([val, label]) => (
+                  <button key={val} onClick={() => { setSort(val); setShowFilters(false) }} style={{ background: sort === val ? '#4f46e5' : 'var(--bg-secondary)', color: sort === val ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{label}</button>
+                ))}
               </div>
             )}
 
@@ -593,10 +664,19 @@ export default function Home() {
                   })()}
 
                   {/* Action buttons */}
-                  <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                    <button onClick={() => router.push('/compare?name=' + sub.company_name + '&amount=' + sub.amount + '&category=' + sub.category + '&details=' + encodeURIComponent(JSON.stringify(sub.details || {})))} style={{ flex: 1, background: '#f5f3ff', border: 'none', borderRadius: '10px', padding: '9px', color: '#7c3aed', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Comparer</button>
-                    <button onClick={() => handleRemove(sub.id)} style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '10px', padding: '9px 12px', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', fontWeight: '600' }}>✕</button>
-                  </div>
+                  {(() => {
+                    const shareMatch = SHAREABLE_CATALOG.find(e => e.keywords.some(kw => sub.company_name.toLowerCase().includes(kw)))
+                    const shareSavings = shareMatch ? sub.amount * 0.5 : 0
+                    return (
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                        <button onClick={() => router.push('/compare?name=' + encodeURIComponent(sub.company_name) + '&amount=' + sub.amount + '&category=' + sub.category + '&details=' + encodeURIComponent(JSON.stringify(sub.details || {})))} style={{ flex: 1, background: '#f5f3ff', border: 'none', borderRadius: '10px', padding: '9px', color: '#7c3aed', fontSize: '12px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                          🔍 Comparer
+                          {shareSavings > 0 && <span style={{ background: '#ede9fe', borderRadius: '5px', padding: '1px 5px', fontSize: '10px', fontWeight: '800', color: '#7c3aed' }}>-{shareSavings.toFixed(0)}€</span>}
+                        </button>
+                        <button onClick={() => handleRemove(sub.id)} style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '10px', padding: '9px 12px', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', fontWeight: '600' }}>✕</button>
+                      </div>
+                    )
+                  })()}
 
                   {/* ── BOUTON RÉSILIER PROÉMINENT ── */}
                   <button
