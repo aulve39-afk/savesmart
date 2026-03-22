@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { getSupabase } from '../lib/supabase'
 
 export type Subscription = {
   id: string
@@ -14,6 +14,7 @@ export type Subscription = {
 const USER_ID = 'local-user'
 
 export async function getSubscriptions(): Promise<Subscription[]> {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('subscriptions')
     .select('*')
@@ -29,9 +30,10 @@ export async function getSubscriptions(): Promise<Subscription[]> {
 export async function addSubscription(
   sub: Omit<Subscription, 'id' | 'detected_at' | 'user_id'>
 ): Promise<Subscription | null> {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('subscriptions')
-    .insert({ ...sub, user_id: USER_ID })
+    .insert({ ...sub, user_id: USER_ID } as any)
     .select()
     .single()
   if (error) {
@@ -42,6 +44,7 @@ export async function addSubscription(
 }
 
 export async function removeSubscription(id: string): Promise<void> {
+  const supabase = getSupabase()
   const { error } = await supabase
     .from('subscriptions')
     .delete()
