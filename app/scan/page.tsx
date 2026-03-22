@@ -12,27 +12,51 @@ export default function ScanPage() {
   const router = useRouter()
 
   const handleFile = async (file: File) => {
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const base64 = e.target?.result as string
-      setPreview(base64)
-      setLoading(true)
-      setError(null)
-      try {
-        const res = await fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64 }),
-        })
-        const data = await res.json()
-        if (data.error) throw new Error(data.error)
-        setResult(data)
-      } catch {
-        setError("Impossible d'analyser cette image. Reessaie.")
-      } finally {
-        setLoading(false)
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')!
+      const img = new Image()
+      const url = URL.createObjectURL(file)
+      img.onload = () => {
+        const maxSize = 1024
+        let w = img.width
+        let h = img.height
+        if (w > maxSize || h > maxSize) {
+          if (w > h) { h = (h * maxSize) / w; w = maxSize }
+          else { w = (w * maxSize) / h; h = maxSize }
+        }
+        canvas.width = w
+        canvas.height = h
+        ctx.drawImage(img, 0, 0, w, h)
+        URL.revokeObjectURL(url)
+        resolve(canvas.toDataURL('image/jpeg', 0.7))
       }
-    }
+      img.src = url
+    })
+  }
+
+  const base64 = await compressImage(file)
+  setPreview(base64)
+  setLoading(true)
+  setError(null)
+
+  try {
+    const res = await fetch('/api/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64 }),
+    })
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+    setResult(data)
+  } catch {
+    setError("Impossible d'analyser cette image. Reessaie.")
+  } finally {
+    setLoading(false)
+  }
+}
+    
     reader.readAsDataURL(file)
   }
 
