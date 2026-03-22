@@ -122,10 +122,16 @@ function matchOffer(sub: Subscription): ShareableOffer | null {
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
+function generateInviteMessage(offerName: string, pricePerPerson: number, savings: number, members: number): string {
+  return `Salut ! 👋\n\nJe cherche ${members - 1} personne${members - 1 > 1 ? 's' : ''} pour partager mon ${offerName} en famille.\n\n💰 Ça te reviendrait seulement ${pricePerPerson.toFixed(2)} €/mois au lieu de payer seul(e).\n${savings > 0 ? `🎉 Tu économises ${savings.toFixed(2)} €/mois, soit ${(savings * 12).toFixed(0)} €/an !\n` : ''}\nTu es intéressé(e) ? Réponds-moi ! 😊`
+}
+
 export default function PartagePage() {
   const router = useRouter()
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [members, setMembers] = useState<Record<string, number>>({})
+  const [sharingId, setSharingId] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     getSubscriptions().then(setSubscriptions)
@@ -269,10 +275,69 @@ export default function PartagePage() {
 
                   {/* Note */}
                   {offer.family_plan.note && (
-                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0', paddingTop: '4px', borderTop: '1px solid var(--border)' }}>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 12px', paddingTop: '4px', borderTop: '1px solid var(--border)' }}>
                       ℹ️ {offer.family_plan.note}
                     </p>
                   )}
+
+                  {/* Invite button */}
+                  <button
+                    onClick={() => { setSharingId(sharingId === sub.id ? null : sub.id); setCopied(false) }}
+                    style={{
+                      width: '100%',
+                      background: sharingId === sub.id ? 'var(--bg-secondary)' : 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                      color: sharingId === sub.id ? 'var(--text-secondary)' : 'white',
+                      border: sharingId === sub.id ? '1px solid var(--border)' : 'none',
+                      borderRadius: '10px',
+                      padding: '10px',
+                      fontWeight: '700',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    {sharingId === sub.id ? '✕ Fermer' : '📨 Inviter des proches'}
+                  </button>
+
+                  {/* Sharing panel */}
+                  {sharingId === sub.id && (() => {
+                    const msg = generateInviteMessage(offer.display_name, pricePerPerson, savings, n)
+                    const waLink = 'https://wa.me/?text=' + encodeURIComponent(msg)
+                    const mailLink = 'mailto:?subject=' + encodeURIComponent(`Partage ${offer.display_name} — ${pricePerPerson.toFixed(2)} €/mois`) + '&body=' + encodeURIComponent(msg)
+                    return (
+                      <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '14px', marginTop: '10px' }}>
+                        <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Message d'invitation</p>
+                        <div style={{ background: 'var(--bg-card)', borderRadius: '10px', padding: '12px', marginBottom: '10px', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-wrap', border: '1px solid var(--border)' }}>
+                          {msg}
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(msg); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+                            style={{ flex: 1, background: copied ? '#f0fdf4' : 'var(--bg-card)', color: copied ? '#16a34a' : 'var(--text-secondary)', border: `1px solid ${copied ? '#bbf7d0' : 'var(--border)'}`, borderRadius: '8px', padding: '9px 6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                          >
+                            {copied ? '✓ Copié !' : '📋 Copier'}
+                          </button>
+                          <a
+                            href={waLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ flex: 1, background: '#25D366', color: 'white', border: 'none', borderRadius: '8px', padding: '9px 6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                          >
+                            WhatsApp
+                          </a>
+                          <a
+                            href={mailLink}
+                            style={{ flex: 1, background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '9px 6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                          >
+                            ✉️ Email
+                          </a>
+                        </div>
+                      </div>
+                    )
+                  })()}
                 </div>
               )
             })}

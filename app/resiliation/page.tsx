@@ -4,26 +4,33 @@ import { Suspense, useState } from 'react'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
+const MOTIFS = [
+  { value: 'libre', label: 'Sans engagement', icon: '✅', desc: 'Mon contrat est libre, sans frais' },
+  { value: 'engagement', label: 'Sous engagement', icon: '📋', desc: 'Je veux connaître les frais exacts' },
+  { value: 'demenagement', label: 'Déménagement', icon: '🏠', desc: 'Motif légal — résiliation sans frais' },
+  { value: 'insatisfaction', label: 'Insatisfaction', icon: '😤', desc: 'Qualité de service insuffisante' },
+  { value: 'sante', label: 'Raison de santé', icon: '🏥', desc: 'Force majeure — résiliation sans frais' },
+  { value: 'deces', label: 'Décès du titulaire', icon: '🕊', desc: 'Clôture du contrat pour ayant droit' },
+]
+
 function ResiliationContent() {
   const router = useRouter()
   const params = useSearchParams()
   const name = params.get('name') || 'Abonnement'
+  const engagementEndDate = params.get('engagement') || ''
 
+  const [step, setStep] = useState<'motif' | 'form' | 'letter'>('motif')
+  const [selectedMotif, setSelectedMotif] = useState('')
   const [prenom, setPrenom] = useState('')
   const [nom, setNom] = useState('')
   const [adresse, setAdresse] = useState('')
   const [ville, setVille] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [aiLetter, setAiLetter] = useState('')
+  const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
 
-  const today = new Date().toLocaleDateString('fr-FR', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  })
-
-  const prenomDisplay = prenom || '[Prénom]'
-  const nomDisplay    = nom    || '[Nom]'
-  const adresseDisplay = adresse || '[Votre adresse]'
-  const villeDisplay  = ville  || '[Code postal et ville]'
-  const formComplete  = !!(prenom && nom && adresse && ville)
+  const formComplete = !!(prenom && nom && adresse && ville)
 
   const inputStyle = {
     width: '100%',
@@ -39,8 +46,29 @@ function ResiliationContent() {
     outline: 'none',
   }
 
+  const handleGenerateLetter = async () => {
+    if (!formComplete) return
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/resiliation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prenom, nom, adresse, ville, service: name, motif: selectedMotif, engagementEndDate }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setAiLetter(data.letter)
+      setStep('letter')
+    } catch {
+      setError('Erreur lors de la génération. Vérifie ta connexion.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handlePrint = () => {
-    const lettre = document.getElementById('lettre-print')?.innerHTML
+    const lettre = document.getElementById('lettre-ai')?.innerHTML
     const win = window.open('', '_blank')
     if (!win || !lettre) return
     win.document.write(`
@@ -49,13 +77,8 @@ function ResiliationContent() {
           <title>Lettre de résiliation — ${name}</title>
           <style>
             body { font-family: Georgia, serif; max-width: 680px; margin: 60px auto; padding: 0 40px; font-size: 15px; line-height: 1.9; color: #1e293b; }
-            .header { margin-bottom: 40px; }
-            .destinataire { margin-bottom: 40px; }
-            .date { color: #64748b; font-size: 13px; margin-bottom: 24px; }
-            .objet { font-weight: bold; margin-bottom: 24px; border-bottom: 2px solid #1e293b; padding-bottom: 8px; }
             p { margin: 0 0 16px; }
-            .signature { margin-top: 40px; font-weight: bold; }
-            hr { border: none; border-top: 1px solid #e2e8f0; margin: 24px 0; }
+            strong { font-weight: bold; }
           </style>
         </head>
         <body>${lettre}</body>
@@ -67,145 +90,129 @@ function ResiliationContent() {
   }
 
   const handleEmail = () => {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(aiLetter, 'text/html')
+    const text = doc.body.innerText || doc.body.textContent || ''
     const sujet = encodeURIComponent('Demande de résiliation — ' + name)
-    const corps = encodeURIComponent(
-      prenomDisplay + ' ' + nomDisplay + '\n' +
-      adresseDisplay + '\n' + villeDisplay + '\n\n' +
-      'Service Résiliation\n' + name + '\n\n' +
-      'Fait le ' + today + '\n\n' +
-      'Objet : Demande de résiliation de mon abonnement\n\n' +
-      'Madame, Monsieur,\n\n' +
-      'Je soussigné(e) ' + prenomDisplay + ' ' + nomDisplay + ', titulaire d\'un abonnement auprès de ' + name + ', ' +
-      'vous informe par la présente de ma volonté de résilier mon contrat ' +
-      'dans les meilleurs délais, conformément aux conditions générales de vente.\n\n' +
-      'Je vous demande de bien vouloir confirmer la bonne réception de ce courrier ' +
-      'ainsi que la date effective de résiliation de mon abonnement.\n\n' +
-      'Veuillez agréer, Madame, Monsieur, mes salutations distinguées.\n\n' +
-      prenomDisplay + ' ' + nomDisplay
-    )
+    const corps = encodeURIComponent(text)
     window.location.href = 'mailto:?subject=' + sujet + '&body=' + corps
     setSent(true)
   }
 
+  const motifLabel = MOTIFS.find(m => m.value === selectedMotif)?.label || ''
+
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
 
-      {/* Header */}
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}>←</button>
+        <button
+          onClick={() => step === 'motif' ? router.push('/') : step === 'form' ? setStep('motif') : setStep('form')}
+          style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}
+        >←</button>
         <div>
           <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>Résilier</h1>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>{name}</p>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>{name}{motifLabel ? ` · ${motifLabel}` : ''}</p>
         </div>
       </div>
 
       <div style={{ padding: '20px 16px' }}>
 
-        {/* Prévisualisation live de la lettre */}
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: formComplete ? '#22c55e' : '#d97706', flexShrink: 0 }} />
-            <p style={{ fontSize: '11px', fontWeight: '700', color: formComplete ? '#16a34a' : '#d97706', margin: '0', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              {formComplete ? 'Aperçu — lettre prête ✓' : 'Aperçu en direct — remplis le formulaire'}
-            </p>
-          </div>
+        {/* Step 1: Motif selector */}
+        {step === 'motif' && (
+          <>
+            <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', marginBottom: '16px', border: '1px solid var(--border)' }}>
+              <p style={{ fontWeight: '700', fontSize: '16px', margin: '0 0 4px', color: 'var(--text-primary)' }}>Quel est ton motif ?</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 20px' }}>L'IA va adapter ta lettre avec les arguments juridiques appropriés</p>
 
-          {/* Letter card */}
-          <div
-            id="lettre-print"
-            style={{
-              background: 'var(--bg-card)',
-              borderRadius: '16px',
-              padding: '24px',
-              border: formComplete ? '2px solid #86efac' : '1px solid var(--border)',
-              fontSize: '13px',
-              lineHeight: '1.8',
-              color: 'var(--text-secondary)',
-              position: 'relative',
-              overflow: 'hidden',
-              transition: 'border-color 0.3s',
-            }}
-          >
-            {/* Watermark si pas complet */}
-            {!formComplete && (
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-20deg)', fontSize: '48px', opacity: 0.04, fontWeight: '900', color: '#000', pointerEvents: 'none', whiteSpace: 'nowrap', userSelect: 'none' }}>
-                APERÇU
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {MOTIFS.map(m => (
+                  <button
+                    key={m.value}
+                    onClick={() => setSelectedMotif(m.value)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      padding: '14px 16px',
+                      borderRadius: '14px',
+                      border: selectedMotif === m.value ? '2px solid #4f46e5' : '1px solid var(--border)',
+                      background: selectedMotif === m.value ? '#eef2ff' : 'var(--bg-secondary)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <span style={{ fontSize: '24px', flexShrink: 0 }}>{m.icon}</span>
+                    <div>
+                      <p style={{ fontWeight: '700', fontSize: '14px', margin: '0 0 2px', color: selectedMotif === m.value ? '#4f46e5' : 'var(--text-primary)' }}>{m.label}</p>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>{m.desc}</p>
+                    </div>
+                    {selectedMotif === m.value && (
+                      <div style={{ marginLeft: 'auto', width: '20px', height: '20px', borderRadius: '50%', background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ color: 'white', fontSize: '11px', fontWeight: '700' }}>✓</span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => selectedMotif && setStep('form')}
+              disabled={!selectedMotif}
+              style={{
+                width: '100%',
+                background: selectedMotif ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' : 'var(--bg-secondary)',
+                color: selectedMotif ? 'white' : 'var(--text-muted)',
+                border: 'none',
+                borderRadius: '14px',
+                padding: '16px',
+                fontWeight: '700',
+                fontSize: '15px',
+                cursor: selectedMotif ? 'pointer' : 'not-allowed',
+              }}
+            >
+              Continuer →
+            </button>
+          </>
+        )}
+
+        {/* Step 2: User info form */}
+        {step === 'form' && (
+          <>
+            <div style={{ background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: '14px', padding: '14px 16px', marginBottom: '16px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <span style={{ fontSize: '18px' }}>⚖️</span>
+              <div>
+                <p style={{ fontWeight: '700', fontSize: '13px', color: '#4338ca', margin: '0 0 2px' }}>{MOTIFS.find(m => m.value === selectedMotif)?.icon} {MOTIFS.find(m => m.value === selectedMotif)?.label}</p>
+                <p style={{ fontSize: '12px', color: '#6366f1', margin: '0' }}>L'IA va générer une lettre juridiquement adaptée</p>
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', marginBottom: '14px', border: '1px solid var(--border)' }}>
+              <p style={{ fontWeight: '700', fontSize: '14px', margin: '0 0 4px', color: 'var(--text-primary)' }}>Tes informations</p>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 16px' }}>Pour personnaliser la lettre</p>
+              <input style={inputStyle} placeholder="Prénom" value={prenom} onChange={e => setPrenom(e.target.value)} />
+              <input style={inputStyle} placeholder="Nom" value={nom} onChange={e => setNom(e.target.value)} />
+              <input style={inputStyle} placeholder="Adresse" value={adresse} onChange={e => setAdresse(e.target.value)} />
+              <input style={{ ...inputStyle, marginBottom: '0' }} placeholder="Code postal et ville" value={ville} onChange={e => setVille(e.target.value)} />
+            </div>
+
+            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '14px', flexShrink: 0 }}>🔒</span>
+              <p style={{ color: '#92400e', fontSize: '12px', fontWeight: '500', margin: '0' }}>
+                Tes infos restent sur ton téléphone. Rien n'est stocké.
+              </p>
+            </div>
+
+            {error && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px' }}>
+                <p style={{ color: '#dc2626', fontSize: '13px', margin: '0' }}>{error}</p>
               </div>
             )}
 
-            {/* Expéditeur */}
-            <p style={{ margin: '0', fontWeight: '700', color: 'var(--text-primary)', fontSize: '14px' }}>
-              {prenomDisplay} {nomDisplay}
-            </p>
-            <p style={{ margin: '0', color: formComplete ? 'var(--text-secondary)' : 'var(--text-muted)', fontStyle: !adresse ? 'italic' : 'normal' }}>{adresseDisplay}</p>
-            <p style={{ margin: '0 0 20px', color: formComplete ? 'var(--text-secondary)' : 'var(--text-muted)', fontStyle: !ville ? 'italic' : 'normal' }}>{villeDisplay}</p>
-
-            {/* Destinataire */}
-            <p style={{ margin: '0', fontWeight: '600', color: 'var(--text-primary)', fontSize: '13px' }}>Service Résiliation</p>
-            <p style={{ margin: '0 0 20px', color: 'var(--text-secondary)' }}>{name}</p>
-
-            {/* Date + lieu */}
-            <p style={{ margin: '0 0 16px', color: 'var(--text-muted)', fontSize: '12px', textAlign: 'right' }}>
-              Fait le {today}
-            </p>
-
-            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '0 0 16px' }} />
-
-            {/* Objet */}
-            <p style={{ margin: '0 0 14px', fontWeight: '700', color: 'var(--text-primary)', fontSize: '13px' }}>
-              Objet : Demande de résiliation de mon abonnement
-            </p>
-
-            <p style={{ margin: '0 0 12px' }}>Madame, Monsieur,</p>
-
-            <p style={{ margin: '0 0 12px' }}>
-              Je soussigné(e) <strong style={{ color: 'var(--text-primary)' }}>{prenomDisplay} {nomDisplay}</strong>, titulaire d'un abonnement auprès de <strong style={{ color: 'var(--text-primary)' }}>{name}</strong>, vous informe par la présente de ma volonté de résilier mon contrat dans les meilleurs délais, conformément aux conditions générales de vente.
-            </p>
-
-            <p style={{ margin: '0 0 12px' }}>
-              Je vous demande de bien vouloir confirmer la bonne réception de ce courrier ainsi que la date effective de résiliation de mon abonnement.
-            </p>
-
-            <p style={{ margin: '0 0 24px' }}>
-              Veuillez agréer, Madame, Monsieur, mes salutations distinguées.
-            </p>
-
-            <p style={{ margin: '0', fontWeight: '700', color: 'var(--text-primary)', fontSize: '14px' }}>
-              {prenomDisplay} {nomDisplay}
-            </p>
-          </div>
-        </div>
-
-        {/* Formulaire */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', marginBottom: '14px', border: '1px solid var(--border)' }}>
-          <p style={{ fontWeight: '700', fontSize: '14px', margin: '0 0 4px', color: 'var(--text-primary)' }}>Tes informations</p>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 16px' }}>La lettre se met à jour en temps réel ↑</p>
-          <input style={inputStyle} placeholder="Prénom" value={prenom} onChange={e => setPrenom(e.target.value)} />
-          <input style={inputStyle} placeholder="Nom" value={nom} onChange={e => setNom(e.target.value)} />
-          <input style={inputStyle} placeholder="Adresse" value={adresse} onChange={e => setAdresse(e.target.value)} />
-          <input style={{ ...inputStyle, marginBottom: '0' }} placeholder="Code postal et ville" value={ville} onChange={e => setVille(e.target.value)} />
-        </div>
-
-        {/* Privacy notice */}
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <span style={{ fontSize: '14px', flexShrink: 0 }}>🔒</span>
-          <p style={{ color: '#92400e', fontSize: '12px', fontWeight: '500', margin: '0' }}>
-            Tes infos restent sur ton téléphone. Rien n'est envoyé ni stocké.
-          </p>
-        </div>
-
-        {/* CTA buttons */}
-        {sent ? (
-          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '14px', padding: '16px', textAlign: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '28px', display: 'block', marginBottom: '8px' }}>✅</span>
-            <p style={{ fontWeight: '700', color: '#16a34a', margin: '0 0 4px', fontSize: '15px' }}>Email ouvert !</p>
-            <p style={{ color: '#15803d', fontSize: '13px', margin: '0' }}>Copie la lettre depuis l'aperçu ci-dessus si besoin.</p>
-          </div>
-        ) : (
-          <>
             <button
-              onClick={handlePrint}
-              disabled={!formComplete}
+              onClick={handleGenerateLetter}
+              disabled={!formComplete || loading}
               style={{
                 width: '100%',
                 background: formComplete ? 'linear-gradient(135deg, #dc2626, #b91c1c)' : 'var(--bg-secondary)',
@@ -215,42 +222,132 @@ function ResiliationContent() {
                 padding: '16px',
                 fontWeight: '700',
                 fontSize: '15px',
-                cursor: formComplete ? 'pointer' : 'not-allowed',
-                marginBottom: '10px',
+                cursor: formComplete && !loading ? 'pointer' : 'not-allowed',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                transition: 'all 0.2s',
               }}
             >
-              <span style={{ fontSize: '18px' }}>✂️</span>
-              {formComplete ? 'Imprimer / Sauvegarder en PDF' : 'Remplis le formulaire pour continuer'}
+              {loading ? (
+                <>
+                  <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite', fontSize: '16px' }}>⚙️</span>
+                  L'IA rédige ta lettre...
+                </>
+              ) : (
+                <>✂️ Générer ma lettre juridique</>
+              )}
             </button>
+            <style>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
+          </>
+        )}
 
-            <button
-              onClick={handleEmail}
-              disabled={!formComplete}
+        {/* Step 3: AI Generated Letter */}
+        {step === 'letter' && (
+          <>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '14px', padding: '12px 16px', marginBottom: '16px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <span style={{ fontSize: '20px' }}>⚖️</span>
+              <div>
+                <p style={{ fontWeight: '700', fontSize: '13px', color: '#16a34a', margin: '0 0 2px' }}>Lettre juridique générée par l'IA ✓</p>
+                <p style={{ fontSize: '12px', color: '#15803d', margin: '0' }}>Adaptée à ton motif : {motifLabel}</p>
+              </div>
+            </div>
+
+            <div
+              id="lettre-ai"
               style={{
-                width: '100%',
-                background: formComplete ? 'var(--btn-secondary-bg)' : 'var(--bg-secondary)',
-                color: formComplete ? 'var(--btn-secondary-color)' : 'var(--text-muted)',
-                border: formComplete ? '1px solid var(--btn-secondary-border)' : '1px solid var(--border)',
-                borderRadius: '14px',
-                padding: '15px',
-                fontWeight: '600',
-                fontSize: '14px',
-                cursor: formComplete ? 'pointer' : 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.2s',
+                background: 'var(--bg-card)',
+                borderRadius: '16px',
+                padding: '24px',
+                border: '2px solid #86efac',
+                fontSize: '13px',
+                lineHeight: '1.8',
+                color: 'var(--text-secondary)',
+                marginBottom: '16px',
+                overflow: 'auto',
               }}
-            >
-              <span style={{ fontSize: '16px' }}>✉️</span>
-              Envoyer par email
-            </button>
+              dangerouslySetInnerHTML={{ __html: aiLetter }}
+            />
+
+            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '14px', flexShrink: 0 }}>⚠️</span>
+              <p style={{ color: '#92400e', fontSize: '12px', fontWeight: '500', margin: '0' }}>
+                Vérifie les informations avant d'envoyer. L'IA peut faire des erreurs.
+              </p>
+            </div>
+
+            {sent ? (
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '14px', padding: '16px', textAlign: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '28px', display: 'block', marginBottom: '8px' }}>✅</span>
+                <p style={{ fontWeight: '700', color: '#16a34a', margin: '0 0 4px', fontSize: '15px' }}>Email ouvert !</p>
+                <p style={{ color: '#15803d', fontSize: '13px', margin: '0' }}>Copie la lettre depuis l'aperçu ci-dessus si besoin.</p>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={handlePrint}
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '14px',
+                    padding: '16px',
+                    fontWeight: '700',
+                    fontSize: '15px',
+                    cursor: 'pointer',
+                    marginBottom: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <span style={{ fontSize: '18px' }}>✂️</span>
+                  Imprimer / Sauvegarder en PDF
+                </button>
+
+                <button
+                  onClick={handleEmail}
+                  style={{
+                    width: '100%',
+                    background: 'var(--btn-secondary-bg)',
+                    color: 'var(--btn-secondary-color)',
+                    border: '1px solid var(--btn-secondary-border)',
+                    borderRadius: '14px',
+                    padding: '15px',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    marginBottom: '10px',
+                  }}
+                >
+                  <span style={{ fontSize: '16px' }}>✉️</span>
+                  Envoyer par email
+                </button>
+
+                <button
+                  onClick={() => { setStep('form'); setAiLetter('') }}
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    color: 'var(--text-muted)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '14px',
+                    padding: '13px',
+                    fontWeight: '600',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  🔄 Régénérer la lettre
+                </button>
+              </>
+            )}
           </>
         )}
       </div>
