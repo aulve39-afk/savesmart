@@ -3,13 +3,15 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { getSubscriptions, type Subscription } from '../store'
 
-const categoryConfig: Record<string, { label: string; icon: string; color: string }> = {
-  streaming: { label: 'Streaming', icon: '▶', color: '#7c3aed' },
-  telecom:   { label: 'Telecom',   icon: '📶', color: '#0284c7' },
-  energie:   { label: 'Energie',   icon: '⚡', color: '#d97706' },
-  assurance: { label: 'Assurance', icon: '🛡', color: '#059669' },
-  saas:      { label: 'SaaS',      icon: '☁', color: '#db2777' },
-  other:     { label: 'Autre',     icon: '●',  color: '#6b7280' },
+const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
+  streaming:      { label: 'Streaming', icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
+  telecom:        { label: 'Telecom',   icon: '📶', color: '#0284c7', bg: '#f0f9ff' },
+  telecom_mobile: { label: 'Mobile',    icon: '📱', color: '#0284c7', bg: '#f0f9ff' },
+  telecom_box:    { label: 'Box/Fibre', icon: '🌐', color: '#0369a1', bg: '#e0f2fe' },
+  energie:        { label: 'Energie',   icon: '⚡', color: '#d97706', bg: '#fffbeb' },
+  assurance:      { label: 'Assurance', icon: '🛡', color: '#059669', bg: '#f0fdf4' },
+  saas:           { label: 'SaaS',      icon: '☁', color: '#db2777', bg: '#fdf2f8' },
+  other:          { label: 'Autre',     icon: '●',  color: '#6b7280', bg: '#f9fafb' },
 }
 
 export default function StatsPage() {

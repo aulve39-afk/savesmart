@@ -5,7 +5,8 @@ import { addSubscription } from '../store'
 
 const categories = [
   { value: 'streaming', label: 'Streaming', icon: '▶' },
-  { value: 'telecom', label: 'Telecom', icon: '📶' },
+  { value: 'telecom_mobile', label: 'Mobile', icon: '📱' },
+  { value: 'telecom_box', label: 'Box/Fibre', icon: '🌐' },
   { value: 'energie', label: 'Energie', icon: '⚡' },
   { value: 'assurance', label: 'Assurance', icon: '🛡' },
   { value: 'saas', label: 'SaaS', icon: '☁' },
