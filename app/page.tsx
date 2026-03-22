@@ -1,7 +1,7 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSubscriptions, removeSubscription, type Subscription } from './store'
+import { getSubscriptions, removeSubscription, addSubscription, type Subscription } from './store'
 
 const competitorGroups: { name: string; keywords: string[] }[] = [
   { name: 'Musique', keywords: ['spotify', 'deezer', 'apple music', 'tidal', 'amazon music', 'youtube music', 'qobuz'] },
@@ -40,20 +40,86 @@ const cycleLabel: Record<string, string> = {
 type SortOption = 'amount_desc' | 'amount_asc' | 'name_asc' | 'recent'
 type FilterOption = 'all' | 'streaming' | 'telecom' | 'telecom_mobile' | 'telecom_box' | 'energie' | 'assurance' | 'saas' | 'other'
 
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')!
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const maxSize = 1024
+      let w = img.width, h = img.height
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = (h * maxSize) / w; w = maxSize }
+        else { w = (w * maxSize) / h; h = maxSize }
+      }
+      canvas.width = w; canvas.height = h
+      ctx.drawImage(img, 0, 0, w, h)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/jpeg', 0.7))
+    }
+    img.src = url
+  })
+}
+
 export default function Home() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [sort, setSort] = useState<SortOption>('amount_desc')
   const [filter, setFilter] = useState<FilterOption>('all')
   const [showFilters, setShowFilters] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [scanning, setScanning] = useState(false)
+  const [scanResult, setScanResult] = useState<any>(null)
+  const [scanError, setScanError] = useState<string | null>(null)
+  const [scanAdded, setScanAdded] = useState(false)
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
+  const filesRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
-  useEffect(() => {
-    getSubscriptions().then(setSubscriptions)
-  }, [])
+  useEffect(() => { getSubscriptions().then(setSubscriptions) }, [])
+
+  const reload = () => getSubscriptions().then(setSubscriptions)
 
   const handleRemove = async (id: string) => {
     await removeSubscription(id)
-    getSubscriptions().then(setSubscriptions)
+    reload()
+  }
+
+  const handleScanFile = async (file: File) => {
+    setScanResult(null)
+    setScanError(null)
+    setScanAdded(false)
+    setScanning(true)
+    try {
+      const base64 = await compressImage(file)
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setScanResult(data)
+    } catch {
+      setScanError("Impossible d'analyser ce fichier. Réessaie avec une image plus nette.")
+    } finally {
+      setScanning(false)
+    }
+  }
+
+  const handleAddFromScan = async () => {
+    if (!scanResult) return
+    await addSubscription({
+      company_name: scanResult.company_name,
+      amount: scanResult.amount,
+      billing_cycle: scanResult.billing_cycle,
+      category: scanResult.category,
+      details: scanResult.details || {},
+    })
+    setScanAdded(true)
+    reload()
   }
 
   const filtered = subscriptions
@@ -66,13 +132,13 @@ export default function Home() {
     })
 
   const total = subscriptions.reduce((sum, s) => sum + s.amount, 0)
-  const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
   const categories = [...new Set(subscriptions.map(s => s.category))]
   const doublons = detectDoublons(subscriptions)
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
 
+      {/* Header */}
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
@@ -80,12 +146,12 @@ export default function Home() {
             <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>SaveSmart</h1>
           </div>
           <button onClick={() => router.push('/stats')} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '16px' }}>📊</span>
-            Stats
+            <span style={{ fontSize: '16px' }}>📊</span>Stats
           </button>
         </div>
       </div>
 
+      {/* Total card */}
       <div style={{ padding: '20px 16px 0' }}>
         <div style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', borderRadius: '20px', padding: '28px 24px', color: 'white', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '120px', height: '120px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
@@ -100,46 +166,161 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ── SUPER-BARRE DE SCAN ── */}
       <div style={{ padding: '16px 16px 4px' }}>
-        <button onClick={() => router.push('/scan')} style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '600', fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '18px' }}>📷</span>
-          Scanner une facture
-        </button>
+        <div
+          onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={e => {
+            e.preventDefault(); setIsDragging(false)
+            const file = e.dataTransfer.files?.[0]
+            if (file) handleScanFile(file)
+          }}
+          style={{
+            background: isDragging ? '#ede9fe' : 'var(--bg-card)',
+            borderRadius: '20px',
+            border: isDragging ? '2px dashed #7c3aed' : '2px dashed var(--border)',
+            padding: '18px 20px',
+            transition: 'all 0.15s',
+          }}
+        >
+          {/* Bar header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
+            <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>📎</div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 2px', color: isDragging ? '#7c3aed' : 'var(--text-primary)' }}>
+                {isDragging ? 'Relâche pour analyser' : 'Glisse ta facture ici'}
+              </p>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>
+                {scanning ? '⏳ Analyse en cours par IA...' : 'PDF, screenshot, photo — ou utilise les boutons'}
+              </p>
+            </div>
+          </div>
+
+          {/* Action chips */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <button
+              onClick={() => { if (cameraRef.current) { cameraRef.current.accept = 'image/*'; cameraRef.current.setAttribute('capture', 'environment'); cameraRef.current.click() } }}
+              style={{ background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '11px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <span style={{ fontSize: '15px' }}>📷</span> Appareil photo
+            </button>
+            <button
+              onClick={() => { if (galleryRef.current) { galleryRef.current.accept = 'image/*'; galleryRef.current.removeAttribute('capture'); galleryRef.current.click() } }}
+              style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '11px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <span style={{ fontSize: '15px' }}>🖼️</span> Galerie
+            </button>
+            <button
+              onClick={() => { if (filesRef.current) { filesRef.current.accept = 'image/*,application/pdf,.pdf'; filesRef.current.removeAttribute('capture'); filesRef.current.click() } }}
+              style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '11px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <span style={{ fontSize: '15px' }}>📄</span> Fichier / PDF
+            </button>
+            <button
+              onClick={() => router.push('/gmail')}
+              style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '11px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <span style={{ fontSize: '15px' }}>📧</span> Scanner Gmail
+            </button>
+          </div>
+
+          {/* Hidden inputs */}
+          <input ref={cameraRef}  type="file" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && handleScanFile(e.target.files[0])} />
+          <input ref={galleryRef} type="file" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && handleScanFile(e.target.files[0])} />
+          <input ref={filesRef}   type="file" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && handleScanFile(e.target.files[0])} />
+        </div>
+
+        {/* Scan loading */}
+        {scanning && (
+          <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '20px 24px', marginTop: '10px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>🔍</div>
+            <div>
+              <p style={{ fontWeight: '700', fontSize: '14px', margin: '0 0 2px', color: 'var(--text-primary)' }}>Analyse par IA en cours...</p>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Détection automatique du service et du montant</p>
+            </div>
+          </div>
+        )}
+
+        {/* Scan error */}
+        {scanError && !scanning && (
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '14px', padding: '14px 16px', marginTop: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <span style={{ fontSize: '18px' }}>⚠️</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ color: '#dc2626', margin: '0', fontSize: '13px', fontWeight: '600' }}>{scanError}</p>
+            </div>
+            <button onClick={() => setScanError(null)} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+          </div>
+        )}
+
+        {/* Scan result inline */}
+        {scanResult && !scanning && (
+          <div style={{ background: 'var(--bg-card)', borderRadius: '18px', padding: '20px', marginTop: '10px', border: '2px solid #a5b4fc' }}>
+            {scanResult.is_invoice === false ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', margin: '0', fontSize: '14px' }}>Ce document ne semble pas être une facture.</p>
+            ) : (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+                  <p style={{ fontSize: '12px', color: '#22c55e', fontWeight: '700', margin: '0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Facture détectée</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: (categoryConfig[scanResult.category] || categoryConfig.other).bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
+                    {(categoryConfig[scanResult.category] || categoryConfig.other).icon}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontWeight: '700', fontSize: '17px', margin: '0 0 2px', color: 'var(--text-primary)' }}>{scanResult.company_name}</p>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: (categoryConfig[scanResult.category] || categoryConfig.other).color, background: (categoryConfig[scanResult.category] || categoryConfig.other).bg, padding: '2px 8px', borderRadius: '6px' }}>
+                      {(categoryConfig[scanResult.category] || categoryConfig.other).label}
+                    </span>
+                  </div>
+                  <p style={{ fontWeight: '800', fontSize: '22px', color: '#4f46e5', margin: '0' }}>
+                    {scanResult.amount} €<span style={{ fontSize: '12px', fontWeight: '400', color: 'var(--text-muted)' }}>{cycleLabel[scanResult.billing_cycle] || ''}</span>
+                  </p>
+                </div>
+                {scanAdded ? (
+                  <div style={{ background: '#f0fdf4', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '18px' }}>✅</span>
+                    <p style={{ color: '#16a34a', fontWeight: '700', fontSize: '14px', margin: '0' }}>Ajouté au dashboard !</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={handleAddFromScan} style={{ flex: 1, background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '13px', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>
+                      Ajouter au dashboard
+                    </button>
+                    <button onClick={() => setScanResult(null)} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '13px 14px', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '13px' }}>✕</button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
-      <div style={{ padding: '4px 16px' }}>
-        <button onClick={() => router.push('/gmail')} style={{ width: '100%', background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>📧</span>
-          Scanner mes emails Gmail
+      {/* Nav secondaire */}
+      <div style={{ padding: '8px 16px 4px', display: 'flex', gap: '8px' }}>
+        <button onClick={() => router.push('/ajouter')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '13px' }}>➕</span> Ajouter
         </button>
-      </div>
-
-      <div style={{ padding: '4px 16px 4px', display: 'flex', gap: '8px' }}>
-        <button onClick={() => router.push('/ajouter')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-          <span style={{ fontSize: '14px' }}>➕</span>
-          Ajouter
+        <button onClick={() => router.push('/releve')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '13px' }}>🏦</span> Relevé
         </button>
-        <button onClick={() => router.push('/releve')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-          <span style={{ fontSize: '14px' }}>🏦</span>
-          Relevé
+        <button onClick={() => router.push('/historique')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '13px' }}>💰</span> Éco.
         </button>
-        <button onClick={() => router.push('/historique')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-          <span style={{ fontSize: '14px' }}>💰</span>
-          Éco.
-        </button>
-        <button onClick={() => router.push('/partage')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px 6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-          <span style={{ fontSize: '14px' }}>👨‍👩‍👧‍👦</span>
-          Partage
+        <button onClick={() => router.push('/partage')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '13px' }}>👨‍👩‍👧‍👦</span> Partage
         </button>
       </div>
       <div style={{ padding: '4px 16px 16px' }}>
-        <button onClick={() => router.push('/calendrier')} style={{ width: '100%', background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '12px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>📅</span>
-          Calendrier & Coût annuel
+        <button onClick={() => router.push('/calendrier')} style={{ width: '100%', background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '15px' }}>📅</span> Calendrier & Coût annuel
         </button>
       </div>
 
+      {/* Subscription list */}
       <div style={{ padding: '0 16px' }}>
+
         {/* Trial end alerts */}
         {subscriptions.filter(s => {
           if (!s.details?.is_trial || !s.details?.trial_end_date) return false
@@ -161,6 +342,7 @@ export default function Home() {
           )
         })}
 
+        {/* Doublons */}
         {doublons.length > 0 && (
           <div style={{ marginBottom: '16px' }}>
             <p style={{ fontSize: '11px', color: '#d97706', fontWeight: '700', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Doublons detectes</p>
@@ -172,7 +354,7 @@ export default function Home() {
                   <p style={{ fontSize: '13px', color: '#b45309', margin: '0 0 10px' }}>Tu paies pour : {d.names.join(' et ')}</p>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => router.push('/compare?name=' + d.names[0] + '&amount=0&category=streaming&details=%7B%7D')} style={{ background: '#fef3c7', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#92400e', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Comparer</button>
-                    <button onClick={() => router.push('/resiliation?name=' + d.names[1])} style={{ background: '#fef2f2', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Resilier un doublon</button>
+                    <button onClick={() => router.push('/resiliation?name=' + d.names[1])} style={{ background: '#fef2f2', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Résilier un doublon</button>
                   </div>
                 </div>
               </div>
@@ -184,7 +366,7 @@ export default function Home() {
           <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '24px' }}>📄</div>
             <p style={{ fontWeight: '600', fontSize: '16px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Aucun abonnement</p>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Scanne une facture pour commencer</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Glisse une facture dans la barre ci-dessus</p>
           </div>
         ) : (
           <>
@@ -201,7 +383,7 @@ export default function Home() {
               <div style={{ background: 'var(--bg-card)', borderRadius: '14px', padding: '16px', marginBottom: '12px', border: '1px solid var(--border)' }}>
                 <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Trier par</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
-                  {([['amount_desc', 'Plus cher'], ['amount_asc', 'Moins cher'], ['name_asc', 'A Z'], ['recent', 'Recent']] as [SortOption, string][]).map(([val, label]) => (
+                  {([['amount_desc', 'Plus cher'], ['amount_asc', 'Moins cher'], ['name_asc', 'A→Z'], ['recent', 'Récent']] as [SortOption, string][]).map(([val, label]) => (
                     <button key={val} onClick={() => setSort(val)} style={{ background: sort === val ? '#4f46e5' : 'var(--bg-secondary)', color: sort === val ? 'white' : 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{label}</button>
                   ))}
                 </div>
@@ -224,7 +406,8 @@ export default function Home() {
               const config = categoryConfig[sub.category] || categoryConfig.other
               return (
                 <div key={sub.id} style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', marginBottom: '10px', border: '1px solid var(--border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                  {/* Service info */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
                     <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>{config.icon}</div>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: '600', fontSize: '15px', margin: '0 0 2px', color: 'var(--text-primary)' }}>{sub.company_name}</p>
@@ -235,11 +418,36 @@ export default function Home() {
                       <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>{cycleLabel[sub.billing_cycle] || ''}</p>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    <button onClick={() => router.push('/compare?name=' + sub.company_name + '&amount=' + sub.amount + '&category=' + sub.category + '&details=' + encodeURIComponent(JSON.stringify(sub.details || {})))} style={{ flex: 1, background: '#f5f3ff', border: 'none', borderRadius: '10px', padding: '9px', color: '#7c3aed', fontSize: '12px', cursor: 'pointer', fontWeight: '600', minWidth: '70px' }}>Comparer</button>
-                    <button onClick={() => router.push('/resiliation?name=' + sub.company_name)} style={{ flex: 1, background: '#fef2f2', border: 'none', borderRadius: '10px', padding: '9px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600', minWidth: '70px' }}>Resilier</button>
+
+                  {/* Action buttons */}
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                    <button onClick={() => router.push('/compare?name=' + sub.company_name + '&amount=' + sub.amount + '&category=' + sub.category + '&details=' + encodeURIComponent(JSON.stringify(sub.details || {})))} style={{ flex: 1, background: '#f5f3ff', border: 'none', borderRadius: '10px', padding: '9px', color: '#7c3aed', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Comparer</button>
                     <button onClick={() => handleRemove(sub.id)} style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '10px', padding: '9px 12px', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', fontWeight: '600' }}>✕</button>
                   </div>
+
+                  {/* ── BOUTON RÉSILIER PROÉMINENT ── */}
+                  <button
+                    onClick={() => router.push('/resiliation?name=' + sub.company_name)}
+                    style={{
+                      width: '100%',
+                      background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '13px',
+                      fontWeight: '700',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      letterSpacing: '0.1px',
+                    }}
+                  >
+                    <span style={{ fontSize: '16px' }}>✂️</span>
+                    Résilier cet abonnement
+                  </button>
                 </div>
               )
             })}
