@@ -1,6 +1,7 @@
 'use client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
+import { useUserId } from '../hooks/useUserId'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
@@ -16,6 +17,9 @@ const MOTIFS = [
 function ResiliationContent() {
   const router = useRouter()
   const params = useSearchParams()
+  const { isLoading } = useUserId()
+
+  if (isLoading) return <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>Chargement...</div>
   const name = params.get('name') || 'Abonnement'
   const engagementEndDate = params.get('engagement') || ''
 
