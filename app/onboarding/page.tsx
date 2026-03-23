@@ -100,22 +100,25 @@ export default function OnboardingPage() {
           onClick={() => router.push('/ajouter')}
           style={{
             width: '100%',
-            background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-            border: 'none',
+            background: 'var(--bg-card)',
+            border: '1.5px solid var(--border)',
             borderRadius: '20px',
             padding: '24px 20px',
             cursor: 'pointer',
             textAlign: 'left',
+            transition: 'all 0.15s',
             fontFamily: font,
           }}
+          onMouseEnter={e => (e.currentTarget.style.borderColor = '#4f46e5')}
+          onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
               ✏️
             </div>
             <div>
-              <p style={{ fontWeight: '700', fontSize: '16px', margin: '0 0 4px', color: 'white' }}>Ajouter manuellement</p>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', margin: '0', lineHeight: '1.5' }}>
+              <p style={{ fontWeight: '700', fontSize: '16px', margin: '0 0 4px', color: 'var(--text-primary)' }}>Ajouter manuellement</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0', lineHeight: '1.5' }}>
                 Saisis directement le nom, le montant et la date de ton abonnement
               </p>
             </div>
