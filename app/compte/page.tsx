@@ -54,6 +54,30 @@ export default function ComptePage() {
   const total = subscriptions.reduce((sum, s) => sum + s.amount, 0)
   const isPremium = plan?.plan === 'premium'
 
+  function exportCSV() {
+    if (subscriptions.length === 0) return
+    const cycleLabels: Record<string, string> = { monthly: 'Mensuel', yearly: 'Annuel', quarterly: 'Trimestriel', one_time: 'Unique', unknown: '' }
+    const headers = ['Service', 'Montant (€)', 'Fréquence', 'Catégorie', 'Ajouté le']
+    const rows = subscriptions.map(s => [
+      s.company_name,
+      s.amount.toFixed(2),
+      cycleLabels[s.billing_cycle] || s.billing_cycle,
+      s.category,
+      new Date(s.detected_at).toLocaleDateString('fr-FR'),
+    ])
+    // \uFEFF = BOM UTF-8 pour que Excel reconnaisse les accents
+    const csv = '\uFEFF' + [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';'))
+      .join('\r\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `savesmart-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   async function handleDeleteAccount() {
     if (deleteInput !== 'SUPPRIMER') return
     setDeleting(true)
@@ -204,6 +228,23 @@ export default function ComptePage() {
                 </div>
               ))}
             </div>
+
+            {/* Export CSV */}
+            {subscriptions.length > 0 && (
+              <div style={{ marginTop: '8px' }}>
+                <button
+                  onClick={exportCSV}
+                  style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontFamily: font }}
+                >
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>📊</div>
+                  <div style={{ flex: 1, textAlign: 'left' }}>
+                    <p style={{ fontWeight: '700', fontSize: '14px', margin: '0 0 2px', color: 'var(--text-primary)' }}>Exporter en CSV</p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>{subscriptions.length} abonnement{subscriptions.length > 1 ? 's' : ''} · compatible Excel &amp; Numbers</p>
+                  </div>
+                  <span style={{ fontSize: '18px', color: 'var(--text-muted)' }}>↓</span>
+                </button>
+              </div>
+            )}
 
             {/* Zone danger — discrète */}
             <div style={{ marginTop: '8px', textAlign: 'center' }}>
