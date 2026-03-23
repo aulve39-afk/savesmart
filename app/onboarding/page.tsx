@@ -13,11 +13,14 @@ export default function OnboardingPage() {
   const { user, isLoading } = useUserId()
   const router = useRouter()
   const [entered, setEntered] = useState(false)
+  const [progress, setProgress] = useState(0)
 
   useEffect(() => {
-    // Légère pause pour déclencher la transition slide-in
-    const t = setTimeout(() => setEntered(true), 30)
-    return () => clearTimeout(t)
+    // Légère pause pour déclencher le slide-in et la progression de la barre
+    const t1 = setTimeout(() => setEntered(true), 30)
+    // La barre part de 0 → atteint 50% après un délai naturel
+    const t2 = setTimeout(() => setProgress(50), 120)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [])
 
   if (isLoading) {
@@ -51,8 +54,15 @@ export default function OnboardingPage() {
           <span style={{ fontSize: '12px', fontWeight: '700', color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Étape 1 sur 2</span>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Importer mes abonnements</span>
         </div>
-        <div style={{ height: '4px', borderRadius: '4px', background: 'var(--bg-secondary)', overflow: 'hidden' }}>
-          <div style={{ width: '50%', height: '100%', background: 'linear-gradient(90deg, #4f46e5, #7c3aed)', borderRadius: '4px', transition: 'width 0.4s ease' }} />
+        <div style={{ height: '5px', borderRadius: '5px', background: 'var(--bg-secondary)', overflow: 'hidden' }}>
+          <div style={{
+            width: `${progress}%`,
+            height: '100%',
+            background: 'linear-gradient(90deg, #4f46e5, #7c3aed)',
+            borderRadius: '5px',
+            transition: 'width 0.7s cubic-bezier(0.34, 1.2, 0.64, 1)',
+            /* Léger overshoot élastique — donne une sensation "vivante" */
+          }} />
         </div>
       </div>
 

@@ -71,6 +71,15 @@ div[onClick], div[onclick] {
   -webkit-tap-highlight-color: transparent;
 }
 
+/*
+  ── Anti-zoom iOS ──
+  Safari déclenche un zoom automatique quand font-size < 16px sur un input.
+  On force 16px minimum sur TOUS les champs de saisie de l'app.
+*/
+input, textarea, select {
+  font-size: max(16px, 1em);
+}
+
 /* ── Skeleton screens ── */
 @keyframes shimmer {
   0%   { background-position: -400px 0 }

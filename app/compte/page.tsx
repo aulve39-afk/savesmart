@@ -140,11 +140,11 @@ export default function ComptePage() {
                 <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div>
                     <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 5px', fontWeight: '600' }}>Prénom</p>
-                    <input value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Ton prénom" style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #4f46e5', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: font, background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none' }} />
+                    <input value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Ton prénom" style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #4f46e5', borderRadius: '10px', padding: '10px 12px', fontSize: '16px', fontFamily: font, background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none' }} />
                   </div>
                   <div>
                     <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 5px', fontWeight: '600' }}>Nom</p>
-                    <input value={nom} onChange={e => setNom(e.target.value)} placeholder="Ton nom" style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #4f46e5', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: font, background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none' }} />
+                    <input value={nom} onChange={e => setNom(e.target.value)} placeholder="Ton nom" style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #4f46e5', borderRadius: '10px', padding: '10px 12px', fontSize: '16px', fontFamily: font, background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none' }} />
                   </div>
                 </div>
               ) : (
@@ -226,7 +226,7 @@ export default function ComptePage() {
                     value={deleteInput}
                     onChange={e => setDeleteInput(e.target.value)}
                     placeholder="SUPPRIMER"
-                    style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #fca5a5', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontWeight: '600', marginBottom: '10px', background: 'white', color: '#dc2626', fontFamily: font, outline: 'none' }}
+                    style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #fca5a5', borderRadius: '10px', padding: '10px 12px', fontSize: '16px', fontWeight: '600', marginBottom: '10px', background: 'white', color: '#dc2626', fontFamily: font, outline: 'none' }}
                   />
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => { setShowConfirmDelete(false); setDeleteInput('') }} style={{ flex: 1, background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: font }}>Annuler</button>
