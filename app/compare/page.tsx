@@ -1,7 +1,7 @@
 'use client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-import { useUserId } from '../hooks/useUserId'
+import { useOnboarding as useUserId } from '../hooks/useOnboarding'
 
 type Offer = {
   name: string

@@ -3,7 +3,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { getSubscriptions, type Subscription } from '../store'
-import { useUserId } from '../hooks/useUserId'
+import { useOnboarding as useUserId } from '../hooks/useOnboarding'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 

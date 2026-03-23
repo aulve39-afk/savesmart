@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSubscriptions, type Subscription } from '../store'
-import { useUserId } from '../hooks/useUserId'
+import { useOnboarding as useUserId } from '../hooks/useOnboarding'
 
 type FamilyPlan = {
   name: string

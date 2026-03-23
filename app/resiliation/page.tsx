@@ -1,7 +1,7 @@
 'use client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
-import { useUserId } from '../hooks/useUserId'
+import { useOnboarding as useUserId } from '../hooks/useOnboarding'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 

@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { getSubscriptions, type Subscription } from '../store'
-import { useUserId } from '../hooks/useUserId'
+import { useOnboarding as useUserId } from '../hooks/useOnboarding'
 
 const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   streaming:      { label: 'Streaming', icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },

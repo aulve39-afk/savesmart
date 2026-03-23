@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { addSubscription } from '../store'
-import { useUserId } from '../hooks/useUserId'
+import { useOnboarding as useUserId } from '../hooks/useOnboarding'
 
 const categories = [
   { value: 'streaming', label: 'Streaming', icon: '▶' },

@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSubscriptions, removeSubscription, addSubscription, type Subscription } from './store'
-import { useUserId } from './hooks/useUserId'
+import { useOnboarding as useUserId } from './hooks/useOnboarding'
 
 const competitorGroups: { name: string; keywords: string[] }[] = [
   { name: 'Musique', keywords: ['spotify', 'deezer', 'apple music', 'tidal', 'amazon music', 'youtube music', 'qobuz'] },

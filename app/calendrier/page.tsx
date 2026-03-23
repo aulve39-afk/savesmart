@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSubscriptions, updateSubscriptionDetails, type Subscription } from '../store'
-import { useUserId } from '../hooks/useUserId'
+import { useOnboarding as useUserId } from '../hooks/useOnboarding'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
