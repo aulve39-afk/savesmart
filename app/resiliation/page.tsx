@@ -2,6 +2,7 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { useOnboarding as useUserId } from '../hooks/useOnboarding'
+import { useKeyboardScroll } from '../hooks/useKeyboardScroll'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
@@ -18,6 +19,8 @@ function ResiliationContent() {
   const router = useRouter()
   const params = useSearchParams()
   const { isLoading } = useUserId()
+
+  useKeyboardScroll()
 
   // ⚠️ Tous les hooks AVANT tout return conditionnel (règle des hooks React)
   const [step, setStep] = useState<'motif' | 'form' | 'letter'>('motif')

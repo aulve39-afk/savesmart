@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { getSubscriptions, getUserPlan, getPayments, type Subscription, type UserPlan, type Payment } from '../store'
 import { useOnboarding as useUserId } from '../hooks/useOnboarding'
+import { useKeyboardScroll } from '../hooks/useKeyboardScroll'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 const MONTHS_FR = ['jan','fév','mar','avr','mai','juin','juil','août','sep','oct','nov','déc']
@@ -33,6 +34,8 @@ export default function ComptePage() {
   const [nom, setNom] = useState('')
   const [editingName, setEditingName] = useState(false)
 
+  useKeyboardScroll()
+
   useEffect(() => {
     if (!userId) return
     getSubscriptions(userId).then(setSubscriptions)
@@ -44,9 +47,39 @@ export default function ComptePage() {
 
   if (isLoading || !userId) {
     return (
-      <div style={{ fontFamily: font, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
-        <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <div style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
+        {/* Header skeleton */}
+        <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0 }} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div className="skeleton" style={{ width: '100px', height: '20px' }} />
+            <div className="skeleton" style={{ width: '150px', height: '13px' }} />
+          </div>
+        </div>
+        <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Section tabs skeleton */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {[100, 90, 80].map((w, i) => (
+              <div key={i} className="skeleton" style={{ height: '36px', borderRadius: '10px', flex: 1 }} />
+            ))}
+          </div>
+          {/* Profile card skeleton */}
+          <div style={{ background: 'var(--bg-card)', borderRadius: '20px', border: '1px solid var(--border)', overflow: 'hidden' }}>
+            <div style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '14px', borderBottom: '1px solid var(--border)' }}>
+              <div className="skeleton" style={{ width: '52px', height: '52px', borderRadius: '50%', flexShrink: 0 }} />
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div className="skeleton" style={{ width: '55%', height: '16px' }} />
+                <div className="skeleton" style={{ width: '70%', height: '12px' }} />
+              </div>
+            </div>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} style={{ padding: '14px 16px', borderBottom: i < 3 ? '1px solid var(--border)' : 'none', display: 'flex', justifyContent: 'space-between' }}>
+                <div className="skeleton" style={{ width: '35%', height: '13px' }} />
+                <div className="skeleton" style={{ width: '25%', height: '13px' }} />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }

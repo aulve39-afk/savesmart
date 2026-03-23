@@ -25,9 +25,24 @@ export default function OnboardingPage() {
 
   if (isLoading) {
     return (
-      <div style={{ fontFamily: font, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
-        <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <div style={{ fontFamily: font, minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        {/* Barre de progression skeleton */}
+        <div style={{ width: '100%', maxWidth: '360px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <div className="skeleton" style={{ width: '80px', height: '13px', borderRadius: '6px' }} />
+            <div className="skeleton" style={{ width: '130px', height: '13px', borderRadius: '6px' }} />
+          </div>
+          <div className="skeleton" style={{ height: '5px', borderRadius: '5px' }} />
+        </div>
+        {/* Icône + titre skeleton */}
+        <div className="skeleton" style={{ width: '72px', height: '72px', borderRadius: '22px', marginBottom: '20px' }} />
+        <div className="skeleton" style={{ width: '220px', height: '28px', borderRadius: '8px', marginBottom: '12px' }} />
+        <div className="skeleton" style={{ width: '180px', height: '16px', borderRadius: '6px', marginBottom: '6px' }} />
+        <div className="skeleton" style={{ width: '160px', height: '14px', borderRadius: '6px', marginBottom: '36px' }} />
+        {/* Boutons option skeleton */}
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="skeleton" style={{ width: '100%', maxWidth: '360px', height: '84px', borderRadius: '20px', marginBottom: '14px' }} />
+        ))}
       </div>
     )
   }
