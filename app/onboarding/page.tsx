@@ -96,6 +96,32 @@ export default function OnboardingPage() {
           </div>
         </button>
 
+        <button
+          onClick={() => router.push('/ajouter')}
+          style={{
+            width: '100%',
+            background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+            border: 'none',
+            borderRadius: '20px',
+            padding: '24px 20px',
+            cursor: 'pointer',
+            textAlign: 'left',
+            fontFamily: font,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
+              ✏️
+            </div>
+            <div>
+              <p style={{ fontWeight: '700', fontSize: '16px', margin: '0 0 4px', color: 'white' }}>Ajouter manuellement</p>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', margin: '0', lineHeight: '1.5' }}>
+                Saisis directement le nom, le montant et la date de ton abonnement
+              </p>
+            </div>
+          </div>
+        </button>
+
       </div>
 
       <p style={{ marginTop: '28px', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', maxWidth: '280px', lineHeight: '1.5' }}>
