@@ -133,6 +133,19 @@ export default function ComptePage() {
               ))}
             </div>
 
+            {/* Déconnexion */}
+            <button
+              onClick={() => { localStorage.removeItem('savesmart_user_id'); router.push('/onboarding') }}
+              style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', fontFamily: font }}
+            >
+              <span style={{ fontSize: '18px' }}>🔄</span>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', margin: '0 0 2px' }}>Réinitialiser mon espace</p>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>Effacer mes données et recommencer</p>
+              </div>
+              <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>›</span>
+            </button>
+
             {/* Infos compte */}
             <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', overflow: 'hidden' }}>
               <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', margin: '0', padding: '14px 16px 10px', textTransform: 'uppercase', letterSpacing: '1px', borderBottom: '1px solid var(--border)' }}>Informations</p>
