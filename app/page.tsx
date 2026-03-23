@@ -124,6 +124,7 @@ export default function Home() {
   const [removedToast, setRemovedToast] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [subsLoading, setSubsLoading] = useState(true)
+  const [subsLoadError, setSubsLoadError] = useState(false)
   const [scanResult, setScanResult] = useState<any>(null)
   const [scanError, setScanError] = useState<string | null>(null)
   const [scanAdded, setScanAdded] = useState(false)
@@ -137,10 +138,16 @@ export default function Home() {
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
   useEffect(() => {
-    if (userId) {
-      setSubsLoading(true)
-      getSubscriptions(userId).then(subs => { setSubscriptions(subs); setSubsLoading(false) })
+    if (!userId) return
+    // Offline : inutile de tenter un fetch qui échouera
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setSubsLoading(false)
+      setSubsLoadError(true)
+      return
     }
+    setSubsLoading(true)
+    setSubsLoadError(false)
+    getSubscriptions(userId).then(subs => { setSubscriptions(subs); setSubsLoading(false) })
   }, [userId])
 
   useEffect(() => {
@@ -605,6 +612,12 @@ export default function Home() {
             >
               <span style={{ fontSize: '15px' }}>✏️</span> Ajouter manuellement
             </button>
+            <button
+              onClick={() => navigate('/releve')}
+              style={{ gridColumn: '1 / -1', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '11px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            >
+              <span style={{ fontSize: '15px' }}>🏦</span> Analyser mon relevé bancaire
+            </button>
           </div>
 
           {/* Hidden inputs */}
@@ -822,7 +835,25 @@ export default function Home() {
           </div>
         )}
 
-        {subsLoading ? (
+        {subsLoadError ? (
+          <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '32px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: '26px' }}>📡</div>
+            <p style={{ fontWeight: '700', fontSize: '16px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Mode hors-ligne</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 20px', lineHeight: '1.5' }}>
+              Tes données seront synchronisées<br />dès le retour de la connexion.
+            </p>
+            <button
+              onClick={() => {
+                setSubsLoadError(false)
+                setSubsLoading(true)
+                if (userId) getSubscriptions(userId).then(subs => { setSubscriptions(subs); setSubsLoading(false) })
+              }}
+              style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 24px', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}
+            >
+              🔄 Réessayer
+            </button>
+          </div>
+        ) : subsLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {[1,2,3].map(i => (
               <div key={i} style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', border: '1px solid var(--border)' }}>

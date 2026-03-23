@@ -78,19 +78,33 @@ export default function AjouterPage() {
     } catch {}
   }, [name, amount, category, cycle, engagementDate, isTrial, trialEndDate])
 
-  // ── Scroll au bouton "Ajouter" quand le clavier remonte ──
-  const scrollSubmitIntoView = () => {
-    setTimeout(() => {
-      submitRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }, 350)
+  // ── visualViewport : scroll précis quand le clavier iOS/Android ouvre ──
+  // L'API visualViewport reflète la zone réellement visible (hors clavier).
+  // Bien supérieur aux timeouts fixes — réagit à l'animation du clavier.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return
+    const handler = () => {
+      const el = document.activeElement as HTMLElement | null
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50)
+      }
+    }
+    window.visualViewport.addEventListener('resize', handler)
+    return () => window.visualViewport?.removeEventListener('resize', handler)
+  }, [])
+
+  // ── Scroll au champ actif (fallback pour navigateurs sans visualViewport) ──
+  const scrollToFocused = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (window.visualViewport) return // déjà géré
+    setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 320)
   }
 
-  // ── Scroll au champ actif quand le clavier apparaît ──
-  const scrollToFocused = (e: React.FocusEvent<HTMLInputElement>) => {
-    setTimeout(() => {
-      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }, 320)
-  }
+  // scrollSubmitIntoView: obsolète depuis que le bouton est en position fixe
+  const scrollSubmitIntoView = () => {}
+
+  // ── Validité en temps réel (sans attendre le submit) ──
+  const nameValid  = name.trim().length > 0 && name.trim().length <= 100 && !nameError
+  const amountValid = (() => { const n = parseFloat(amount); return !isNaN(n) && n > 0 && n <= 9999 && !amountError })()
 
   const inputStyle = {
     width: '100%',
@@ -217,9 +231,14 @@ export default function AjouterPage() {
           <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 16px', color: 'var(--text-primary)' }}>Informations</p>
 
           <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nom du service</p>
-          <div className={nameShake ? 'field-shake' : undefined}>
+          <div className={nameShake ? 'field-shake' : undefined} style={{ position: 'relative' }}>
             <input
-              style={{ ...inputStyle, ...(nameError ? { borderColor: '#ef4444', marginBottom: '4px' } : {}) }}
+              style={{
+                ...inputStyle,
+                ...(nameError  ? { borderColor: '#ef4444', marginBottom: '4px' } : {}),
+                ...(nameValid  ? { borderColor: '#10b981' } : {}),
+                paddingRight: nameValid ? '40px' : '16px',
+              }}
               placeholder="Ex: Netflix, Free Mobile, EDF..."
               value={name}
               maxLength={100}
@@ -228,13 +247,20 @@ export default function AjouterPage() {
               onFocus={scrollToFocused}
               onChange={e => { setName(e.target.value); if (nameError) setNameError('') }}
             />
+            {nameValid && (
+              <span style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: '#10b981', fontSize: '15px', fontWeight: '700', animation: 'validCheckIn 0.2s ease-out both', pointerEvents: 'none' }}>✓</span>
+            )}
           </div>
           {nameError && <p style={{ fontSize: '12px', color: '#ef4444', margin: '0 0 10px', fontWeight: '500' }}>{nameError}</p>}
 
           <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', margin: '10px 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Montant</p>
           <div className={amountShake ? 'field-shake' : undefined} style={{ position: 'relative', marginBottom: amountError ? '4px' : '10px' }}>
             <input
-              style={{ ...inputStyle, marginBottom: '0', paddingRight: '40px', ...(amountError ? { borderColor: '#ef4444' } : {}) }}
+              style={{
+                ...inputStyle, marginBottom: '0', paddingRight: '48px',
+                ...(amountError  ? { borderColor: '#ef4444' } : {}),
+                ...(amountValid  ? { borderColor: '#10b981' } : {}),
+              }}
               placeholder="0.00"
               type="number"
               inputMode="decimal"
@@ -246,7 +272,10 @@ export default function AjouterPage() {
               onBlur={scrollSubmitIntoView}
               onChange={e => { setAmount(e.target.value); if (amountError) setAmountError('') }}
             />
-            <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '16px', fontWeight: '600' }}>€</span>
+            {amountValid
+              ? <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#10b981', fontSize: '15px', fontWeight: '700', animation: 'validCheckIn 0.2s ease-out both', pointerEvents: 'none' }}>✓</span>
+              : <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '16px', fontWeight: '600', pointerEvents: 'none' }}>€</span>
+            }
           </div>
           {amountError && <p style={{ fontSize: '12px', color: '#ef4444', margin: '0 0 6px', fontWeight: '500' }}>{amountError}</p>}
         </div>
