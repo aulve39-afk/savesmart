@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { getSubscriptions, getUserPlan, getPayments, type Subscription, type UserPlan, type Payment } from '../store'
 import { useOnboarding as useUserId } from '../hooks/useOnboarding'
 import { useKeyboardScroll } from '../hooks/useKeyboardScroll'
+import Confetti from '../components/Confetti'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 const MONTHS_FR = ['jan','fév','mar','avr','mai','juin','juil','août','sep','oct','nov','déc']
@@ -33,6 +34,7 @@ export default function ComptePage() {
   const [prenom, setPrenom] = useState('')
   const [nom, setNom] = useState('')
   const [editingName, setEditingName] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   useKeyboardScroll()
 
@@ -129,10 +131,14 @@ export default function ComptePage() {
     localStorage.setItem('savesmart_prenom', prenom)
     localStorage.setItem('savesmart_nom', nom)
     setEditingName(false)
+    // Micro-récompense quand le profil est complété (prénom + nom renseignés)
+    if (prenom.trim() && nom.trim()) setShowConfetti(true)
   }
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
+
+      <Confetti show={showConfetti} onDone={() => setShowConfetti(false)} />
 
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', padding: '52px 24px 28px', position: 'relative' }}>

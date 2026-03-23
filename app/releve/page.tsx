@@ -136,9 +136,30 @@ export default function RelevePage() {
   }
 
   if (isLoading || !userId) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    <div style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh' }}>
+      {/* Header skeleton */}
+      <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0 }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="skeleton" style={{ width: '150px', height: '20px' }} />
+          <div className="skeleton" style={{ width: '200px', height: '13px' }} />
+        </div>
+      </div>
+      {/* Tabs skeleton */}
+      <div style={{ background: 'var(--bg-card)', padding: '0 16px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '8px' }}>
+        <div className="skeleton" style={{ flex: 1, height: '44px', borderRadius: '6px', margin: '8px 0' }} />
+        <div className="skeleton" style={{ flex: 1, height: '44px', borderRadius: '6px', margin: '8px 0' }} />
+      </div>
+      <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* Upload zone skeleton */}
+        <div className="skeleton" style={{ height: '220px', borderRadius: '20px' }} />
+        {/* Security badge skeleton */}
+        <div className="skeleton" style={{ height: '56px', borderRadius: '12px' }} />
+        {/* Action buttons skeleton */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {[...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ flex: 1, height: '48px', borderRadius: '12px' }} />)}
+        </div>
+      </div>
     </div>
   )
 

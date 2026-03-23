@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { addSubscription } from '../store'
 import { useUserId } from '../hooks/useUserId'
+import { useKeyboardScroll } from '../hooks/useKeyboardScroll'
 
 const DRAFT_KEY = 'savesmart_form_draft'
 
@@ -46,6 +47,8 @@ export default function AjouterPage() {
   const [hasDraft, setHasDraft] = useState(false)
   const submitRef = useRef<HTMLButtonElement>(null)
 
+  useKeyboardScroll()
+
   const shake = (setter: (v: boolean) => void) => {
     setter(true)
     setTimeout(() => setter(false), 400)
@@ -78,29 +81,6 @@ export default function AjouterPage() {
     } catch {}
   }, [name, amount, category, cycle, engagementDate, isTrial, trialEndDate])
 
-  // ── visualViewport : scroll précis quand le clavier iOS/Android ouvre ──
-  // L'API visualViewport reflète la zone réellement visible (hors clavier).
-  // Bien supérieur aux timeouts fixes — réagit à l'animation du clavier.
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.visualViewport) return
-    const handler = () => {
-      const el = document.activeElement as HTMLElement | null
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
-        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50)
-      }
-    }
-    window.visualViewport.addEventListener('resize', handler)
-    return () => window.visualViewport?.removeEventListener('resize', handler)
-  }, [])
-
-  // ── Scroll au champ actif (fallback pour navigateurs sans visualViewport) ──
-  const scrollToFocused = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (window.visualViewport) return // déjà géré
-    setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 320)
-  }
-
-  // scrollSubmitIntoView: obsolète depuis que le bouton est en position fixe
-  const scrollSubmitIntoView = () => {}
 
   // ── Validité en temps réel (sans attendre le submit) ──
   const nameValid  = name.trim().length > 0 && name.trim().length <= 100 && !nameError
@@ -179,9 +159,37 @@ export default function AjouterPage() {
   
 
   if (isLoading || !userId) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    <div style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '120px' }}>
+      {/* Header skeleton */}
+      <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0 }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="skeleton" style={{ width: '160px', height: '20px' }} />
+          <div className="skeleton" style={{ width: '200px', height: '13px' }} />
+        </div>
+      </div>
+      <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Informations card skeleton */}
+        <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div className="skeleton" style={{ width: '110px', height: '15px', borderRadius: '6px' }} />
+          <div className="skeleton" style={{ width: '80px', height: '12px', borderRadius: '4px' }} />
+          <div className="skeleton" style={{ height: '48px', borderRadius: '12px' }} />
+          <div className="skeleton" style={{ width: '60px', height: '12px', borderRadius: '4px' }} />
+          <div className="skeleton" style={{ height: '48px', borderRadius: '12px' }} />
+        </div>
+        {/* Catégorie skeleton */}
+        <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', border: '1px solid var(--border)' }}>
+          <div className="skeleton" style={{ width: '90px', height: '15px', borderRadius: '6px', marginBottom: '14px' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            {[...Array(7)].map((_, i) => <div key={i} className="skeleton" style={{ height: '64px', borderRadius: '12px' }} />)}
+          </div>
+        </div>
+        {/* Fréquence skeleton */}
+        <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="skeleton" style={{ width: '180px', height: '15px', borderRadius: '6px', marginBottom: '6px' }} />
+          {[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: '46px', borderRadius: '12px' }} />)}
+        </div>
+      </div>
     </div>
   )
 
@@ -244,7 +252,6 @@ export default function AjouterPage() {
               maxLength={100}
               autoComplete="off"
               autoCapitalize="words"
-              onFocus={scrollToFocused}
               onChange={e => { setName(e.target.value); if (nameError) setNameError('') }}
             />
             {nameValid && (
@@ -268,8 +275,6 @@ export default function AjouterPage() {
               max="9999"
               step="0.01"
               value={amount}
-              onFocus={scrollToFocused}
-              onBlur={scrollSubmitIntoView}
               onChange={e => { setAmount(e.target.value); if (amountError) setAmountError('') }}
             />
             {amountValid
