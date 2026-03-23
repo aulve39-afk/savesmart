@@ -19,7 +19,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+      {/*
+        onTouchStart={} vide sur body = fix iOS Safari :
+        sans ça, CSS :active ne se déclenche pas sur les éléments tactiles.
+        C'est la solution recommandée par Apple pour activer les états :active.
+      */}
+      <body className="min-h-full flex flex-col" onTouchStart={() => {}}>
         <Providers>{children}</Providers>
       </body>
     </html>

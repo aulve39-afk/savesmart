@@ -1,8 +1,10 @@
 'use client'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { addSubscription } from '../store'
 import { useUserId } from '../hooks/useUserId'
+
+const DRAFT_KEY = 'savesmart_form_draft'
 
 const haptic = (ms = 8) => { try { navigator?.vibrate?.(ms) } catch {} }
 
@@ -37,8 +39,49 @@ export default function AjouterPage() {
   const [nameError, setNameError] = useState('')
   const [amountError, setAmountError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [hasDraft, setHasDraft] = useState(false)
+  const submitRef = useRef<HTMLButtonElement>(null)
 
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+
+  // ── Restauration du brouillon ──
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY)
+      if (!raw) return
+      const d = JSON.parse(raw)
+      if (d.name)            setName(d.name)
+      if (d.amount)          setAmount(d.amount)
+      if (d.category)        setCategory(d.category)
+      if (d.cycle)           setCycle(d.cycle)
+      if (d.engagementDate)  setEngagementDate(d.engagementDate)
+      if (d.isTrial)         setIsTrial(true)
+      if (d.trialEndDate)    setTrialEndDate(d.trialEndDate)
+      if (d.name || d.amount) setHasDraft(true)
+    } catch {}
+  }, [])
+
+  // ── Sauvegarde automatique du brouillon ──
+  useEffect(() => {
+    if (!name && !amount) return
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ name, amount, category, cycle, engagementDate, isTrial, trialEndDate }))
+    } catch {}
+  }, [name, amount, category, cycle, engagementDate, isTrial, trialEndDate])
+
+  // ── Scroll au bouton "Ajouter" quand le clavier remonte ──
+  const scrollSubmitIntoView = () => {
+    setTimeout(() => {
+      submitRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }, 350)
+  }
+
+  // ── Scroll au champ actif quand le clavier apparaît ──
+  const scrollToFocused = (e: React.FocusEvent<HTMLInputElement>) => {
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 320)
+  }
 
   const inputStyle = {
     width: '100%',
@@ -92,6 +135,7 @@ export default function AjouterPage() {
       category,
       details,
     }, userId)
+    try { localStorage.removeItem(DRAFT_KEY) } catch {}
     router.push('/')
   }
   
@@ -104,15 +148,38 @@ export default function AjouterPage() {
   )
 
   return (
-    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
+    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '200px' }}>
+      {/* paddingBottom généreux = espace pour que le clavier virtuel ne cache pas le bouton Ajouter */}
 
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
+        <button
+          onClick={() => router.push('/')}
+          style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >←</button>
         <div>
           <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>Ajouter manuellement</h1>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Saisis les détails de ton abonnement</p>
         </div>
       </div>
+
+      {/* Bannière brouillon récupéré */}
+      {hasDraft && (
+        <div style={{ margin: '12px 16px 0', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>📝</span>
+          <p style={{ fontSize: '12px', color: '#92400e', fontWeight: '600', margin: '0', flex: 1 }}>
+            Brouillon récupéré — tu avais commencé à remplir ce formulaire
+          </p>
+          <button
+            onClick={() => {
+              setName(''); setAmount(''); setCategory('other'); setCycle('monthly')
+              setEngagementDate(''); setIsTrial(false); setTrialEndDate('')
+              setHasDraft(false)
+              try { localStorage.removeItem(DRAFT_KEY) } catch {}
+            }}
+            style={{ background: 'none', border: 'none', color: '#d97706', cursor: 'pointer', fontSize: '16px', padding: '0' }}
+          >✕</button>
+        </div>
+      )}
 
       <div style={{ padding: '20px 16px' }}>
 
@@ -133,6 +200,7 @@ export default function AjouterPage() {
             maxLength={100}
             autoComplete="off"
             autoCapitalize="words"
+            onFocus={scrollToFocused}
             onChange={e => { setName(e.target.value); if (nameError) setNameError('') }}
           />
           {nameError && <p style={{ fontSize: '12px', color: '#ef4444', margin: '0 0 10px', fontWeight: '500' }}>{nameError}</p>}
@@ -148,6 +216,8 @@ export default function AjouterPage() {
               max="9999"
               step="0.01"
               value={amount}
+              onFocus={scrollToFocused}
+              onBlur={scrollSubmitIntoView}
               onChange={e => { setAmount(e.target.value); if (amountError) setAmountError('') }}
             />
             <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '16px', fontWeight: '600' }}>€</span>
@@ -247,11 +317,14 @@ export default function AjouterPage() {
         </div>
 
         <button
+          ref={submitRef}
           onClick={handleSubmit}
           disabled={isSubmitting}
-          style={{ width: '100%', background: isSubmitting ? '#a5b4fc' : '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: isSubmitting ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}
+          style={{ width: '100%', background: isSubmitting ? '#a5b4fc' : '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: isSubmitting ? 'not-allowed' : 'pointer', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
         >
-          {isSubmitting ? 'Ajout en cours...' : 'Ajouter à mon espace'}
+          {isSubmitting
+            ? <><div style={{ width: '18px', height: '18px', border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />Ajout en cours...</>
+            : 'Ajouter à mon espace'}
         </button>
       </div>
     </main>
