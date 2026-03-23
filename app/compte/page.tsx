@@ -17,7 +17,7 @@ const PLAN_FEATURES = {
   premium: ['Abonnements illimités', 'Connexion Gmail', 'Partage famille', 'Export PDF', 'Alertes renouvellements', 'Comparateur d\'offres'],
 }
 
-type Section = 'profil' | 'abonnement' | 'paiements' | 'danger'
+type Section = 'profil' | 'abonnement' | 'paiements'
 
 export default function ComptePage() {
   const router = useRouter()
@@ -29,12 +29,17 @@ export default function ComptePage() {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
   const [deleteInput, setDeleteInput] = useState('')
   const [deleting, setDeleting] = useState(false)
+  const [prenom, setPrenom] = useState('')
+  const [nom, setNom] = useState('')
+  const [editingName, setEditingName] = useState(false)
 
   useEffect(() => {
     if (!userId) return
     getSubscriptions(userId).then(setSubscriptions)
     getUserPlan(userId).then(setPlan)
     getPayments(userId).then(setPayments)
+    setPrenom(localStorage.getItem('savesmart_prenom') ?? '')
+    setNom(localStorage.getItem('savesmart_nom') ?? '')
   }, [userId])
 
   if (isLoading || !userId) {
@@ -61,8 +66,13 @@ export default function ComptePage() {
     { id: 'profil', label: 'Mon profil', icon: '👤' },
     { id: 'abonnement', label: 'Mon abonnement', icon: '⭐' },
     { id: 'paiements', label: 'Paiements', icon: '💳' },
-    { id: 'danger', label: 'Zone danger', icon: '⚠️' },
   ]
+
+  function saveName() {
+    localStorage.setItem('savesmart_prenom', prenom)
+    localStorage.setItem('savesmart_nom', nom)
+    setEditingName(false)
+  }
 
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
@@ -118,6 +128,39 @@ export default function ComptePage() {
         {activeSection === 'profil' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
+            {/* Nom / Prénom */}
+            <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', overflow: 'hidden' }}>
+              <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', margin: '0', textTransform: 'uppercase', letterSpacing: '1px' }}>Identité</p>
+                <button onClick={() => editingName ? saveName() : setEditingName(true)} style={{ background: 'none', border: 'none', fontSize: '12px', fontWeight: '700', color: '#4f46e5', cursor: 'pointer', padding: '0', fontFamily: font }}>
+                  {editingName ? 'Enregistrer' : 'Modifier'}
+                </button>
+              </div>
+              {editingName ? (
+                <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 5px', fontWeight: '600' }}>Prénom</p>
+                    <input value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Ton prénom" style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #4f46e5', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: font, background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none' }} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 5px', fontWeight: '600' }}>Nom</p>
+                    <input value={nom} onChange={e => setNom(e.target.value)} placeholder="Ton nom" style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #4f46e5', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: font, background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none' }} />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>Prénom</span>
+                    <span style={{ fontSize: '13px', color: prenom ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: '600', fontStyle: prenom ? 'normal' : 'italic' }}>{prenom || 'Non renseigné'}</span>
+                  </div>
+                  <div style={{ padding: '13px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>Nom</span>
+                    <span style={{ fontSize: '13px', color: nom ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: '600', fontStyle: nom ? 'normal' : 'italic' }}>{nom || 'Non renseigné'}</span>
+                  </div>
+                </>
+              )}
+            </div>
+
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
               {[
@@ -133,17 +176,17 @@ export default function ComptePage() {
               ))}
             </div>
 
-            {/* Déconnexion */}
+            {/* Réinitialiser */}
             <button
-              onClick={() => { localStorage.removeItem('savesmart_user_id'); router.push('/onboarding') }}
-              style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', fontFamily: font }}
+              onClick={() => { localStorage.removeItem('savesmart_user_id'); localStorage.removeItem('savesmart_prenom'); localStorage.removeItem('savesmart_nom'); router.push('/onboarding') }}
+              style={{ width: '100%', background: 'var(--bg-card)', border: '1.5px solid #4f46e5', borderRadius: '16px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', fontFamily: font }}
             >
-              <span style={{ fontSize: '18px' }}>🔄</span>
+              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🔄</div>
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', margin: '0 0 2px' }}>Réinitialiser mon espace</p>
+                <p style={{ fontSize: '14px', fontWeight: '700', color: '#4f46e5', margin: '0 0 2px' }}>Réinitialiser mon espace</p>
                 <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>Effacer mes données et recommencer</p>
               </div>
-              <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>›</span>
+              <span style={{ fontSize: '16px', color: '#4f46e5' }}>›</span>
             </button>
 
             {/* Infos compte */}
@@ -160,6 +203,39 @@ export default function ComptePage() {
                   <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '600' }}>{row.value}</span>
                 </div>
               ))}
+            </div>
+
+            {/* Zone danger — discrète */}
+            <div style={{ marginTop: '8px', textAlign: 'center' }}>
+              {!showConfirmDelete ? (
+                <button
+                  onClick={() => setShowConfirmDelete(true)}
+                  style={{ background: 'none', border: 'none', fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: font, textDecoration: 'underline', opacity: 0.6 }}
+                >
+                  Supprimer définitivement mon compte
+                </button>
+              ) : (
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '14px', padding: '16px', textAlign: 'left' }}>
+                  <p style={{ fontWeight: '700', fontSize: '14px', color: '#dc2626', margin: '0 0 8px' }}>Supprimer mon compte ?</p>
+                  <p style={{ fontSize: '12px', color: '#ef4444', margin: '0 0 12px', lineHeight: '1.5' }}>
+                    Toutes tes données seront <strong>définitivement supprimées</strong>. Action irréversible.
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#dc2626', fontWeight: '600', margin: '0 0 8px' }}>Tape <strong>SUPPRIMER</strong> pour confirmer :</p>
+                  <input
+                    type="text"
+                    value={deleteInput}
+                    onChange={e => setDeleteInput(e.target.value)}
+                    placeholder="SUPPRIMER"
+                    style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #fca5a5', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontWeight: '600', marginBottom: '10px', background: 'white', color: '#dc2626', fontFamily: font, outline: 'none' }}
+                  />
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => { setShowConfirmDelete(false); setDeleteInput('') }} style={{ flex: 1, background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: font }}>Annuler</button>
+                    <button onClick={handleDeleteAccount} disabled={deleteInput !== 'SUPPRIMER' || deleting} style={{ flex: 1, background: deleteInput === 'SUPPRIMER' ? '#dc2626' : '#fca5a5', border: 'none', borderRadius: '10px', padding: '10px', fontWeight: '700', fontSize: '13px', cursor: deleteInput === 'SUPPRIMER' ? 'pointer' : 'not-allowed', color: 'white', fontFamily: font }}>
+                      {deleting ? '…' : 'Supprimer'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -271,57 +347,6 @@ export default function ComptePage() {
           </div>
         )}
 
-        {/* === SECTION DANGER === */}
-        {activeSection === 'danger' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-
-            <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '16px', padding: '16px' }}>
-              <p style={{ fontWeight: '700', fontSize: '13px', color: '#c2410c', margin: '0 0 6px' }}>⚠️ Zone sensible</p>
-              <p style={{ fontSize: '13px', color: '#9a3412', margin: '0', lineHeight: '1.5' }}>Les actions ci-dessous sont irréversibles. Procède avec précaution.</p>
-            </div>
-
-            {/* Supprimer le compte */}
-            {!showConfirmDelete ? (
-              <button
-                onClick={() => setShowConfirmDelete(true)}
-                style={{ width: '100%', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', fontFamily: font }}
-              >
-                <span style={{ fontSize: '20px' }}>🗑️</span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: '700', fontSize: '14px', color: '#dc2626', margin: '0 0 3px' }}>Supprimer mon compte</p>
-                  <p style={{ fontSize: '12px', color: '#ef4444', margin: '0' }}>Supprime définitivement toutes tes données</p>
-                </div>
-                <span style={{ fontSize: '14px', color: '#ef4444' }}>›</span>
-              </button>
-            ) : (
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '16px', padding: '20px' }}>
-                <p style={{ fontWeight: '800', fontSize: '16px', color: '#dc2626', margin: '0 0 8px' }}>Supprimer mon compte ?</p>
-                <p style={{ fontSize: '13px', color: '#ef4444', margin: '0 0 16px', lineHeight: '1.5' }}>
-                  Cette action supprimera <strong>définitivement</strong> tous tes abonnements, données et historique. Cette action est irréversible.
-                </p>
-                <p style={{ fontSize: '13px', color: '#dc2626', fontWeight: '600', margin: '0 0 8px' }}>Tape <strong>SUPPRIMER</strong> pour confirmer :</p>
-                <input
-                  type="text"
-                  value={deleteInput}
-                  onChange={e => setDeleteInput(e.target.value)}
-                  placeholder="SUPPRIMER"
-                  style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #fca5a5', borderRadius: '10px', padding: '11px 14px', fontSize: '14px', fontWeight: '600', marginBottom: '12px', background: 'white', color: '#dc2626', fontFamily: font, outline: 'none' }}
-                />
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => { setShowConfirmDelete(false); setDeleteInput('') }}
-                    style={{ flex: 1, background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: font }}
-                  >Annuler</button>
-                  <button
-                    onClick={handleDeleteAccount}
-                    disabled={deleteInput !== 'SUPPRIMER' || deleting}
-                    style={{ flex: 1, background: deleteInput === 'SUPPRIMER' ? '#dc2626' : '#fca5a5', border: 'none', borderRadius: '12px', padding: '12px', fontWeight: '700', fontSize: '14px', cursor: deleteInput === 'SUPPRIMER' ? 'pointer' : 'not-allowed', color: 'white', fontFamily: font, transition: 'background 0.15s' }}
-                  >{deleting ? 'Suppression…' : 'Supprimer définitivement'}</button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
