@@ -120,6 +120,9 @@ export default function Home() {
   const [groupedDoublons, setGroupedDoublons] = useState<number[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [scanning, setScanning] = useState(false)
+  const [navLoading, setNavLoading] = useState<string | null>(null)
+  const [removedToast, setRemovedToast] = useState(false)
+  const [removingId, setRemovingId] = useState<string | null>(null)
   const [scanResult, setScanResult] = useState<any>(null)
   const [scanError, setScanError] = useState<string | null>(null)
   const [scanAdded, setScanAdded] = useState(false)
@@ -133,9 +136,18 @@ export default function Home() {
 
   const reload = () => { if (userId) getSubscriptions(userId).then(setSubscriptions) }
 
+  const navigate = (path: string) => {
+    setNavLoading(path)
+    router.push(path)
+  }
+
   const handleRemove = async (id: string) => {
     if (!userId) return
+    setRemovingId(id)
     await removeSubscription(id, userId)
+    setRemovingId(null)
+    setRemovedToast(true)
+    setTimeout(() => setRemovedToast(false), 2500)
     reload()
   }
 
@@ -230,7 +242,7 @@ export default function Home() {
   })()
 
   return (
-    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
+    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
 
       {/* Header */}
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)' }}>
@@ -240,14 +252,11 @@ export default function Home() {
             <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>SaveSmart</h1>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button onClick={() => router.push('/stats')} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '16px' }}>📊</span>Stats
-            </button>
-            <button
-              onClick={() => router.push('/compte')}
-              style={{ width: '38px', height: '38px', borderRadius: '50%', border: '2px solid #4f46e5', cursor: 'pointer', padding: '0', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-            >
-              <span style={{ color: 'white', fontSize: '14px', fontWeight: '800' }}>👤</span>
+            <button onClick={() => navigate('/stats')} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {navLoading === '/stats'
+                ? <div style={{ width: '16px', height: '16px', border: '2px solid var(--border)', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                : <span style={{ fontSize: '16px' }}>📊</span>}
+              Stats
             </button>
           </div>
         </div>
@@ -273,7 +282,7 @@ export default function Home() {
         <div style={{ padding: '12px 16px 0' }}>
           {nextAlert.type === 'trial' ? (
             <div
-              onClick={() => router.push('/calendrier')}
+              onClick={() => navigate('/calendrier')}
               style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: '14px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
             >
               <span style={{ fontSize: '22px', flexShrink: 0 }}>🚨</span>
@@ -314,7 +323,7 @@ export default function Home() {
       {shareableSuggestion && (
         <div style={{ padding: '8px 16px 0' }}>
           <div
-            onClick={() => router.push('/partage')}
+            onClick={() => navigate('/partage')}
             style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #86efac', borderRadius: '14px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
           >
             <span style={{ fontSize: '20px', flexShrink: 0 }}>💡</span>
@@ -402,7 +411,7 @@ export default function Home() {
               <span style={{ fontSize: '15px' }}>📄</span> Fichier / PDF
             </button>
             <button
-              onClick={() => router.push('/ajouter')}
+              onClick={() => navigate('/ajouter')}
               style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '11px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
             >
               <span style={{ fontSize: '15px' }}>✏️</span> Ajouter manuellement
@@ -483,31 +492,75 @@ export default function Home() {
         )}
       </div>
 
-      {/* Nav secondaire */}
-      <div style={{ padding: '8px 16px 4px', display: 'flex', gap: '8px' }}>
-        <button onClick={() => router.push('/ajouter')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-          <span style={{ fontSize: '13px' }}>➕</span> Ajouter
+      {/* ── TOAST DE CONFIRMATION ── */}
+      {removedToast && (
+        <div style={{ position: 'fixed', bottom: 'calc(90px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', background: '#1e293b', color: 'white', borderRadius: '14px', padding: '12px 20px', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 200, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', whiteSpace: 'nowrap' }}>
+          <span>✅</span> Abonnement supprimé
+        </div>
+      )}
+
+      {/* ── BOTTOM NAVIGATION FIXE ── */}
+      <style>{`
+        @keyframes navSpinAnim { to { transform: rotate(360deg) } }
+        .nav-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; flex: 1; padding: 8px 4px; background: none; border: none; cursor: pointer; color: var(--text-muted); transition: color 0.15s ease; -webkit-tap-highlight-color: transparent; }
+        .nav-tab:active { transform: scale(0.9); }
+        .nav-tab-icon { font-size: 20px; line-height: 1; }
+        .nav-tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.2px; }
+        .nav-fab { display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none; cursor: pointer; margin-top: -20px; box-shadow: 0 4px 18px rgba(79,70,229,0.45); flex-shrink: 0; -webkit-tap-highlight-color: transparent; transition: box-shadow 0.15s ease, transform 0.12s ease; }
+        .nav-fab:active { transform: scale(0.90); box-shadow: 0 2px 8px rgba(79,70,229,0.3); }
+      `}</style>
+      <nav style={{
+        position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+        width: '100%', maxWidth: '430px',
+        background: 'var(--bg-card)', borderTop: '1px solid var(--border)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        display: 'flex', alignItems: 'center', zIndex: 100,
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
+      }}>
+        {/* Accueil */}
+        <button className="nav-tab" onClick={() => navigate('/')} aria-label="Accueil">
+          <span className="nav-tab-icon" style={{ filter: 'grayscale(0)', opacity: 1 }}>🏠</span>
+          <span className="nav-tab-label" style={{ color: '#4f46e5', fontWeight: '700' }}>Accueil</span>
         </button>
-        <button onClick={() => router.push('/releve')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-          <span style={{ fontSize: '13px' }}>🏦</span> Relevé
+
+        {/* Calendrier */}
+        <button className="nav-tab" onClick={() => navigate('/calendrier')} aria-label="Calendrier">
+          {navLoading === '/calendrier'
+            ? <div style={{ width: '20px', height: '20px', border: '2px solid var(--border)', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'navSpinAnim 0.7s linear infinite' }} />
+            : <span className="nav-tab-icon">📅</span>}
+          <span className="nav-tab-label">Calendrier</span>
         </button>
-        <button onClick={() => router.push('/historique')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', position: 'relative' }}>
-          <span style={{ fontSize: '13px' }}>💰</span> Éco.
+
+        {/* FAB Scanner — action principale */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+          <button className="nav-fab" onClick={() => navigate('/scan')} aria-label="Scanner">
+            {navLoading === '/scan'
+              ? <div style={{ width: '24px', height: '24px', border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'navSpinAnim 0.7s linear infinite' }} />
+              : <span style={{ fontSize: '26px', lineHeight: 1 }}>📎</span>}
+          </button>
+        </div>
+
+        {/* Économies */}
+        <button className="nav-tab" onClick={() => navigate('/historique')} aria-label="Économies" style={{ position: 'relative' }}>
+          {navLoading === '/historique'
+            ? <div style={{ width: '20px', height: '20px', border: '2px solid var(--border)', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'navSpinAnim 0.7s linear infinite' }} />
+            : <span className="nav-tab-icon">💰</span>}
+          <span className="nav-tab-label">Économies</span>
           {ecoSavings > 1 && (
-            <span style={{ position: 'absolute', top: '-5px', right: '-3px', background: '#16a34a', color: 'white', fontSize: '9px', fontWeight: '800', borderRadius: '6px', padding: '1px 4px', lineHeight: '14px' }}>
+            <span style={{ position: 'absolute', top: '4px', right: 'calc(50% - 14px)', background: '#16a34a', color: 'white', fontSize: '8px', fontWeight: '800', borderRadius: '6px', padding: '1px 4px', lineHeight: '14px' }}>
               -{ecoSavings.toFixed(0)}€
             </span>
           )}
         </button>
-        <button onClick={() => router.push('/partage')} style={{ flex: 1, background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px 6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-          <span style={{ fontSize: '13px' }}>👨‍👩‍👧‍👦</span> Partage
+
+        {/* Compte */}
+        <button className="nav-tab" onClick={() => navigate('/compte')} aria-label="Mon compte">
+          {navLoading === '/compte'
+            ? <div style={{ width: '20px', height: '20px', border: '2px solid var(--border)', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'navSpinAnim 0.7s linear infinite' }} />
+            : <span className="nav-tab-icon">👤</span>}
+          <span className="nav-tab-label">Compte</span>
         </button>
-      </div>
-      <div style={{ padding: '4px 16px 16px' }}>
-        <button onClick={() => router.push('/calendrier')} style={{ width: '100%', background: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-color)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '11px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '15px' }}>📅</span> Calendrier & Coût annuel
-        </button>
-      </div>
+      </nav>
 
       {/* Subscription list */}
       <div style={{ padding: '0 16px' }}>
@@ -691,7 +744,11 @@ export default function Home() {
                           🔍 Comparer
                           {shareSavings > 0 && <span style={{ background: '#ede9fe', borderRadius: '5px', padding: '1px 5px', fontSize: '10px', fontWeight: '800', color: '#7c3aed' }}>-{shareSavings.toFixed(0)}€</span>}
                         </button>
-                        <button onClick={() => handleRemove(sub.id)} style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '10px', padding: '9px 12px', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', fontWeight: '600' }}>✕</button>
+                        <button onClick={() => handleRemove(sub.id)} disabled={removingId === sub.id} style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '10px', padding: '9px 12px', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', fontWeight: '600', minWidth: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {removingId === sub.id
+                            ? <div style={{ width: '14px', height: '14px', border: '2px solid var(--border)', borderTopColor: '#6b7280', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                            : '✕'}
+                        </button>
                       </div>
                     )
                   })()}
