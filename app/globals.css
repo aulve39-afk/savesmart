@@ -41,6 +41,12 @@ html, body {
 /* ── Micro-interactions globales sur tous les boutons ── */
 button {
   -webkit-tap-highlight-color: transparent;
+  /*
+    touch-action: manipulation → supprime le délai 300ms d'iOS Safari entre
+    le tap et le déclenchement de :active. Sans ça, l'effet de pression
+    (scale 0.95) n'est pas visible avant que la page change.
+  */
+  touch-action: manipulation;
   transition: opacity 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
   user-select: none;
 }

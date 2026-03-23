@@ -92,7 +92,34 @@ function CompareContent() {
   const params = useSearchParams()
   const { isLoading } = useUserId()
 
-  if (isLoading) return <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>Chargement...</div>
+  const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+  if (isLoading) return (
+    <div style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
+      {/* Header skeleton */}
+      <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0 }} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="skeleton" style={{ width: '130px', height: '20px' }} />
+          <div className="skeleton" style={{ width: '170px', height: '13px' }} />
+        </div>
+      </div>
+      <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* Current plan card skeleton */}
+        <div className="skeleton" style={{ borderRadius: '20px', height: '100px' }} />
+        {/* Offer cards skeleton */}
+        {[...Array(3)].map((_, i) => (
+          <div key={i} style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="skeleton" style={{ width: '45%', height: '16px' }} />
+              <div className="skeleton" style={{ width: '60px', height: '22px', borderRadius: '8px' }} />
+            </div>
+            <div className="skeleton" style={{ width: '70%', height: '12px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '38px', borderRadius: '10px' }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
   const name = params.get('name') || 'Abonnement'
   const amount = parseFloat(params.get('amount') || '0')
   const category = params.get('category') || 'other'
@@ -104,8 +131,6 @@ function CompareContent() {
     .filter(offer => offer.score > 0 || Object.keys(currentDetails).length === 0)
     .sort((a, b) => b.score - a.score || (amount - a.price) - (amount - b.price))
     .slice(0, 4)
-
-  const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
   const btnStyle = (isBest: boolean) => ({
     display: 'block',
