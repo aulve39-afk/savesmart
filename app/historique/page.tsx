@@ -65,10 +65,21 @@ export default function HistoriquePage() {
       <div style={{ padding: '20px 16px' }}>
 
         {economies.length === 0 ? (
-          <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
-            <p style={{ fontSize: '32px', margin: '0 0 8px' }}>💰</p>
-            <p style={{ fontWeight: '600', fontSize: '16px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Aucune economie detectee</p>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Tes abonnements sont deja optimaux !</p>
+          <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '40px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: 'linear-gradient(135deg, #064e3b, #065f46)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>💰</div>
+            <p style={{ fontWeight: '800', fontSize: '18px', margin: '0 0 8px', color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>Aucune économie détectée</p>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 6px', lineHeight: '1.5' }}>
+              Tes abonnements sont déjà optimaux !
+            </p>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 24px', lineHeight: '1.5' }}>
+              Ajoute plus d'abonnements pour découvrir<br />des économies potentielles
+            </p>
+            <button
+              onClick={() => router.push('/scan')}
+              style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', border: 'none', borderRadius: '14px', padding: '13px 24px', fontWeight: '700', fontSize: '14px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+            >
+              <span>📎</span> Scanner une facture
+            </button>
           </div>
         ) : (
           <>

@@ -38,9 +38,18 @@ export default function AjouterPage() {
   const [error, setError] = useState('')
   const [nameError, setNameError] = useState('')
   const [amountError, setAmountError] = useState('')
+  const [trialDateError, setTrialDateError] = useState('')
+  const [nameShake, setNameShake] = useState(false)
+  const [amountShake, setAmountShake] = useState(false)
+  const [trialShake, setTrialShake] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDraft, setHasDraft] = useState(false)
   const submitRef = useRef<HTMLButtonElement>(null)
+
+  const shake = (setter: (v: boolean) => void) => {
+    setter(true)
+    setTimeout(() => setter(false), 400)
+  }
 
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
@@ -97,23 +106,21 @@ export default function AjouterPage() {
     outline: 'none',
   }
 
-  const [trialDateError, setTrialDateError] = useState('')
-
   const validateName = (val: string) => {
-    if (!val.trim()) { setNameError('Entre le nom du service'); haptic(20); return false }
-    if (val.trim().length > 100) { setNameError('Nom trop long (100 caractères max)'); haptic(20); return false }
+    if (!val.trim()) { setNameError('Entre le nom du service'); haptic(20); shake(setNameShake); return false }
+    if (val.trim().length > 100) { setNameError('Nom trop long (100 caractères max)'); haptic(20); shake(setNameShake); return false }
     setNameError(''); return true
   }
   const validateAmount = (val: string) => {
     const n = parseFloat(val)
-    if (!val || isNaN(n) || n <= 0) { setAmountError('Entre un montant valide (ex: 9.99)'); haptic(20); return false }
-    if (n > 9999) { setAmountError('Montant trop élevé (max 9 999 €)'); haptic(20); return false }
+    if (!val || isNaN(n) || n <= 0) { setAmountError('Entre un montant valide (ex: 9.99)'); haptic(20); shake(setAmountShake); return false }
+    if (n > 9999) { setAmountError('Montant trop élevé (max 9 999 €)'); haptic(20); shake(setAmountShake); return false }
     setAmountError(''); return true
   }
   const validateTrialDate = (val: string, trialEnabled: boolean) => {
     if (!trialEnabled) { setTrialDateError(''); return true }
-    if (!val) { setTrialDateError('Indique la date de fin d\'essai'); haptic(20); return false }
-    if (new Date(val) < new Date()) { setTrialDateError('La date est déjà passée — essai terminé ?'); haptic(20); return false }
+    if (!val) { setTrialDateError('Indique la date de fin d\'essai'); haptic(20); shake(setTrialShake); return false }
+    if (new Date(val) < new Date()) { setTrialDateError('La date est déjà passée — essai terminé ?'); haptic(20); shake(setTrialShake); return false }
     setTrialDateError(''); return true
   }
 
@@ -196,20 +203,22 @@ export default function AjouterPage() {
           <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 16px', color: 'var(--text-primary)' }}>Informations</p>
 
           <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nom du service</p>
-          <input
-            style={{ ...inputStyle, ...(nameError ? { borderColor: '#ef4444', marginBottom: '4px' } : {}) }}
-            placeholder="Ex: Netflix, Free Mobile, EDF..."
-            value={name}
-            maxLength={100}
-            autoComplete="off"
-            autoCapitalize="words"
-            onFocus={scrollToFocused}
-            onChange={e => { setName(e.target.value); if (nameError) setNameError('') }}
-          />
+          <div className={nameShake ? 'field-shake' : undefined}>
+            <input
+              style={{ ...inputStyle, ...(nameError ? { borderColor: '#ef4444', marginBottom: '4px' } : {}) }}
+              placeholder="Ex: Netflix, Free Mobile, EDF..."
+              value={name}
+              maxLength={100}
+              autoComplete="off"
+              autoCapitalize="words"
+              onFocus={scrollToFocused}
+              onChange={e => { setName(e.target.value); if (nameError) setNameError('') }}
+            />
+          </div>
           {nameError && <p style={{ fontSize: '12px', color: '#ef4444', margin: '0 0 10px', fontWeight: '500' }}>{nameError}</p>}
 
           <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', margin: '10px 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Montant</p>
-          <div style={{ position: 'relative', marginBottom: amountError ? '4px' : '10px' }}>
+          <div className={amountShake ? 'field-shake' : undefined} style={{ position: 'relative', marginBottom: amountError ? '4px' : '10px' }}>
             <input
               style={{ ...inputStyle, marginBottom: '0', paddingRight: '40px', ...(amountError ? { borderColor: '#ef4444' } : {}) }}
               placeholder="0.00"
@@ -305,12 +314,14 @@ export default function AjouterPage() {
           {isTrial && (
             <>
               <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', margin: '10px 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date de fin de l'essai</p>
-              <input
-                type="date"
-                style={{ ...inputStyle, marginBottom: '0' }}
-                value={trialEndDate}
-                onChange={e => setTrialEndDate(e.target.value)}
-              />
+              <div className={trialShake ? 'field-shake' : undefined}>
+                <input
+                  type="date"
+                  style={{ ...inputStyle, marginBottom: '0', ...(trialDateError ? { borderColor: '#ef4444' } : {}) }}
+                  value={trialEndDate}
+                  onChange={e => { setTrialEndDate(e.target.value); if (trialDateError) setTrialDateError('') }}
+                />
+              </div>
               {trialDateError
                 ? <p style={{ fontSize: '11px', color: '#ef4444', margin: '6px 0 0', fontWeight: '600' }}>⚠ {trialDateError}</p>
                 : <p style={{ fontSize: '11px', color: '#d97706', margin: '6px 0 0' }}>Tu seras alerté 2 jours avant la fin</p>
