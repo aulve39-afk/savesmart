@@ -255,7 +255,14 @@ export default function RelevePage() {
               </p>
               <p style={{ fontSize: '13px', color: '#16a34a', margin: '0' }}>Retrouve-les dans ton espace</p>
             </div>
-            <button onClick={() => router.push('/')} style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>
+            <button
+              onClick={() => {
+                const fromOnboarding = localStorage.getItem('savesmart_onboarding_active') === '1'
+                try { localStorage.removeItem('savesmart_onboarding_active') } catch {}
+                router.push(fromOnboarding ? '/welcome' : '/')
+              }}
+              style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}
+            >
               Voir mon espace
             </button>
           </div>
