@@ -111,9 +111,25 @@ export default function ScanPage() {
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
   if (isLoading || !userId) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ width: '32px', height: '32px', border: '3px solid #4f46e5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    <div style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
+      {/* Header skeleton */}
+      <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0 }} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="skeleton" style={{ width: '90px', height: '20px' }} />
+          <div className="skeleton" style={{ width: '150px', height: '13px' }} />
+        </div>
+      </div>
+      <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* Upload zone skeleton */}
+        <div className="skeleton" style={{ borderRadius: '20px', height: '240px' }} />
+        {/* Action buttons skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div className="skeleton" style={{ borderRadius: '14px', height: '52px' }} />
+          <div className="skeleton" style={{ borderRadius: '14px', height: '52px' }} />
+        </div>
+        <div className="skeleton" style={{ borderRadius: '14px', height: '52px' }} />
+      </div>
     </div>
   )
 
