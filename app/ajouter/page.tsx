@@ -136,7 +136,10 @@ export default function AjouterPage() {
       details,
     }, userId)
     try { localStorage.removeItem(DRAFT_KEY) } catch {}
-    router.push('/')
+    // Rediriger vers la page de succès si c'est le premier ajout (venant de l'onboarding)
+    const fromOnboarding = localStorage.getItem('savesmart_onboarding_active') === '1'
+    try { localStorage.removeItem('savesmart_onboarding_active') } catch {}
+    router.push(fromOnboarding ? '/welcome' : '/')
   }
   
 

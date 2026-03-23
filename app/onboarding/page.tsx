@@ -1,12 +1,24 @@
 'use client'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { useUserId } from '../hooks/useUserId'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
+const setOnboardingActive = () => {
+  try { localStorage.setItem('savesmart_onboarding_active', '1') } catch {}
+}
+
 export default function OnboardingPage() {
   const { user, isLoading } = useUserId()
   const router = useRouter()
+  const [entered, setEntered] = useState(false)
+
+  useEffect(() => {
+    // Légère pause pour déclencher la transition slide-in
+    const t = setTimeout(() => setEntered(true), 30)
+    return () => clearTimeout(t)
+  }, [])
 
   if (isLoading) {
     return (
@@ -18,7 +30,20 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main style={{ fontFamily: font, minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+    <main style={{
+      fontFamily: font,
+      minHeight: '100vh',
+      background: 'var(--bg)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+      // Slide-in depuis la droite
+      transform: entered ? 'translateX(0)' : 'translateX(32px)',
+      opacity: entered ? 1 : 0,
+      transition: 'transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.32s ease',
+    }}>
 
       {/* Barre de progression — Étape 1/2 */}
       <div style={{ width: '100%', maxWidth: '360px', marginBottom: '32px' }}>
@@ -73,7 +98,7 @@ export default function OnboardingPage() {
       <div style={{ width: '100%', maxWidth: '360px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
         <button
-          onClick={() => router.push('/scan')}
+          onClick={() => { setOnboardingActive(); router.push('/scan') }}
           style={{
             width: '100%',
             background: 'var(--bg-card)',
@@ -102,7 +127,7 @@ export default function OnboardingPage() {
         </button>
 
         <button
-          onClick={() => router.push('/releve')}
+          onClick={() => { setOnboardingActive(); router.push('/releve') }}
           style={{
             width: '100%',
             background: 'var(--bg-card)',
@@ -131,7 +156,7 @@ export default function OnboardingPage() {
         </button>
 
         <button
-          onClick={() => router.push('/ajouter')}
+          onClick={() => { setOnboardingActive(); router.push('/ajouter') }}
           style={{
             width: '100%',
             background: 'var(--bg-card)',
