@@ -88,7 +88,7 @@ export default function AjouterPage() {
     padding: '14px 16px',
     borderRadius: '12px',
     border: '1px solid var(--border-input)',
-    fontSize: '15px',
+    fontSize: '16px', /* 16px minimum — évite le zoom automatique iOS */
     marginBottom: '10px',
     boxSizing: 'border-box' as const,
     fontFamily: font,

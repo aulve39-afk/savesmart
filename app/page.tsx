@@ -694,10 +694,86 @@ export default function Home() {
         )}
 
         {subscriptions.length === 0 ? (
-          <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '24px' }}>📄</div>
-            <p style={{ fontWeight: '600', fontSize: '16px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Aucun abonnement pour l'instant</p>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Glisse une facture, prends une photo ou importe un relevé pour commencer</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+
+            {/* Illustration + accroche */}
+            <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '32px 24px 28px', textAlign: 'center', border: '1px solid var(--border)', marginBottom: '12px' }}>
+              {/* Cluster d'icônes */}
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0', marginBottom: '20px', position: 'relative', height: '72px' }}>
+                {[
+                  { emoji: '📱', bg: '#f0f9ff', x: '-52px', y: '8px',  size: '44px', zIndex: 1 },
+                  { emoji: '🎬', bg: '#f5f3ff', x: '0',     y: '0',    size: '56px', zIndex: 3 },
+                  { emoji: '⚡', bg: '#fffbeb', x: '52px',  y: '8px',  size: '44px', zIndex: 1 },
+                ].map((item, i) => (
+                  <div key={i} style={{
+                    position: 'absolute',
+                    left: '50%',
+                    transform: `translateX(calc(-50% + ${item.x})) translateY(${item.y})`,
+                    width: item.size, height: item.size,
+                    borderRadius: '14px',
+                    background: item.bg,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: i === 1 ? '26px' : '20px',
+                    border: '2px solid var(--bg)',
+                    zIndex: item.zIndex,
+                    boxShadow: i === 1 ? '0 4px 16px rgba(0,0,0,0.08)' : 'none',
+                  }}>{item.emoji}</div>
+                ))}
+              </div>
+
+              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', margin: '0 0 8px', letterSpacing: '-0.4px' }}>
+                Combien tu perds sans le savoir ?
+              </h2>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 6px', lineHeight: '1.55' }}>
+                En moyenne, les Français ont <strong>6 abonnements oubliés</strong>
+              </p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0', lineHeight: '1.5' }}>
+                Soit <strong style={{ color: '#4f46e5' }}>~47 € gaspillés par mois</strong> — sans même s'en rendre compte
+              </p>
+            </div>
+
+            {/* CTAs directs */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 4px', textAlign: 'center' }}>
+                Commence en 30 secondes
+              </p>
+
+              <button
+                onClick={() => navigate('/scan')}
+                style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', border: 'none', borderRadius: '16px', padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '14px', textAlign: 'left', width: '100%' }}
+              >
+                <div style={{ width: '40px', height: '40px', borderRadius: '11px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>📎</div>
+                <div>
+                  <p style={{ fontWeight: '700', fontSize: '14px', margin: '0 0 2px', color: 'white' }}>Scanner une facture</p>
+                  <p style={{ fontSize: '12px', margin: '0', color: 'rgba(255,255,255,0.75)' }}>Photo ou PDF — détection IA en 5 secondes</p>
+                </div>
+                <span style={{ marginLeft: 'auto', fontSize: '18px', opacity: 0.7 }}>→</span>
+              </button>
+
+              <button
+                onClick={() => navigate('/releve')}
+                style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1.5px solid var(--border)', borderRadius: '16px', padding: '14px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '14px', textAlign: 'left', width: '100%' }}
+              >
+                <div style={{ width: '40px', height: '40px', borderRadius: '11px', background: '#f0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>🏦</div>
+                <div>
+                  <p style={{ fontWeight: '700', fontSize: '14px', margin: '0 0 2px', color: 'var(--text-primary)' }}>Analyser mon relevé</p>
+                  <p style={{ fontSize: '12px', margin: '0', color: 'var(--text-muted)' }}>Tous tes prélèvements détectés d'un coup</p>
+                </div>
+                <span style={{ marginLeft: 'auto', fontSize: '18px', color: 'var(--text-muted)' }}>→</span>
+              </button>
+
+              <button
+                onClick={() => navigate('/ajouter')}
+                style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '16px', padding: '14px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '14px', textAlign: 'left', width: '100%' }}
+              >
+                <div style={{ width: '40px', height: '40px', borderRadius: '11px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>✏️</div>
+                <div>
+                  <p style={{ fontWeight: '700', fontSize: '14px', margin: '0 0 2px', color: 'var(--text-primary)' }}>Ajouter manuellement</p>
+                  <p style={{ fontSize: '12px', margin: '0', color: 'var(--text-muted)' }}>Je connais déjà mes abonnements</p>
+                </div>
+                <span style={{ marginLeft: 'auto', fontSize: '18px', color: 'var(--text-muted)' }}>→</span>
+              </button>
+            </div>
           </div>
         ) : (
           <>
