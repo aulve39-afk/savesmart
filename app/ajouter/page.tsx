@@ -156,6 +156,10 @@ export default function AjouterPage() {
     // Rediriger vers la page de succès si c'est le premier ajout (venant de l'onboarding)
     const fromOnboarding = localStorage.getItem('savesmart_onboarding_active') === '1'
     try { localStorage.removeItem('savesmart_onboarding_active') } catch {}
+    if (fromOnboarding) {
+      // Transmet le nom pour personnaliser la page de succès
+      try { localStorage.setItem('savesmart_last_added', name.trim()) } catch {}
+    }
     router.push(fromOnboarding ? '/welcome' : '/')
   }
   

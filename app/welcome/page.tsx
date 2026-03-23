@@ -36,8 +36,15 @@ export default function WelcomePage() {
   const router = useRouter()
   const [visible, setVisible] = useState(false)
   const [autoRedirectIn, setAutoRedirectIn] = useState(4)
+  const [addedName, setAddedName] = useState('')
 
   useEffect(() => {
+    // Récupère le nom du dernier abonnement ajouté (passé depuis ajouter/page.tsx)
+    try {
+      const n = localStorage.getItem('savesmart_last_added') || ''
+      if (n) { setAddedName(n); localStorage.removeItem('savesmart_last_added') }
+    } catch {}
+
     // Légère pause avant d'afficher — laisse le temps au moteur de render
     const t1 = setTimeout(() => setVisible(true), 80)
 
@@ -146,7 +153,7 @@ export default function WelcomePage() {
           letterSpacing: '-0.5px', margin: '0 0 10px', textAlign: 'center',
           animation: visible ? 'fadeSlideUp 0.5s ease-out 0.7s both' : 'none',
         }}>
-          C'est parti ! 🎉
+          {addedName ? `${addedName} est suivi ! 🎉` : "C\u2019est parti ! 🎉"}
         </h1>
 
         {/* Sous-titre */}
@@ -155,8 +162,10 @@ export default function WelcomePage() {
           margin: '0 0 8px', lineHeight: '1.5',
           animation: visible ? 'fadeSlideUp 0.5s ease-out 0.85s both' : 'none',
         }}>
-          Ton premier abonnement est suivi.<br />
-          <strong style={{ color: 'var(--text-primary)' }}>SaveSmart veille pour toi maintenant.</strong>
+          {addedName
+            ? <><strong style={{ color: 'var(--text-primary)' }}>{addedName}</strong> a été ajouté à ta liste.<br />SaveSmart veille pour toi maintenant.</>
+            : <>Ton premier abonnement est suivi.<br /><strong style={{ color: 'var(--text-primary)' }}>SaveSmart veille pour toi maintenant.</strong></>
+          }
         </p>
 
         {/* Message secondaire */}

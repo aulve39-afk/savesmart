@@ -72,9 +72,28 @@ button:disabled {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Clickable cards */
-div[onClick], div[onclick] {
+/*
+  .pressable — cartes cliquables (div avec onClick React).
+  CSS ne détecte pas les événements React (synthetic events), donc
+  div[onclick] ne fonctionne pas. On utilise une classe utilitaire.
+*/
+.pressable {
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.15s ease, box-shadow 0.12s ease;
+}
+.pressable:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+  transition: transform 0.05s ease, opacity 0.05s ease;
+}
+
+/* ── Entrée échelonnée des cartes d'abonnements ── */
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /*
