@@ -71,6 +71,36 @@ div[onClick], div[onclick] {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ── Skeleton screens ── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0 }
+  100% { background-position: 400px 0 }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 25%,
+    var(--border-input) 50%,
+    var(--bg-secondary) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      #1e293b 25%,
+      #334155 50%,
+      #1e293b 75%
+    );
+    background-size: 800px 100%;
+  }
+}
+
 /* ── Responsive : safe-area + padding confortable sur tablettes ── */
 @media (min-width: 430px) {
   main {
