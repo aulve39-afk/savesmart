@@ -123,6 +123,7 @@ export default function Home() {
   const [navLoading, setNavLoading] = useState<string | null>(null)
   const [removedToast, setRemovedToast] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [subsLoading, setSubsLoading] = useState(true)
   const [scanResult, setScanResult] = useState<any>(null)
   const [scanError, setScanError] = useState<string | null>(null)
   const [scanAdded, setScanAdded] = useState(false)
@@ -132,7 +133,12 @@ export default function Home() {
   const router = useRouter()
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
-  useEffect(() => { if (userId) getSubscriptions(userId).then(setSubscriptions) }, [userId])
+  useEffect(() => {
+    if (userId) {
+      setSubsLoading(true)
+      getSubscriptions(userId).then(subs => { setSubscriptions(subs); setSubsLoading(false) })
+    }
+  }, [userId])
 
   const reload = () => { if (userId) getSubscriptions(userId).then(setSubscriptions) }
 
@@ -693,7 +699,30 @@ export default function Home() {
           </div>
         )}
 
-        {subscriptions.length === 0 ? (
+        {subsLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {[1,2,3].map(i => (
+              <div key={i} style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                  <div className="skeleton" style={{ width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0 }} />
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div className="skeleton" style={{ width: '55%', height: '14px' }} />
+                    <div className="skeleton" style={{ width: '30%', height: '11px', borderRadius: '6px' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                    <div className="skeleton" style={{ width: '52px', height: '16px' }} />
+                    <div className="skeleton" style={{ width: '32px', height: '11px' }} />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <div className="skeleton" style={{ flex: 1, height: '36px', borderRadius: '10px' }} />
+                  <div className="skeleton" style={{ flex: 1, height: '36px', borderRadius: '10px' }} />
+                  <div className="skeleton" style={{ width: '38px', height: '36px', borderRadius: '10px' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : subscriptions.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
 
             {/* Illustration + accroche */}
@@ -875,12 +904,15 @@ export default function Home() {
                     const shareMatch = SHAREABLE_CATALOG.find(e => e.keywords.some(kw => sub.company_name.toLowerCase().includes(kw)))
                     const shareSavings = shareMatch ? sub.amount * 0.5 : 0
                     return (
-                      <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                        <button onClick={() => router.push('/compare?name=' + encodeURIComponent(sub.company_name) + '&amount=' + sub.amount + '&category=' + sub.category + '&details=' + encodeURIComponent(JSON.stringify(sub.details || {})))} style={{ flex: 1, background: '#f5f3ff', border: 'none', borderRadius: '10px', padding: '9px', color: '#7c3aed', fontSize: '12px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button onClick={() => router.push('/compare?name=' + encodeURIComponent(sub.company_name) + '&amount=' + sub.amount + '&category=' + sub.category + '&details=' + encodeURIComponent(JSON.stringify(sub.details || {})))} style={{ flex: 1, background: '#f5f3ff', border: 'none', borderRadius: '10px', padding: '10px 8px', color: '#7c3aed', fontSize: '12px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                           🔍 Comparer
                           {shareSavings > 0 && <span style={{ background: '#ede9fe', borderRadius: '5px', padding: '1px 5px', fontSize: '10px', fontWeight: '800', color: '#7c3aed' }}>-{shareSavings.toFixed(0)}€</span>}
                         </button>
-                        <button onClick={() => handleRemove(sub.id)} disabled={removingId === sub.id} style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '10px', padding: '9px 12px', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', fontWeight: '600', minWidth: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <button onClick={() => router.push('/resiliation?name=' + sub.company_name)} style={{ flex: 1, background: '#fef2f2', border: 'none', borderRadius: '10px', padding: '10px 8px', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                          ✂️ Résilier
+                        </button>
+                        <button onClick={() => handleRemove(sub.id)} disabled={removingId === sub.id} style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '10px', padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '13px', cursor: 'pointer', fontWeight: '600', minWidth: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {removingId === sub.id
                             ? <div style={{ width: '14px', height: '14px', border: '2px solid var(--border)', borderTopColor: '#6b7280', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
                             : '✕'}
@@ -888,30 +920,6 @@ export default function Home() {
                       </div>
                     )
                   })()}
-
-                  {/* ── BOUTON RÉSILIER PROÉMINENT ── */}
-                  <button
-                    onClick={() => router.push('/resiliation?name=' + sub.company_name)}
-                    style={{
-                      width: '100%',
-                      background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '12px',
-                      padding: '13px',
-                      fontWeight: '700',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      letterSpacing: '0.1px',
-                    }}
-                  >
-                    <span style={{ fontSize: '16px' }}>✂️</span>
-                    Résilier cet abonnement
-                  </button>
                 </div>
               )
             })}
