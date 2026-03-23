@@ -32,6 +32,9 @@ export default function AjouterPage() {
   const [isTrial, setIsTrial] = useState(false)
   const [trialEndDate, setTrialEndDate] = useState('')
   const [error, setError] = useState('')
+  const [nameError, setNameError] = useState('')
+  const [amountError, setAmountError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
@@ -49,10 +52,21 @@ export default function AjouterPage() {
     outline: 'none',
   }
 
+  const validateName = (val: string) => {
+    if (!val.trim()) { setNameError('Entre le nom du service'); return false }
+    setNameError(''); return true
+  }
+  const validateAmount = (val: string) => {
+    if (!val || isNaN(parseFloat(val)) || parseFloat(val) <= 0) { setAmountError('Entre un montant valide (ex: 9.99)'); return false }
+    setAmountError(''); return true
+  }
+
   const handleSubmit = async () => {
     if (!userId) return
-    if (!name.trim()) { setError('Entre le nom du service'); return }
-    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) { setError('Entre un montant valide'); return }
+    const nameOk = validateName(name)
+    const amountOk = validateAmount(amount)
+    if (!nameOk || !amountOk) return
+    setIsSubmitting(true)
     const details: Record<string, any> = {}
     if (engagementDate) details.engagement_end_date = engagementDate
     if (isTrial && trialEndDate) { details.is_trial = true; details.trial_end_date = trialEndDate }
@@ -98,25 +112,27 @@ export default function AjouterPage() {
 
           <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nom du service</p>
           <input
-            style={inputStyle}
+            style={{ ...inputStyle, ...(nameError ? { borderColor: '#ef4444', marginBottom: '4px' } : {}) }}
             placeholder="Ex: Netflix, Free Mobile, EDF..."
             value={name}
-            onChange={e => { setName(e.target.value); setError('') }}
+            onChange={e => { setName(e.target.value); if (nameError) setNameError('') }}
           />
+          {nameError && <p style={{ fontSize: '12px', color: '#ef4444', margin: '0 0 10px', fontWeight: '500' }}>{nameError}</p>}
 
           <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', margin: '10px 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Montant</p>
-          <div style={{ position: 'relative', marginBottom: '10px' }}>
+          <div style={{ position: 'relative', marginBottom: amountError ? '4px' : '10px' }}>
             <input
-              style={{ ...inputStyle, marginBottom: '0', paddingRight: '40px' }}
+              style={{ ...inputStyle, marginBottom: '0', paddingRight: '40px', ...(amountError ? { borderColor: '#ef4444' } : {}) }}
               placeholder="0.00"
               type="number"
               min="0"
               step="0.01"
               value={amount}
-              onChange={e => { setAmount(e.target.value); setError('') }}
+              onChange={e => { setAmount(e.target.value); if (amountError) setAmountError('') }}
             />
             <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '16px', fontWeight: '600' }}>€</span>
           </div>
+          {amountError && <p style={{ fontSize: '12px', color: '#ef4444', margin: '0 0 6px', fontWeight: '500' }}>{amountError}</p>}
         </div>
 
         <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', marginBottom: '16px', border: '1px solid var(--border)' }}>
@@ -209,9 +225,10 @@ export default function AjouterPage() {
 
         <button
           onClick={handleSubmit}
-          style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}
+          disabled={isSubmitting}
+          style={{ width: '100%', background: isSubmitting ? '#a5b4fc' : '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: isSubmitting ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}
         >
-          Ajouter au dashboard
+          {isSubmitting ? 'Ajout en cours...' : 'Ajouter au dashboard'}
         </button>
       </div>
     </main>

@@ -17,21 +17,33 @@ export default function OnboardingPage() {
     )
   }
 
-  const firstName = 'toi'
-
   return (
     <main style={{ fontFamily: font, minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
 
+      {/* Barre de progression — Étape 1/2 */}
+      <div style={{ width: '100%', maxWidth: '360px', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <span style={{ fontSize: '12px', fontWeight: '700', color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Étape 1 sur 2</span>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Importer mes abonnements</span>
+        </div>
+        <div style={{ height: '4px', borderRadius: '4px', background: 'var(--bg-secondary)', overflow: 'hidden' }}>
+          <div style={{ width: '50%', height: '100%', background: 'linear-gradient(90deg, #4f46e5, #7c3aed)', borderRadius: '4px', transition: 'width 0.4s ease' }} />
+        </div>
+      </div>
+
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '36px' }}>
         <div style={{ width: '72px', height: '72px', borderRadius: '22px', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', margin: '0 auto 20px', boxShadow: '0 8px 32px rgba(79,70,229,0.3)' }}>
           💡
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: '800', margin: '0 0 8px', color: 'var(--text-primary)', letterSpacing: '-0.6px' }}>
-          Bienvenue, {firstName} !
+        <h1 style={{ fontSize: '26px', fontWeight: '800', margin: '0 0 10px', color: 'var(--text-primary)', letterSpacing: '-0.6px' }}>
+          Économise 200 € par an
         </h1>
-        <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: '0', lineHeight: '1.5', maxWidth: '300px' }}>
-          Pour accéder à ton espace, importe d&apos;abord tes abonnements via l&apos;une de ces méthodes
+        <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: '0 0 8px', lineHeight: '1.5', maxWidth: '300px' }}>
+          en moyenne sur tes abonnements — sans effort
+        </p>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0', lineHeight: '1.5', maxWidth: '300px', opacity: 0.75 }}>
+          Commence par importer tes abonnements via l&apos;une de ces méthodes
         </p>
       </div>
 
