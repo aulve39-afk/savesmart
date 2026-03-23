@@ -348,8 +348,12 @@ export default function Home() {
         <div style={{ padding: '12px 16px 0' }}>
           {nextAlert.type === 'trial' ? (
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => navigate('/calendrier')}
-              style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: '14px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
+              onKeyDown={e => e.key === 'Enter' && navigate('/calendrier')}
+              className="pressable"
+              style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: '14px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}
             >
               <span style={{ fontSize: '22px', flexShrink: 0 }}>🚨</span>
               <div style={{ flex: 1 }}>
@@ -365,8 +369,12 @@ export default function Home() {
             </div>
           ) : (
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => router.push('/calendrier')}
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
+              onKeyDown={e => e.key === 'Enter' && router.push('/calendrier')}
+              className="pressable"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}
             >
               <span style={{ fontSize: '20px', flexShrink: 0 }}>📅</span>
               <div style={{ flex: 1 }}>
@@ -389,8 +397,12 @@ export default function Home() {
       {shareableSuggestion && (
         <div style={{ padding: '8px 16px 0' }}>
           <div
+            role="button"
+            tabIndex={0}
             onClick={() => navigate('/partage')}
-            style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #86efac', borderRadius: '14px', padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
+            onKeyDown={e => e.key === 'Enter' && navigate('/partage')}
+            className="pressable"
+            style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #86efac', borderRadius: '14px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}
           >
             <span style={{ fontSize: '20px', flexShrink: 0 }}>💡</span>
             <div style={{ flex: 1 }}>
@@ -836,10 +848,17 @@ export default function Home() {
               </div>
             )}
 
-            {filtered.map((sub) => {
+            {filtered.map((sub, idx) => {
               const config = categoryConfig[sub.category] || categoryConfig.other
               return (
-                <div key={sub.id} style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', marginBottom: '10px', border: '1px solid var(--border)' }}>
+                <div
+                  key={sub.id}
+                  style={{
+                    background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', marginBottom: '10px', border: '1px solid var(--border)',
+                    animation: 'cardEntrance 0.28s ease-out both',
+                    animationDelay: `${Math.min(idx * 0.055, 0.4)}s`,
+                  }}
+                >
                   {/* Service info */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
                     <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>{config.icon}</div>
