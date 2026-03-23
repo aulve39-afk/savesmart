@@ -135,13 +135,23 @@ export default function AjouterPage() {
     const details: Record<string, any> = {}
     if (engagementDate) details.engagement_end_date = engagementDate
     if (isTrial && trialEndDate) { details.is_trial = true; details.trial_end_date = trialEndDate }
-    await addSubscription({
+    const saved = await addSubscription({
       company_name: name.trim(),
       amount: parseFloat(amount),
       billing_cycle: cycle,
       category,
       details,
     }, userId)
+    if (!saved) {
+      // Erreur réseau ou serveur — on garde le brouillon pour ne pas perdre les données
+      setError(!navigator.onLine
+        ? 'Pas de connexion internet. Tes données sont sauvegardées localement — réessaie quand tu seras en ligne.'
+        : 'Impossible de sauvegarder. Réessaie dans quelques secondes.'
+      )
+      haptic(40)
+      setIsSubmitting(false)
+      return
+    }
     try { localStorage.removeItem(DRAFT_KEY) } catch {}
     // Rediriger vers la page de succès si c'est le premier ajout (venant de l'onboarding)
     const fromOnboarding = localStorage.getItem('savesmart_onboarding_active') === '1'

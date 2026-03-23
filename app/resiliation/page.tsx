@@ -19,10 +19,7 @@ function ResiliationContent() {
   const params = useSearchParams()
   const { isLoading } = useUserId()
 
-  if (isLoading) return <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>Chargement...</div>
-  const name = params.get('name') || 'Abonnement'
-  const engagementEndDate = params.get('engagement') || ''
-
+  // ⚠️ Tous les hooks AVANT tout return conditionnel (règle des hooks React)
   const [step, setStep] = useState<'motif' | 'form' | 'letter'>('motif')
   const [selectedMotif, setSelectedMotif] = useState('')
   const [prenom, setPrenom] = useState('')
@@ -33,6 +30,27 @@ function ResiliationContent() {
   const [aiLetter, setAiLetter] = useState('')
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
+
+  const name = params.get('name') || 'Abonnement'
+  const engagementEndDate = params.get('engagement') || ''
+
+  if (isLoading) return (
+    <div style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '40px' }}>
+      <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0 }} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div className="skeleton" style={{ width: '80px', height: '20px' }} />
+          <div className="skeleton" style={{ width: '140px', height: '13px' }} />
+        </div>
+      </div>
+      <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="skeleton" style={{ borderRadius: '14px', height: '68px' }} />
+        ))}
+        <div className="skeleton" style={{ borderRadius: '14px', height: '52px', marginTop: '4px' }} />
+      </div>
+    </div>
+  )
 
   const formComplete = !!(prenom && nom && adresse && ville)
 
@@ -195,10 +213,10 @@ function ResiliationContent() {
             <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', marginBottom: '14px', border: '1px solid var(--border)' }}>
               <p style={{ fontWeight: '700', fontSize: '14px', margin: '0 0 4px', color: 'var(--text-primary)' }}>Tes informations</p>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 16px' }}>Pour personnaliser la lettre</p>
-              <input style={inputStyle} placeholder="Prénom" value={prenom} onChange={e => setPrenom(e.target.value)} />
-              <input style={inputStyle} placeholder="Nom" value={nom} onChange={e => setNom(e.target.value)} />
-              <input style={inputStyle} placeholder="Adresse" value={adresse} onChange={e => setAdresse(e.target.value)} />
-              <input style={{ ...inputStyle, marginBottom: '0' }} placeholder="Code postal et ville" value={ville} onChange={e => setVille(e.target.value)} />
+              <input style={inputStyle} placeholder="Prénom" value={prenom} onChange={e => setPrenom(e.target.value)} autoComplete="given-name" autoCapitalize="words" />
+              <input style={inputStyle} placeholder="Nom" value={nom} onChange={e => setNom(e.target.value)} autoComplete="family-name" autoCapitalize="words" />
+              <input style={inputStyle} placeholder="Adresse" value={adresse} onChange={e => setAdresse(e.target.value)} autoComplete="street-address" autoCapitalize="sentences" />
+              <input style={{ ...inputStyle, marginBottom: '0' }} placeholder="Code postal et ville" value={ville} onChange={e => setVille(e.target.value)} autoComplete="postal-code" />
             </div>
 
             <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
