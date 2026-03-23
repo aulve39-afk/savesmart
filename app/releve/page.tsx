@@ -4,6 +4,20 @@ import { useRouter } from 'next/navigation'
 import { addSubscription } from '../store'
 import { useUserId } from '../hooks/useUserId'
 
+/** Sanitise un montant venant de l'IA : nombre valide, positif, ≤ 9 999 € */
+function sanitizeAmount(val: unknown): number {
+  const n = typeof val === 'number' ? val : parseFloat(String(val ?? ''))
+  if (isNaN(n) || n <= 0) return 0
+  if (n > 9999) return 9999
+  return Math.round(n * 100) / 100
+}
+
+/** Tronque un nom de service trop long */
+function sanitizeName(val: unknown): string {
+  const s = String(val ?? '').trim()
+  return s.slice(0, 100)
+}
+
 const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   streaming:      { label: 'Streaming',  icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
   telecom_mobile: { label: 'Mobile',     icon: '📱', color: '#0284c7', bg: '#f0f9ff' },
@@ -110,8 +124,8 @@ export default function RelevePage() {
     const toSave = detected.filter(s => s.selected)
     for (const sub of toSave) {
       await addSubscription({
-        company_name: sub.company_name,
-        amount: sub.amount,
+        company_name: sanitizeName(sub.company_name),
+        amount: sanitizeAmount(sub.amount),
         billing_cycle: sub.billing_cycle,
         category: sub.category,
         details: sub.details || {},
@@ -293,11 +307,14 @@ export default function RelevePage() {
               </div>
             )}
 
-            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', display: 'flex', gap: '10px' }}>
-              <span style={{ fontSize: '16px' }}>ℹ️</span>
-              <p style={{ fontSize: '12px', color: '#92400e', margin: '0', lineHeight: '1.5' }}>
-                Tes donnees bancaires ne sont jamais stockees. Seuls les abonnements detectes sont sauvegardes.
-              </p>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+              <span style={{ fontSize: '16px', flexShrink: 0 }}>🔒</span>
+              <div>
+                <p style={{ fontSize: '12px', fontWeight: '700', color: '#15803d', margin: '0 0 2px' }}>Données sécurisées · Zéro stockage bancaire</p>
+                <p style={{ fontSize: '11px', color: '#16a34a', margin: '0', lineHeight: '1.5' }}>
+                  Tes données bancaires ne sont jamais sauvegardées. Seuls les abonnements détectés sont conservés.
+                </p>
+              </div>
             </div>
 
             {preview && (
@@ -343,9 +360,13 @@ export default function RelevePage() {
                         <span style={{ fontSize: '11px', fontWeight: '600', color: config.color, background: config.bg, padding: '1px 6px', borderRadius: '4px' }}>{config.label}</span>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontWeight: '700', fontSize: '15px', margin: '0', color: 'var(--text-primary)' }}>
-                          {sub.amount.toFixed(2)} €{cycleLabel[sub.billing_cycle] || ''}
-                        </p>
+                        {sanitizeAmount(sub.amount) > 0 ? (
+                          <p style={{ fontWeight: '700', fontSize: '15px', margin: '0', color: 'var(--text-primary)' }}>
+                            {sanitizeAmount(sub.amount).toFixed(2)} €{cycleLabel[sub.billing_cycle] || ''}
+                          </p>
+                        ) : (
+                          <p style={{ fontWeight: '600', fontSize: '12px', margin: '0', color: '#d97706' }}>⚠ N/A</p>
+                        )}
                       </div>
                       <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: sub.selected ? '#4f46e5' : 'var(--bg-secondary)', border: sub.selected ? 'none' : '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         {sub.selected && <span style={{ color: 'white', fontSize: '12px' }}>✓</span>}

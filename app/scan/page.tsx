@@ -4,6 +4,20 @@ import { useRouter } from 'next/navigation'
 import { addSubscription } from '../store'
 import { useUserId } from '../hooks/useUserId'
 
+/** Sanitise un montant venant de l'IA : nombre valide, positif, ≤ 9 999 € */
+function sanitizeAmount(val: unknown): number {
+  const n = typeof val === 'number' ? val : parseFloat(String(val ?? ''))
+  if (isNaN(n) || n <= 0) return 0
+  if (n > 9999) return 9999
+  return Math.round(n * 100) / 100
+}
+
+/** Tronque un nom de service trop long */
+function sanitizeName(val: unknown): string {
+  const s = String(val ?? '').trim()
+  return s.slice(0, 100)
+}
+
 export default function ScanPage() {
   const { userId, isLoading } = useUserId()
   const [preview, setPreview] = useState<string | null>(null)
@@ -118,7 +132,11 @@ export default function ScanPage() {
           <div style={{ border: '2px dashed var(--border-input)', borderRadius: '20px', padding: '40px 24px', textAlign: 'center', background: 'var(--bg-card)' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>📷</div>
             <p style={{ fontWeight: '700', fontSize: '17px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Analyser une facture</p>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 24px' }}>Choisis comment importer ton document</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 16px' }}>Choisis comment importer ton document</p>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px 14px', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '14px', flexShrink: 0 }}>🔒</span>
+              <p style={{ fontSize: '11px', color: '#15803d', margin: '0', fontWeight: '600' }}>Image analysée localement · Non conservée sur nos serveurs</p>
+            </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={openCamera} style={{ flex: 1, background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                 <span style={{ fontSize: '16px' }}>📷</span>
@@ -179,19 +197,37 @@ export default function ScanPage() {
                     </span>
                   </div>
                 </div>
-                <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Montant detecte</p>
-                  <p style={{ fontWeight: '800', fontSize: '24px', color: '#4f46e5', margin: '0' }}>
-                    {result.amount} €
-                    <span style={{ fontSize: '13px', fontWeight: '400', color: 'var(--text-muted)' }}> {cycleLabel[result.billing_cycle] || ''}</span>
-                  </p>
-                </div>
+                {(() => {
+                  const safeAmount = sanitizeAmount(result.amount)
+                  const safeName   = sanitizeName(result.company_name)
+                  const amountOk   = safeAmount > 0
+                  return (
+                    <>
+                      <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '16px', marginBottom: amountOk ? '20px' : '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Montant détecté</p>
+                        {amountOk ? (
+                          <p style={{ fontWeight: '800', fontSize: '24px', color: '#4f46e5', margin: '0' }}>
+                            {safeAmount.toFixed(2)} €
+                            <span style={{ fontSize: '13px', fontWeight: '400', color: 'var(--text-muted)' }}> {cycleLabel[result.billing_cycle] || ''}</span>
+                          </p>
+                        ) : (
+                          <p style={{ fontSize: '13px', color: '#d97706', fontWeight: '700', margin: '0' }}>⚠ Non détecté</p>
+                        )}
+                      </div>
+                      {!amountOk && (
+                        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '10px 14px', marginBottom: '14px', fontSize: '13px', color: '#92400e' }}>
+                          Le montant n'a pas pu être lu. Tu pourras l'ajuster manuellement après l'ajout.
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
                 <button
                   onClick={async () => {
                     if (!userId) return
                     await addSubscription({
-                      company_name: result.company_name,
-                      amount: result.amount,
+                      company_name: sanitizeName(result.company_name),
+                      amount: sanitizeAmount(result.amount),
                       billing_cycle: result.billing_cycle,
                       category: result.category,
                       details: result.details || {},
