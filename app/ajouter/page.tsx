@@ -4,13 +4,15 @@ import { useState } from 'react'
 import { addSubscription } from '../store'
 import { useUserId } from '../hooks/useUserId'
 
+const haptic = (ms = 8) => { try { navigator?.vibrate?.(ms) } catch {} }
+
 const categories = [
   { value: 'streaming', label: 'Streaming', icon: '▶' },
   { value: 'telecom_mobile', label: 'Mobile', icon: '📱' },
   { value: 'telecom_box', label: 'Box/Fibre', icon: '🌐' },
-  { value: 'energie', label: 'Energie', icon: '⚡' },
+  { value: 'energie', label: 'Énergie', icon: '⚡' },
   { value: 'assurance', label: 'Assurance', icon: '🛡' },
-  { value: 'saas', label: 'SaaS', icon: '☁' },
+  { value: 'saas', label: 'Logiciels', icon: '☁' },
   { value: 'other', label: 'Autre', icon: '●' },
 ]
 
@@ -52,20 +54,33 @@ export default function AjouterPage() {
     outline: 'none',
   }
 
+  const [trialDateError, setTrialDateError] = useState('')
+
   const validateName = (val: string) => {
-    if (!val.trim()) { setNameError('Entre le nom du service'); return false }
+    if (!val.trim()) { setNameError('Entre le nom du service'); haptic(20); return false }
+    if (val.trim().length > 100) { setNameError('Nom trop long (100 caractères max)'); haptic(20); return false }
     setNameError(''); return true
   }
   const validateAmount = (val: string) => {
-    if (!val || isNaN(parseFloat(val)) || parseFloat(val) <= 0) { setAmountError('Entre un montant valide (ex: 9.99)'); return false }
+    const n = parseFloat(val)
+    if (!val || isNaN(n) || n <= 0) { setAmountError('Entre un montant valide (ex: 9.99)'); haptic(20); return false }
+    if (n > 9999) { setAmountError('Montant trop élevé (max 9 999 €)'); haptic(20); return false }
     setAmountError(''); return true
+  }
+  const validateTrialDate = (val: string, trialEnabled: boolean) => {
+    if (!trialEnabled) { setTrialDateError(''); return true }
+    if (!val) { setTrialDateError('Indique la date de fin d\'essai'); haptic(20); return false }
+    if (new Date(val) < new Date()) { setTrialDateError('La date est déjà passée — essai terminé ?'); haptic(20); return false }
+    setTrialDateError(''); return true
   }
 
   const handleSubmit = async () => {
     if (!userId) return
     const nameOk = validateName(name)
     const amountOk = validateAmount(amount)
-    if (!nameOk || !amountOk) return
+    const trialOk = validateTrialDate(trialEndDate, isTrial)
+    if (!nameOk || !amountOk || !trialOk) return
+    haptic(12)
     setIsSubmitting(true)
     const details: Record<string, any> = {}
     if (engagementDate) details.engagement_end_date = engagementDate
@@ -115,6 +130,9 @@ export default function AjouterPage() {
             style={{ ...inputStyle, ...(nameError ? { borderColor: '#ef4444', marginBottom: '4px' } : {}) }}
             placeholder="Ex: Netflix, Free Mobile, EDF..."
             value={name}
+            maxLength={100}
+            autoComplete="off"
+            autoCapitalize="words"
             onChange={e => { setName(e.target.value); if (nameError) setNameError('') }}
           />
           {nameError && <p style={{ fontSize: '12px', color: '#ef4444', margin: '0 0 10px', fontWeight: '500' }}>{nameError}</p>}
@@ -125,7 +143,9 @@ export default function AjouterPage() {
               style={{ ...inputStyle, marginBottom: '0', paddingRight: '40px', ...(amountError ? { borderColor: '#ef4444' } : {}) }}
               placeholder="0.00"
               type="number"
-              min="0"
+              inputMode="decimal"
+              min="0.01"
+              max="9999"
               step="0.01"
               value={amount}
               onChange={e => { setAmount(e.target.value); if (amountError) setAmountError('') }}
@@ -218,7 +238,10 @@ export default function AjouterPage() {
                 value={trialEndDate}
                 onChange={e => setTrialEndDate(e.target.value)}
               />
-              <p style={{ fontSize: '11px', color: '#d97706', margin: '6px 0 0' }}>Tu seras alerté 2 jours avant la fin</p>
+              {trialDateError
+                ? <p style={{ fontSize: '11px', color: '#ef4444', margin: '6px 0 0', fontWeight: '600' }}>⚠ {trialDateError}</p>
+                : <p style={{ fontSize: '11px', color: '#d97706', margin: '6px 0 0' }}>Tu seras alerté 2 jours avant la fin</p>
+              }
             </>
           )}
         </div>

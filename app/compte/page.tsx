@@ -349,6 +349,27 @@ export default function ComptePage() {
 
       </div>
 
+      {/* ── FOOTER LÉGAL ── */}
+      <div style={{ padding: '8px 16px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button
+            onClick={() => router.push('/confidentialite')}
+            style={{ background: 'none', border: 'none', fontSize: '12px', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px 0', textDecoration: 'underline' }}
+          >
+            Politique de confidentialité
+          </button>
+          <button
+            onClick={() => router.push('/cgu')}
+            style={{ background: 'none', border: 'none', fontSize: '12px', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px 0', textDecoration: 'underline' }}
+          >
+            Conditions d'utilisation
+          </button>
+        </div>
+        <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0', textAlign: 'center' }}>
+          SaveSmart · v1.0 · Données hébergées en Europe 🇪🇺
+        </p>
+      </div>
+
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </main>
   )

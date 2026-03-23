@@ -136,13 +136,17 @@ export default function Home() {
 
   const reload = () => { if (userId) getSubscriptions(userId).then(setSubscriptions) }
 
+  const haptic = (ms = 8) => { try { navigator?.vibrate?.(ms) } catch {} }
+
   const navigate = (path: string) => {
+    haptic(6)
     setNavLoading(path)
     router.push(path)
   }
 
   const handleRemove = async (id: string) => {
     if (!userId) return
+    haptic(12)
     setRemovingId(id)
     await removeSubscription(id, userId)
     setRemovingId(null)
