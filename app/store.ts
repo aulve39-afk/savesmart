@@ -1,5 +1,51 @@
 import { getSupabase } from '../lib/supabase'
 
+export type UserPlan = {
+  user_id: string
+  plan: 'free' | 'premium'
+  plan_started_at: string
+  plan_expires_at: string | null
+}
+
+export type Payment = {
+  id: string
+  user_id: string
+  amount: number
+  currency: string
+  status: 'paid' | 'pending' | 'failed'
+  description: string
+  created_at: string
+  invoice_url: string | null
+}
+
+export async function getUserPlan(userId: string): Promise<UserPlan> {
+  const supabase = getSupabase()
+  const { data } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .single()
+  return data ?? { user_id: userId, plan: 'free', plan_started_at: new Date().toISOString(), plan_expires_at: null }
+}
+
+export async function getPayments(userId: string): Promise<Payment[]> {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('payments')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) return []
+  return data || []
+}
+
+export async function deleteAccount(userId: string): Promise<void> {
+  const supabase = getSupabase()
+  await supabase.from('subscriptions').delete().eq('user_id', userId)
+  await supabase.from('payments').delete().eq('user_id', userId)
+  await supabase.from('user_profiles').delete().eq('user_id', userId)
+}
+
 export type Subscription = {
   id: string
   user_id: string
