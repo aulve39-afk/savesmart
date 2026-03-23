@@ -196,7 +196,7 @@ export default function RelevePage() {
               {[
                 { step: '1', icon: '🔐', title: 'Connexion sécurisée', desc: 'Via Bridge ou GoCardless (agréés PSD2 par la Banque de France)' },
                 { step: '2', icon: '🤖', title: 'Détection IA', desc: 'L\'IA analyse tes 3 derniers mois et identifie les prélèvements récurrents' },
-                { step: '3', icon: '✅', title: 'Ajout en 1 clic', desc: 'Confirme les abonnements détectés et ils apparaissent dans ton dashboard' },
+                { step: '3', icon: '✅', title: 'Ajout en 1 clic', desc: 'Confirme les abonnements détectés et ils apparaissent dans ton espace' },
               ].map(item => (
                 <div key={item.step} style={{ display: 'flex', gap: '14px', marginBottom: '14px', alignItems: 'flex-start' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>{item.icon}</div>
@@ -253,10 +253,10 @@ export default function RelevePage() {
               <p style={{ fontWeight: '700', fontSize: '16px', color: '#16a34a', margin: '0 0 4px' }}>
                 {detected.filter(s => s.selected).length} abonnement{detected.filter(s => s.selected).length > 1 ? 's' : ''} ajoute{detected.filter(s => s.selected).length > 1 ? 's' : ''}
               </p>
-              <p style={{ fontSize: '13px', color: '#16a34a', margin: '0' }}>Retrouve-les dans ton dashboard</p>
+              <p style={{ fontSize: '13px', color: '#16a34a', margin: '0' }}>Retrouve-les dans ton espace</p>
             </div>
             <button onClick={() => router.push('/')} style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>
-              Voir le dashboard
+              Voir mon espace
             </button>
           </div>
         ) : (
@@ -348,7 +348,7 @@ export default function RelevePage() {
                 })}
 
                 <button onClick={handleSave} disabled={saving || detected.filter(s => s.selected).length === 0} style={{ width: '100%', background: saving ? '#a5b4fc' : '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: 'pointer', marginTop: '8px' }}>
-                  {saving ? 'Sauvegarde...' : `Ajouter ${detected.filter(s => s.selected).length} abonnement${detected.filter(s => s.selected).length > 1 ? 's' : ''} au dashboard`}
+                  {saving ? 'Sauvegarde...' : `Ajouter ${detected.filter(s => s.selected).length} abonnement${detected.filter(s => s.selected).length > 1 ? 's' : ''} à mon espace`}
                 </button>
 
                 <button onClick={() => { setPreview(null); setDetected([]); setError(null) }} style={{ width: '100%', background: 'var(--btn-secondary-bg)', border: '1px solid var(--btn-secondary-border)', borderRadius: '14px', padding: '14px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', color: 'var(--btn-secondary-color)', marginTop: '8px' }}>

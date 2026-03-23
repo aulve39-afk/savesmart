@@ -95,7 +95,7 @@ export default function AjouterPage() {
         <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
         <div>
           <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>Ajouter manuellement</h1>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Saisis les details de ton abonnement</p>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Saisis les détails de ton abonnement</p>
         </div>
       </div>
 
@@ -136,7 +136,7 @@ export default function AjouterPage() {
         </div>
 
         <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', marginBottom: '16px', border: '1px solid var(--border)' }}>
-          <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 14px', color: 'var(--text-primary)' }}>Categorie</p>
+          <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 14px', color: 'var(--text-primary)' }}>Catégorie</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
             {categories.map(cat => (
               <button
@@ -162,7 +162,7 @@ export default function AjouterPage() {
         </div>
 
         <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '20px', marginBottom: '20px', border: '1px solid var(--border)' }}>
-          <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 14px', color: 'var(--text-primary)' }}>Frequence</p>
+          <p style={{ fontWeight: '700', fontSize: '15px', margin: '0 0 14px', color: 'var(--text-primary)' }}>Fréquence de paiement</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {cycles.map(c => (
               <button
@@ -228,7 +228,7 @@ export default function AjouterPage() {
           disabled={isSubmitting}
           style={{ width: '100%', background: isSubmitting ? '#a5b4fc' : '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: isSubmitting ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}
         >
-          {isSubmitting ? 'Ajout en cours...' : 'Ajouter au dashboard'}
+          {isSubmitting ? 'Ajout en cours...' : 'Ajouter à mon espace'}
         </button>
       </div>
     </main>

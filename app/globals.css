@@ -37,3 +37,37 @@ html, body {
   padding: 0;
   background: var(--bg);
 }
+
+/* ── Micro-interactions globales sur tous les boutons ── */
+button {
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  opacity: 0.86;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.96);
+  opacity: 0.92;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* ── Responsive : safe-area + padding confortable sur tablettes ── */
+@media (min-width: 430px) {
+  main {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+}
+
+@media (min-width: 640px) {
+  /* Sur petits laptops, la page est centrée — ajouter un peu d'air autour */
+  body {
+    padding-top: 16px;
+  }
+}

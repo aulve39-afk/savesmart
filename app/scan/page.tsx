@@ -200,7 +200,7 @@ export default function ScanPage() {
                   }}
                   style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '15px', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}
                 >
-                  Ajouter au dashboard
+                  Ajouter à mon espace
                 </button>
               </>
             )}
