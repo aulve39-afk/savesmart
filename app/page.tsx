@@ -402,10 +402,10 @@ export default function Home() {
               <span style={{ fontSize: '15px' }}>📄</span> Fichier / PDF
             </button>
             <button
-              onClick={() => router.push('/gmail')}
+              onClick={() => router.push('/ajouter')}
               style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '11px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
             >
-              <span style={{ fontSize: '15px' }}>📧</span> Scanner Gmail
+              <span style={{ fontSize: '15px' }}>✏️</span> Ajouter manuellement
             </button>
           </div>
 
