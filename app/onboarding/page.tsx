@@ -47,6 +47,28 @@ export default function OnboardingPage() {
         </p>
       </div>
 
+      {/* Comment ça marche — 3 étapes */}
+      <div style={{ width: '100%', maxWidth: '360px', marginBottom: '28px' }}>
+        <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 14px', textAlign: 'center' }}>Comment ça marche</p>
+        <div style={{ display: 'flex', gap: '0', position: 'relative' }}>
+          {/* Ligne de connexion */}
+          <div style={{ position: 'absolute', top: '20px', left: 'calc(16.66% + 10px)', right: 'calc(16.66% + 10px)', height: '2px', background: 'linear-gradient(90deg, #4f46e5, #7c3aed)', opacity: 0.2, zIndex: 0 }} />
+          {[
+            { icon: '📤', label: 'Importe', desc: 'Facture, photo ou relevé bancaire' },
+            { icon: '🤖', label: "L'IA analyse", desc: 'Détection auto du montant et du service' },
+            { icon: '💡', label: 'Tu économises', desc: 'Couper, comparer, partager' },
+          ].map((step, i) => (
+            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', position: 'relative', zIndex: 1 }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', boxShadow: '0 4px 12px rgba(79,70,229,0.25)' }}>
+                {step.icon}
+              </div>
+              <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', margin: '0', textAlign: 'center' }}>{step.label}</p>
+              <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '0', textAlign: 'center', lineHeight: '1.4', padding: '0 4px' }}>{step.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Options */}
       <div style={{ width: '100%', maxWidth: '360px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
@@ -139,9 +161,14 @@ export default function OnboardingPage() {
 
       </div>
 
-      <p style={{ marginTop: '28px', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', maxWidth: '280px', lineHeight: '1.5' }}>
-        Tes données restent privées et ne sont jamais revendues
-      </p>
+      {/* Badge sécurité */}
+      <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px 16px', maxWidth: '360px', width: '100%' }}>
+        <span style={{ fontSize: '16px', flexShrink: 0 }}>🔒</span>
+        <div>
+          <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 1px' }}>Données chiffrées · Zéro revente</p>
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>Tes infos ne quittent jamais ton appareil et ne sont jamais partagées</p>
+        </div>
+      </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </main>

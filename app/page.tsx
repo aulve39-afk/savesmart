@@ -6,7 +6,7 @@ import { useOnboarding as useUserId } from './hooks/useOnboarding'
 
 const competitorGroups: { name: string; keywords: string[] }[] = [
   { name: 'Musique', keywords: ['spotify', 'deezer', 'apple music', 'tidal', 'amazon music', 'youtube music', 'qobuz'] },
-  { name: 'Streaming video', keywords: ['netflix', 'disney', 'amazon prime', 'canal+', 'hulu', 'apple tv', 'paramount', 'salto', 'ocs', 'max'] },
+  { name: 'Streaming vidéo', keywords: ['netflix', 'disney', 'amazon prime', 'canal+', 'hulu', 'apple tv', 'paramount', 'salto', 'ocs', 'max'] },
   { name: 'Stockage cloud', keywords: ['dropbox', 'google drive', 'icloud', 'onedrive', 'box', 'mega'] },
   { name: 'Bureautique', keywords: ['microsoft 365', 'google workspace', 'notion', 'zoho', 'office'] },
   { name: 'Telecom mobile', keywords: ['free', 'sfr', 'orange', 'bouygues', 'sosh', 'red', 'prixtel', 'nrj mobile'] },
@@ -43,12 +43,12 @@ const categoryConfig: Record<string, { label: string; icon: string; color: strin
   telecom_box:    { label: 'Box/Fibre',  icon: '🌐', color: '#0369a1', bg: '#e0f2fe' },
   energie:        { label: 'Energie',    icon: '⚡', color: '#d97706', bg: '#fffbeb' },
   assurance:      { label: 'Assurance',  icon: '🛡', color: '#059669', bg: '#f0fdf4' },
-  saas:           { label: 'SaaS',       icon: '☁', color: '#db2777', bg: '#fdf2f8' },
+  saas:           { label: 'Logiciels',  icon: '☁', color: '#db2777', bg: '#fdf2f8' },
   other:          { label: 'Autre',      icon: '●',  color: '#6b7280', bg: '#f9fafb' },
 }
 
 const cycleLabel: Record<string, string> = {
-  monthly: '/mois', yearly: '/an', quarterly: '/trim.', one_time: '', unknown: '',
+  monthly: '/mois', yearly: '/an', quarterly: '/trimestre', one_time: '', unknown: '',
 }
 
 type SortOption = 'amount_desc' | 'amount_asc' | 'name_asc' | 'recent'
@@ -263,7 +263,7 @@ export default function Home() {
             {total.toFixed(2)}<span style={{ fontSize: '20px', fontWeight: '400', opacity: 0.7 }}> €</span>
           </p>
           <p style={{ fontSize: '13px', opacity: 0.75, margin: '0', fontWeight: '700' }}>
-            {subscriptions.length} abonnement{subscriptions.length !== 1 ? 's' : ''} · {(total * 12).toFixed(0)} €/an
+            {subscriptions.length} abonnement{subscriptions.length !== 1 ? 's' : ''} · soit {(total * 12).toFixed(0)} €/an
           </p>
         </div>
       </div>
@@ -466,13 +466,13 @@ export default function Home() {
                 {scanAdded ? (
                   <div style={{ background: '#f0fdf4', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '18px' }}>✅</span>
-                    <p style={{ color: '#16a34a', fontWeight: '700', fontSize: '14px', margin: '0' }}>Ajouté au dashboard !</p>
+                    <p style={{ color: '#16a34a', fontWeight: '700', fontSize: '14px', margin: '0' }}>Ajouté à mon espace !</p>
                     <button onClick={() => { setScanResult(null); setScanAdded(false); setScanExpanded(false) }} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#16a34a', cursor: 'pointer', fontSize: '16px' }}>✕</button>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={handleAddFromScan} style={{ flex: 1, background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '13px', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>
-                      Ajouter au dashboard
+                      Ajouter à mon espace
                     </button>
                     <button onClick={() => setScanResult(null)} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '13px 14px', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '13px' }}>✕</button>
                   </div>
@@ -583,8 +583,8 @@ export default function Home() {
         {subscriptions.length === 0 ? (
           <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '40px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '24px' }}>📄</div>
-            <p style={{ fontWeight: '600', fontSize: '16px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Aucun abonnement</p>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Glisse une facture dans la barre ci-dessus</p>
+            <p style={{ fontWeight: '600', fontSize: '16px', margin: '0 0 6px', color: 'var(--text-primary)' }}>Aucun abonnement pour l'instant</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0' }}>Glisse une facture, prends une photo ou importe un relevé pour commencer</p>
           </div>
         ) : (
           <>
