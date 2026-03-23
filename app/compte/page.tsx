@@ -1,5 +1,4 @@
 'use client'
-import { signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { getSubscriptions, getUserPlan, getPayments, type Subscription, type UserPlan, type Payment } from '../store'
@@ -27,7 +26,6 @@ export default function ComptePage() {
   const [plan, setPlan] = useState<UserPlan | null>(null)
   const [payments, setPayments] = useState<Payment[]>([])
   const [activeSection, setActiveSection] = useState<Section>('profil')
-  const [showConfirmSignOut, setShowConfirmSignOut] = useState(false)
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
   const [deleteInput, setDeleteInput] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -49,14 +47,14 @@ export default function ComptePage() {
   }
 
   const total = subscriptions.reduce((sum, s) => sum + s.amount, 0)
-  const initials = (user?.name ?? user?.email ?? '?').slice(0, 2).toUpperCase()
   const isPremium = plan?.plan === 'premium'
 
   async function handleDeleteAccount() {
     if (deleteInput !== 'SUPPRIMER') return
     setDeleting(true)
-    await fetch('/api/delete-account', { method: 'DELETE' })
-    signOut({ callbackUrl: '/login' })
+    await fetch('/api/delete-account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }) })
+    localStorage.removeItem('savesmart_user_id')
+    router.push('/')
   }
 
   const navItems: { id: Section; label: string; icon: string }[] = [
@@ -77,15 +75,10 @@ export default function ComptePage() {
         >←</button>
 
         <div style={{ textAlign: 'center' }}>
-          {user?.image ? (
-            <img src={user.image} alt="Avatar" style={{ width: '76px', height: '76px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.3)', display: 'block', margin: '0 auto 12px', objectFit: 'cover' }} />
-          ) : (
-            <div style={{ width: '76px', height: '76px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '26px', fontWeight: '800', color: 'white', border: '3px solid rgba(255,255,255,0.3)' }}>
-              {initials}
-            </div>
-          )}
-          <p style={{ fontWeight: '800', fontSize: '18px', color: 'white', margin: '0 0 3px', letterSpacing: '-0.3px' }}>{user?.name ?? 'Utilisateur'}</p>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', margin: '0 0 12px' }}>{user?.email}</p>
+          <div style={{ width: '76px', height: '76px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '32px', border: '3px solid rgba(255,255,255,0.3)' }}>
+            👤
+          </div>
+          <p style={{ fontWeight: '800', fontSize: '18px', color: 'white', margin: '0 0 12px', letterSpacing: '-0.3px' }}>Mon espace</p>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: isPremium ? 'rgba(250,204,21,0.2)' : 'rgba(255,255,255,0.12)', borderRadius: '20px', padding: '4px 14px', border: isPremium ? '1px solid rgba(250,204,21,0.4)' : 'none' }}>
             <span style={{ fontSize: '11px' }}>{isPremium ? '⭐' : '🆓'}</span>
             <span style={{ fontSize: '11px', color: isPremium ? '#fcd34d' : 'rgba(255,255,255,0.8)', fontWeight: '700' }}>{isPremium ? 'Premium' : 'Gratuit'}</span>
@@ -144,10 +137,10 @@ export default function ComptePage() {
             <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', overflow: 'hidden' }}>
               <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', margin: '0', padding: '14px 16px 10px', textTransform: 'uppercase', letterSpacing: '1px', borderBottom: '1px solid var(--border)' }}>Informations</p>
               {[
-                { label: 'Nom', value: user?.name ?? '—' },
-                { label: 'Email', value: user?.email ?? '—' },
+                { label: 'Plan', value: isPremium ? 'Premium' : 'Gratuit' },
                 { label: 'Membre depuis', value: plan?.plan_started_at ? fmtDate(plan.plan_started_at) : fmtDate(new Date().toISOString()) },
-                { label: 'Connexion', value: 'Google' },
+                { label: 'Abonnements suivis', value: `${subscriptions.length}` },
+                { label: 'Total mensuel', value: `${total.toFixed(2)} €` },
               ].map((row, i, arr) => (
                 <div key={row.label} style={{ padding: '13px 16px', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{row.label}</span>
@@ -155,27 +148,6 @@ export default function ComptePage() {
                 </div>
               ))}
             </div>
-
-            {/* Déconnexion */}
-            {showConfirmSignOut ? (
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
-                <p style={{ fontWeight: '700', fontSize: '15px', color: '#dc2626', margin: '0 0 6px' }}>Se déconnecter ?</p>
-                <p style={{ fontSize: '13px', color: '#ef4444', margin: '0 0 16px' }}>Tu devras te reconnecter pour accéder à tes abonnements.</p>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => setShowConfirmSignOut(false)} style={{ flex: 1, background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: font }}>Annuler</button>
-                  <button onClick={() => signOut({ callbackUrl: '/login' })} style={{ flex: 1, background: '#dc2626', border: 'none', borderRadius: '12px', padding: '12px', fontWeight: '700', fontSize: '14px', cursor: 'pointer', color: 'white', fontFamily: font }}>Se déconnecter</button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowConfirmSignOut(true)}
-                style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', fontFamily: font }}
-              >
-                <span style={{ fontSize: '18px' }}>🚪</span>
-                <p style={{ flex: 1, fontSize: '14px', fontWeight: '600', color: '#dc2626', margin: '0' }}>Se déconnecter</p>
-                <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>›</span>
-              </button>
-            )}
           </div>
         )}
 

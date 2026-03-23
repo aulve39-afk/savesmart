@@ -17,7 +17,7 @@ export default function OnboardingPage() {
     )
   }
 
-  const firstName = user?.name?.split(' ')[0] ?? 'toi'
+  const firstName = 'toi'
 
   return (
     <main style={{ fontFamily: font, minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>

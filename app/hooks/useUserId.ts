@@ -1,22 +1,22 @@
 'use client'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export function useUserId() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
+    let id = localStorage.getItem('savesmart_user_id')
+    if (!id) {
+      id = crypto.randomUUID()
+      localStorage.setItem('savesmart_user_id', id)
     }
-  }, [status, router])
+    setUserId(id)
+  }, [])
 
   return {
-    userId: (session?.user?.email ?? null) as string | null,
-    user: session?.user ?? null,
-    status,
-    isLoading: status === 'loading',
+    userId,
+    user: null,
+    status: userId ? 'authenticated' : 'loading',
+    isLoading: !userId,
   }
 }

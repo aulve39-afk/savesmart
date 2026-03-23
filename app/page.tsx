@@ -236,7 +236,7 @@ export default function Home() {
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '0 0 2px' }}>Bonjour {user?.name?.split(' ')[0] ?? ''} 👋</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '0 0 2px' }}>Bonjour 👋</p>
             <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>SaveSmart</h1>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -245,12 +245,9 @@ export default function Home() {
             </button>
             <button
               onClick={() => router.push('/compte')}
-              style={{ width: '38px', height: '38px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #4f46e5', cursor: 'pointer', padding: '0', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+              style={{ width: '38px', height: '38px', borderRadius: '50%', border: '2px solid #4f46e5', cursor: 'pointer', padding: '0', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
             >
-              {user?.image
-                ? <img src={user.image} alt="profil" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <span style={{ color: 'white', fontSize: '14px', fontWeight: '800' }}>{(user?.name ?? user?.email ?? '?').slice(0, 1).toUpperCase()}</span>
-              }
+              <span style={{ color: 'white', fontSize: '14px', fontWeight: '800' }}>👤</span>
             </button>
           </div>
         </div>
