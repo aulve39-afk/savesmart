@@ -140,11 +140,11 @@ export default function ComptePage() {
                 <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div>
                     <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 5px', fontWeight: '600' }}>Prénom</p>
-                    <input value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Ton prénom" style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #4f46e5', borderRadius: '10px', padding: '10px 12px', fontSize: '16px', fontFamily: font, background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none' }} />
+                    <input value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Ton prénom" autoComplete="given-name" autoCapitalize="words" style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #4f46e5', borderRadius: '10px', padding: '10px 12px', fontSize: '16px', fontFamily: font, background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none' }} />
                   </div>
                   <div>
                     <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 5px', fontWeight: '600' }}>Nom</p>
-                    <input value={nom} onChange={e => setNom(e.target.value)} placeholder="Ton nom" style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #4f46e5', borderRadius: '10px', padding: '10px 12px', fontSize: '16px', fontFamily: font, background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none' }} />
+                    <input value={nom} onChange={e => setNom(e.target.value)} placeholder="Ton nom" autoComplete="family-name" autoCapitalize="words" style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #4f46e5', borderRadius: '10px', padding: '10px 12px', fontSize: '16px', fontFamily: font, background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none' }} />
                   </div>
                 </div>
               ) : (
