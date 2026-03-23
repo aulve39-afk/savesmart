@@ -42,19 +42,33 @@ html, body {
 button {
   -webkit-tap-highlight-color: transparent;
   transition: opacity 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+  user-select: none;
 }
 
 button:hover:not(:disabled) {
   opacity: 0.86;
 }
 
+/* Active : enfoncement rapide, retour lent — effet physique */
 button:active:not(:disabled) {
-  transform: scale(0.96);
-  opacity: 0.92;
+  transform: scale(0.95);
+  opacity: 0.88;
+  transition: opacity 0.05s ease, transform 0.05s ease;
 }
 
 button:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Carte cliquable (div avec onClick) */
+[role="button"], [tabindex]:not([tabindex="-1"]) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Clickable cards */
+div[onClick], div[onclick] {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Responsive : safe-area + padding confortable sur tablettes ── */
