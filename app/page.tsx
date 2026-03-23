@@ -127,6 +127,9 @@ export default function Home() {
   const [scanResult, setScanResult] = useState<any>(null)
   const [scanError, setScanError] = useState<string | null>(null)
   const [scanAdded, setScanAdded] = useState(false)
+  const [goal, setGoal] = useState<number | null>(null)
+  const [editingGoal, setEditingGoal] = useState(false)
+  const [goalInput, setGoalInput] = useState('')
   const cameraRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
   const filesRef = useRef<HTMLInputElement>(null)
@@ -139,6 +142,28 @@ export default function Home() {
       getSubscriptions(userId).then(subs => { setSubscriptions(subs); setSubsLoading(false) })
     }
   }, [userId])
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('savesmart_monthly_goal')
+      if (stored) setGoal(parseFloat(stored))
+    } catch {}
+  }, [])
+
+  const saveGoal = () => {
+    const n = parseFloat(goalInput)
+    if (!isNaN(n) && n > 0) {
+      setGoal(n)
+      try { localStorage.setItem('savesmart_monthly_goal', String(n)) } catch {}
+    }
+    setEditingGoal(false)
+    setGoalInput('')
+  }
+
+  const clearGoal = () => {
+    setGoal(null)
+    try { localStorage.removeItem('savesmart_monthly_goal') } catch {}
+  }
 
   const reload = () => { if (userId) getSubscriptions(userId).then(setSubscriptions) }
 
@@ -342,6 +367,92 @@ export default function Home() {
           </p>
         </div>
       </div>
+
+      {/* ── OBJECTIF MENSUEL ── */}
+      {subscriptions.length > 0 && (
+        <div style={{ padding: '12px 16px 0' }}>
+          {goal === null && !editingGoal ? (
+            /* Invite discrète à définir un objectif */
+            <button
+              onClick={() => { setEditingGoal(true); setGoalInput('') }}
+              style={{ width: '100%', background: 'none', border: '1.5px dashed var(--border-input)', borderRadius: '14px', padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-muted)' }}
+            >
+              <span style={{ fontSize: '16px' }}>🎯</span>
+              <span style={{ fontSize: '13px', fontWeight: '600' }}>Définir un objectif mensuel</span>
+              <span style={{ marginLeft: 'auto', fontSize: '16px', opacity: 0.5 }}>+</span>
+            </button>
+          ) : editingGoal ? (
+            /* Saisie de l'objectif */
+            <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', border: '1.5px solid #4f46e5' }}>
+              <p style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 10px' }}>🎯 Objectif mensuel (€)</p>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  placeholder={`Ex: ${Math.ceil((total || 50) * 0.8)}`}
+                  value={goalInput}
+                  onChange={e => setGoalInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && saveGoal()}
+                  autoFocus
+                  style={{ flex: 1, padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border-input)', fontSize: '16px', background: 'var(--bg)', color: 'var(--text-primary)', outline: 'none', fontFamily: font }}
+                />
+                <span style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: '600', marginRight: '4px' }}>€</span>
+                <button onClick={saveGoal} style={{ background: '#4f46e5', color: 'white', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>OK</button>
+                <button onClick={() => setEditingGoal(false)} style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 12px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>✕</button>
+              </div>
+            </div>
+          ) : (
+            /* Barre de progression */
+            (() => {
+              const ratio = Math.min(total / goal!, 1)
+              const pct = ratio * 100
+              const over = total > goal!
+              const barColor = over ? '#ef4444' : pct >= 80 ? '#f59e0b' : '#10b981'
+              const diff = Math.abs(total - goal!)
+              return (
+                <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '14px 16px', border: `1px solid ${over ? '#fecaca' : 'var(--border)'}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '14px' }}>🎯</span>
+                      <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', margin: '0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Objectif mensuel</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button onClick={() => { setEditingGoal(true); setGoalInput(String(goal)) }} style={{ background: 'none', border: 'none', fontSize: '12px', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px 6px' }}>✏️</button>
+                      <button onClick={clearGoal} style={{ background: 'none', border: 'none', fontSize: '12px', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px 6px' }}>✕</button>
+                    </div>
+                  </div>
+                  {/* Barre de progression */}
+                  <div style={{ height: '8px', borderRadius: '4px', background: 'var(--bg-secondary)', overflow: 'hidden', marginBottom: '8px' }}>
+                    <div style={{
+                      height: '100%',
+                      width: over ? '100%' : `${pct}%`,
+                      background: over
+                        ? `repeating-linear-gradient(45deg, #ef4444, #ef4444 6px, #fca5a5 6px, #fca5a5 12px)`
+                        : `linear-gradient(90deg, ${barColor}, ${pct >= 80 ? '#f59e0b' : barColor})`,
+                      borderRadius: '4px',
+                      transition: 'width 0.6s cubic-bezier(0.34, 1.2, 0.64, 1)',
+                    }} />
+                  </div>
+                  {/* Chiffres */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <p style={{ fontSize: '13px', color: over ? '#ef4444' : barColor, margin: '0', fontWeight: '700' }}>
+                      {over
+                        ? `⚠️ +${diff.toFixed(2)} € au-dessus`
+                        : pct >= 80
+                        ? `⏳ Plus que ${diff.toFixed(2)} € de marge`
+                        : `✓ ${diff.toFixed(2)} € de marge`
+                      }
+                    </p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0', fontWeight: '600' }}>
+                      {total.toFixed(0)} / {goal!.toFixed(0)} €
+                    </p>
+                  </div>
+                </div>
+              )
+            })()
+          )}
+        </div>
+      )}
 
       {/* ── WIDGET CONSEILLÈRE ── */}
       {nextAlert && (

@@ -172,8 +172,8 @@ export default function AjouterPage() {
   )
 
   return (
-    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: '200px' }}>
-      {/* paddingBottom généreux = espace pour que le clavier virtuel ne cache pas le bouton Ajouter */}
+    <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: 'calc(120px + env(safe-area-inset-bottom, 0px))' }}>
+      {/* paddingBottom = espace pour le footer fixe + clavier virtuel */}
 
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
         <button
@@ -344,15 +344,37 @@ export default function AjouterPage() {
           )}
         </div>
 
+      </div>
+
+      {/* ── Footer flottant — toujours visible au-dessus du clavier ── */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '100%',
+        maxWidth: '430px',
+        zIndex: 200,
+        /* Dégradé vers le bas pour que le contenu scrollé ne "colle" pas au bouton */
+        background: 'linear-gradient(to bottom, transparent 0%, var(--bg) 28%)',
+        padding: '20px 16px calc(16px + env(safe-area-inset-bottom, 0px))',
+      }}>
+        {/* Badge sécurité compact */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginBottom: '10px' }}>
+          <span style={{ fontSize: '12px' }}>🔒</span>
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0', fontWeight: '500' }}>
+            Données chiffrées · Stockées sur ton compte uniquement
+          </p>
+        </div>
         <button
           ref={submitRef}
           onClick={handleSubmit}
           disabled={isSubmitting}
-          style={{ width: '100%', background: isSubmitting ? '#a5b4fc' : '#4f46e5', color: 'white', border: 'none', borderRadius: '14px', padding: '16px', fontWeight: '700', fontSize: '15px', cursor: isSubmitting ? 'not-allowed' : 'pointer', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+          style={{ width: '100%', background: isSubmitting ? '#a5b4fc' : 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', border: 'none', borderRadius: '16px', padding: '17px', fontWeight: '700', fontSize: '15px', cursor: isSubmitting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: isSubmitting ? 'none' : '0 4px 20px rgba(79,70,229,0.35)', transition: 'background 0.2s, box-shadow 0.2s' }}
         >
           {isSubmitting
             ? <><div style={{ width: '18px', height: '18px', border: '2.5px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />Ajout en cours...</>
-            : 'Ajouter à mon espace'}
+            : '✓ Ajouter à mon espace'}
         </button>
       </div>
     </main>
