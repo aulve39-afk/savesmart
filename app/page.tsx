@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSubscriptions, removeSubscription, addSubscription, type Subscription } from './store'
 import { useOnboarding as useUserId } from './hooks/useOnboarding'
+import Confetti from './components/Confetti'
 
 const competitorGroups: { name: string; keywords: string[] }[] = [
   { name: 'Musique', keywords: ['spotify', 'deezer', 'apple music', 'tidal', 'amazon music', 'youtube music', 'qobuz'] },
@@ -131,6 +132,7 @@ export default function Home() {
   const [goal, setGoal] = useState<number | null>(null)
   const [editingGoal, setEditingGoal] = useState(false)
   const [goalInput, setGoalInput] = useState('')
+  const [showGoalConfetti, setShowGoalConfetti] = useState(false)
   const cameraRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
   const filesRef = useRef<HTMLInputElement>(null)
@@ -162,6 +164,8 @@ export default function Home() {
     if (!isNaN(n) && n > 0) {
       setGoal(n)
       try { localStorage.setItem('savesmart_monthly_goal', String(n)) } catch {}
+      // Confetti si l'utilisateur est déjà sous son objectif — moment dopamine !
+      if (total <= n) setShowGoalConfetti(true)
     }
     setEditingGoal(false)
     setGoalInput('')
@@ -342,6 +346,8 @@ export default function Home() {
   return (
     <main style={{ fontFamily: font, maxWidth: '430px', margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
 
+      <Confetti show={showGoalConfetti} onDone={() => setShowGoalConfetti(false)} />
+
       {/* Header */}
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -445,6 +451,8 @@ export default function Home() {
                     <p style={{ fontSize: '13px', color: over ? '#ef4444' : barColor, margin: '0', fontWeight: '700' }}>
                       {over
                         ? `⚠️ +${diff.toFixed(2)} € au-dessus`
+                        : pct >= 99.9
+                        ? '🎉 Objectif atteint !'
                         : pct >= 80
                         ? `⏳ Plus que ${diff.toFixed(2)} € de marge`
                         : `✓ ${diff.toFixed(2)} € de marge`
