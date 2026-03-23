@@ -170,6 +170,21 @@ export default function OnboardingPage() {
         </div>
       </div>
 
+      <div style={{ marginTop: '16px', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <button
+          onClick={() => router.push('/confidentialite')}
+          style={{ background: 'none', border: 'none', fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px 0', textDecoration: 'underline' }}
+        >
+          Politique de confidentialité
+        </button>
+        <button
+          onClick={() => router.push('/cgu')}
+          style={{ background: 'none', border: 'none', fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px 0', textDecoration: 'underline' }}
+        >
+          Conditions d'utilisation
+        </button>
+      </div>
+
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </main>
   )
