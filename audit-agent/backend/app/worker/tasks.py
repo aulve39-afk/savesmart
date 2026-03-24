@@ -33,7 +33,7 @@ class AnalysisTask(Task):  # type: ignore[misc]
         return self._analyzer
 
 
-@celery_app.task(  # type: ignore[untyped-decorator]
+@celery_app.task(  # type: ignore[misc]
     bind=True,
     base=AnalysisTask,
     name="tasks.run_contract_analysis",
