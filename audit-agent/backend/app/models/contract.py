@@ -87,7 +87,9 @@ class ClauseSource(StrictModel):
         float,
         Field(ge=0.0, le=1.0, description="Score de confiance de l'extraction IA")
     ]
-    source_confidence: SourceConfidence = SourceConfidence.HIGH
+    # strict=False sur ce champ: l'IA retourne des strings JSON (ex: "high")
+    # Le strict global protège les numériques; les StrEnum acceptent la coercition str.
+    source_confidence: Annotated[SourceConfidence, Field(strict=False)] = SourceConfidence.HIGH
 
 
 class NoticeDeadline(StrictModel):
@@ -102,7 +104,7 @@ class NoticeDeadline(StrictModel):
     days_until_deadline: int | None = Field(
         description="Nombre de jours jusqu'à la deadline (négatif si passé)"
     )
-    action_required: ActionRequired
+    action_required: Annotated[ActionRequired, Field(strict=False)]
     calendar_alert_suggested: bool = True
 
 
@@ -132,7 +134,7 @@ class DocumentMetadata(StrictModel):
     filename: str = Field(min_length=1, max_length=255)
     page_count: Annotated[int, Field(ge=1)]
     detected_language: str = Field(default="fr", pattern=r"^[a-z]{2}$")
-    contract_type: ContractType
+    contract_type: Annotated[ContractType, Field(strict=False)]
     parties: dict[str, str] = Field(
         description="Parties du contrat, valeurs anonymisées si PII présentes"
     )
@@ -174,16 +176,16 @@ class ContractClause(StrictModel):
     Chaque clause doit avoir une source vérifiable (page + citation).
     """
     clause_id: UUID = Field(default_factory=uuid4)
-    type: ClauseType
+    type: Annotated[ClauseType, Field(strict=False)]
     title: Annotated[str, Field(min_length=3, max_length=200)]
     extracted_text: Annotated[str, Field(min_length=10, max_length=2000)]
 
     # Preuve vérifiable OBLIGATOIRE
     source: ClauseSource
 
-    # Scores de risque
+    # Scores de risque (strict=True sur int/float pour les numériques)
     risk_score: Annotated[int, Field(ge=0, le=100)]
-    risk_level: RiskLevel
+    risk_level: Annotated[RiskLevel, Field(strict=False)]
 
     financial_impact: FinancialImpact | None = None
     notice: NoticeDeadline | None = None
@@ -256,7 +258,7 @@ class AnalysisResult(BaseModel):
     clauses: list[ContractClause] = Field(default_factory=list)
 
     global_risk_score: Annotated[float, Field(ge=0, le=100)]
-    risk_level: RiskLevel
+    risk_level: Annotated[RiskLevel, Field(strict=False)]
 
     processing_metadata: ProcessingMetadata
 
