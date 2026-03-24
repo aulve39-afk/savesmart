@@ -23,7 +23,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'KLYP — Gérez vos abonnements',
-  description: 'Analysez, optimisez et maîtrisez vos abonnements grâce à l\'IA Claude.',
+  description: 'Analysez, optimisez et maîtrisez vos abonnements avec KLYP.',
   applicationName: 'KLYP',
   generator: 'Next.js',
   keywords: ['abonnements', 'budget', 'économies', 'netflix', 'spotify', 'finances'],
