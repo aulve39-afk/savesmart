@@ -4,19 +4,8 @@ import { useRouter } from 'next/navigation'
 import { addSubscription } from '../store'
 import { useUserId } from '../hooks/useUserId'
 
-/** Sanitise un montant venant de l'IA : nombre valide, positif, ≤ 9 999 € */
-function sanitizeAmount(val: unknown): number {
-  const n = typeof val === 'number' ? val : parseFloat(String(val ?? ''))
-  if (isNaN(n) || n <= 0) return 0
-  if (n > 9999) return 9999
-  return Math.round(n * 100) / 100
-}
-
-/** Tronque un nom de service trop long */
-function sanitizeName(val: unknown): string {
-  const s = String(val ?? '').trim()
-  return s.slice(0, 100)
-}
+import { sanitizeText, sanitizeAmount } from '../../lib/sanitize'
+const sanitizeName = (val: unknown) => sanitizeText(val, 100)
 
 const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   streaming:      { label: 'Streaming',  icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },

@@ -274,17 +274,29 @@ export default function Home() {
 
   useEffect(() => {
     if (!userId) return
+    // Charge le cache immédiatement — affichage instantané pour les visites suivantes
+    try {
+      const cached = localStorage.getItem(`klyp_subs_cache_${userId}`)
+      if (cached) {
+        const { subs } = JSON.parse(cached)
+        setSubscriptions(subs)
+        setSubsLoading(false)
+      }
+    } catch {}
     // Offline : inutile de tenter un fetch qui échouera
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       setSubsLoading(false)
       setSubsLoadError(true)
       return
     }
-    setSubsLoading(true)
     setSubsLoadError(false)
     getSubscriptions(userId).then(subs => {
       setSubscriptions(subs)
       setSubsLoading(false)
+      // Met à jour le cache local
+      try {
+        localStorage.setItem(`klyp_subs_cache_${userId}`, JSON.stringify({ subs, ts: Date.now() }))
+      } catch {}
       // ── Price change detection ──
       try {
         const key = `klyp_prices_${userId}`
@@ -327,7 +339,15 @@ export default function Home() {
     try { localStorage.removeItem('klyp_monthly_goal') } catch {}
   }
 
-  const reload = () => { if (userId) getSubscriptions(userId).then(setSubscriptions) }
+  const reload = () => {
+    if (!userId) return
+    getSubscriptions(userId).then(subs => {
+      setSubscriptions(subs)
+      try {
+        localStorage.setItem(`klyp_subs_cache_${userId}`, JSON.stringify({ subs, ts: Date.now() }))
+      } catch {}
+    })
+  }
 
   const haptic = (ms = 8) => { try { navigator?.vibrate?.(ms) } catch {} }
 
