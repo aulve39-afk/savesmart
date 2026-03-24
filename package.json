@@ -7,9 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "cap:build": "next build && npx cap sync",
-    "cap:android": "next build && npx cap sync && npx cap open android",
-    "cap:ios": "next build && npx cap sync && npx cap open ios"
+    "cap:build": "CAPACITOR_BUILD=true next build && npx cap sync",
+    "cap:android": "CAPACITOR_BUILD=true next build && npx cap sync && npx cap open android",
+    "cap:ios": "CAPACITOR_BUILD=true next build && npx cap sync && npx cap open ios"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
