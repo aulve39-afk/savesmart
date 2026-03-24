@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
+import { checkRateLimit } from '../../../lib/rateLimit'
 import OpenAI from 'openai'
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+/** Strip ASCII control characters to prevent prompt injection */
+function sanitize(s: string): string {
+  return s.replace(/[\x00-\x1f\x7f]/g, '').trim()
+}
 
 const MOTIF_INSTRUCTIONS: Record<string, string> = {
   libre: `L'utilisateur n'est plus engagé. La lettre doit être ferme, directe et sans appel. Citer l'article L215-1 du Code de la consommation (droit de résiliation à tout moment pour les contrats à tacite reconduction). Exiger la confirmation de résiliation sous 10 jours.`,
@@ -20,6 +28,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
+  // 10 letters per minute per user
+  const { allowed, retryAfter } = checkRateLimit(`resiliation:${session.userId}`, 10)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Trop de requêtes, réessayez dans un moment' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    )
+  }
+
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   try {
     const { prenom, nom, adresse, ville, service, motif, engagementEndDate } = await req.json()
@@ -35,6 +52,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Paramètres invalides' }, { status: 400 })
     }
 
+    if (
+      engagementEndDate !== undefined &&
+      engagementEndDate !== null &&
+      engagementEndDate !== '' &&
+      (typeof engagementEndDate !== 'string' || !DATE_RE.test(engagementEndDate))
+    ) {
+      return NextResponse.json({ error: 'Paramètres invalides' }, { status: 400 })
+    }
+
+    // Sanitize user inputs before embedding in AI prompt
+    const safePrenom = sanitize(prenom)
+    const safeNom = sanitize(nom)
+    const safeAdresse = sanitize(adresse)
+    const safeVille = sanitize(ville)
+    const safeService = sanitize(service)
+
     const motifInstruction = MOTIF_INSTRUCTIONS[motif] || MOTIF_INSTRUCTIONS.libre
     const today = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     const engagementInfo = engagementEndDate
@@ -43,8 +76,8 @@ export async function POST(req: NextRequest) {
 
     const prompt = `Tu es un juriste expert en droit de la consommation français. Rédige une lettre de résiliation formelle et juridiquement précise.
 
-Expéditeur: ${prenom} ${nom}, ${adresse}, ${ville}
-Service à résilier: ${service}
+Expéditeur: ${safePrenom} ${safeNom}, ${safeAdresse}, ${safeVille}
+Service à résilier: ${safeService}
 Date: ${today}
 Motif de résiliation: ${motif}
 ${engagementInfo}
@@ -53,7 +86,7 @@ Instructions spécifiques pour ce motif: ${motifInstruction}
 
 Rédige la lettre complète en HTML simple (utilise <p>, <strong>, <br> uniquement). La lettre doit:
 - Commencer par les coordonnées de l'expéditeur
-- Inclure les coordonnées du destinataire (Service Résiliation, ${service})
+- Inclure les coordonnées du destinataire (Service Résiliation, ${safeService})
 - La date à droite
 - L'objet en gras
 - Corps de lettre avec les arguments juridiques appropriés
