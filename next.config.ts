@@ -1,10 +1,14 @@
 import type { NextConfig } from 'next'
 
+const isCapacitorBuild = process.env.CAPACITOR_BUILD === 'true'
+
 const nextConfig: NextConfig = {
-  output: 'export',
-  trailingSlash: true,
+  ...(isCapacitorBuild && {
+    output: 'export',
+    trailingSlash: true,
+  }),
   images: {
-    unoptimized: true,
+    unoptimized: isCapacitorBuild,
   },
 }
 
