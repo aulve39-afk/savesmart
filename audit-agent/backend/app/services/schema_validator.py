@@ -7,6 +7,7 @@ Solution: Pipeline de nettoyage → parse → validation Pydantic → retry si �
 La règle d'or: plutôt que d'accepter silencieusement une réponse invalide,
 on rejette et on demande une correction (avec le message d'erreur précis).
 """
+
 from __future__ import annotations
 
 import json
@@ -14,7 +15,6 @@ import re
 from typing import Any
 
 import structlog
-from pydantic import ValidationError
 
 logger = structlog.get_logger(__name__)
 
@@ -40,7 +40,7 @@ class SchemaValidator:
     # Structure minimale que doit avoir une réponse valide
     REQUIRED_KEYS = {"clauses"}
 
-    def validate_and_parse(self, raw_response: str) -> dict | None:
+    def validate_and_parse(self, raw_response: str) -> dict[str, Any] | None:
         """
         Tente de valider et parser la réponse JSON de l'IA.
 
@@ -120,7 +120,7 @@ Rappel des règles:
 
         return cleaned.strip()
 
-    def _safe_json_parse(self, text: str) -> dict | None:
+    def _safe_json_parse(self, text: str) -> dict[str, Any] | None:
         """Parse JSON avec gestion des erreurs explicite."""
         try:
             parsed = json.loads(text)
@@ -140,7 +140,7 @@ Rappel des règles:
             )
             return None
 
-    def _validate_and_sanitize(self, data: dict) -> dict | None:
+    def _validate_and_sanitize(self, data: dict[str, Any]) -> dict[str, Any] | None:
         """
         Valide la structure et sanitize les valeurs.
         Règles:
@@ -171,7 +171,7 @@ Rappel des règles:
         data["clauses"] = valid_clauses
         return data
 
-    def _sanitize_clause(self, clause: Any, index: int) -> dict | None:
+    def _sanitize_clause(self, clause: Any, index: int) -> dict[str, Any] | None:
         """
         Sanitize une clause individuelle.
         Corrige les erreurs mineures, rejette les clauses irréparables.
@@ -210,9 +210,12 @@ Rappel des règles:
             return None
 
         expected_level = (
-            "LOW" if risk_score <= 30
-            else "MEDIUM" if risk_score <= 60
-            else "HIGH" if risk_score <= 85
+            "LOW"
+            if risk_score <= 30
+            else "MEDIUM"
+            if risk_score <= 60
+            else "HIGH"
+            if risk_score <= 85
             else "CRITICAL"
         )
 
@@ -241,6 +244,8 @@ Rappel des règles:
             )
 
         # Garantir que requires_human_review est un bool
-        clause["requires_human_review"] = bool(clause.get("requires_human_review", False))
+        clause["requires_human_review"] = bool(
+            clause.get("requires_human_review", False)
+        )
 
         return clause

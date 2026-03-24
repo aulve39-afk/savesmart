@@ -7,11 +7,12 @@ Endpoints:
   GET  /contracts           → Liste des contrats du tenant
   GET  /analysis/{job_id}   → Polling du statut d'une analyse en cours
 """
+
 from __future__ import annotations
 
 import io
 import uuid
-from typing import Annotated
+from typing import Annotated, Any
 
 import boto3
 from botocore.exceptions import ClientError
@@ -36,6 +37,7 @@ logger = structlog.get_logger(__name__)
 
 # ── Dépendances ───────────────────────────────────────────────────────────────
 
+
 def get_current_tenant_id() -> uuid.UUID:
     """
     Extrait le tenant_id du JWT (injecté par le middleware d'auth).
@@ -46,7 +48,7 @@ def get_current_tenant_id() -> uuid.UUID:
     return uuid.uuid4()
 
 
-def get_s3_client():
+def get_s3_client() -> Any:
     """Factory S3 avec credentials de la config."""
     return boto3.client(
         "s3",
@@ -58,6 +60,7 @@ def get_s3_client():
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
+
 @router.post(
     "/upload",
     response_model=AnalysisJobResponse,
@@ -67,7 +70,7 @@ def get_s3_client():
 async def upload_contract(
     file: Annotated[UploadFile, File(description="Contrat PDF (max 50 MB)")],
     tenant_id: uuid.UUID = Depends(get_current_tenant_id),
-    s3: object = Depends(get_s3_client),
+    s3: Any = Depends(get_s3_client),
 ) -> AnalysisJobResponse:
     """
     Workflow:
@@ -92,7 +95,7 @@ async def upload_contract(
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"File size {file_size / 1024 / 1024:.1f} MB exceeds "
-                   f"maximum {settings.MAX_UPLOAD_SIZE_MB} MB",
+            f"maximum {settings.MAX_UPLOAD_SIZE_MB} MB",
         )
 
     if file_size < 100:
@@ -126,7 +129,9 @@ async def upload_contract(
                 "tenant-id": str(tenant_id),
                 "contract-id": str(contract_id),
                 "original-filename": file.filename or "unknown.pdf",
-                "upload-timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+                "upload-timestamp": __import__("datetime")
+                .datetime.utcnow()
+                .isoformat(),
             },
         )
         log.info("s3_upload.success", key=s3_key, size_bytes=file_size)
@@ -203,7 +208,9 @@ async def list_contracts(
 ) -> JSONResponse:
     """Pagination server-side. La RLS Supabase filtre automatiquement par tenant."""
     # TODO: Implémenter la liste paginée depuis Supabase
-    return JSONResponse(content={"contracts": [], "total": 0, "limit": limit, "offset": offset})
+    return JSONResponse(
+        content={"contracts": [], "total": 0, "limit": limit, "offset": offset}
+    )
 
 
 @router.get(

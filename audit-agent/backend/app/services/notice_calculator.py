@@ -8,6 +8,7 @@ Le vrai problème métier:
 
 Voir TDD §2.5 pour la description de l'algorithme.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -82,7 +83,9 @@ def compute_notice_deadline(
     if duration_months <= 0:
         raise ValueError(f"duration_months must be > 0, got {duration_months}")
     if notice_period_months < 0:
-        raise ValueError(f"notice_period_months must be >= 0, got {notice_period_months}")
+        raise ValueError(
+            f"notice_period_months must be >= 0, got {notice_period_months}"
+        )
     if notice_period_months > duration_months:
         raise ValueError(
             f"notice_period ({notice_period_months}m) cannot exceed "

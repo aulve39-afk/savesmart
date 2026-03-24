@@ -6,6 +6,7 @@ Priorité absolue dès le jour 1:
   - Alertes automatiques si un contrat dépasse les seuils de coût
   - Dashboard Prometheus pour visualiser l'évolution des coûts
 """
+
 from __future__ import annotations
 
 import time
@@ -77,8 +78,8 @@ COST_ALERTS = Counter(
 # ── Seuils d'alerte (voir TDD §5.2) ──────────────────────────────────────────
 
 ALERT_THRESHOLDS = {
-    "per_contract_usd": 0.30,    # $0.30 par contrat
-    "daily_total_usd": 50.00,    # $50/jour
+    "per_contract_usd": 0.30,  # $0.30 par contrat
+    "daily_total_usd": 50.00,  # $50/jour
     "monthly_budget_pct": 0.80,  # 80% du budget mensuel
 }
 
@@ -107,6 +108,7 @@ def track_ai_call(
 
     # Tracking du coût journalier
     import datetime
+
     today = datetime.date.today().toordinal()
     if today != _daily_reset_day:
         _daily_cost_usd = 0.0
