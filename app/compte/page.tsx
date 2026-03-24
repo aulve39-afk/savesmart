@@ -227,7 +227,14 @@ export default function ComptePage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => router.push('/login')}
+                  onClick={() => {
+                    // Sauvegarder l'UUID local pour migration après connexion
+                    try {
+                      const localId = localStorage.getItem('klyp_user_id')
+                      if (localId) localStorage.setItem('klyp_pending_migration', localId)
+                    } catch {}
+                    router.push('/login')
+                  }}
                   style={{ width: '100%', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: '12px', padding: '12px', color: 'white', fontWeight: '700', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: font }}
                 >
                   <svg width="16" height="16" viewBox="0 0 48 48">
