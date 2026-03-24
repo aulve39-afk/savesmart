@@ -1,6 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { signOut } from 'next-auth/react'
 import { getSubscriptions, getUserPlan, getPayments, type Subscription, type UserPlan, type Payment } from '../store'
 import { useOnboarding as useUserId } from '../hooks/useOnboarding'
 import { useKeyboardScroll } from '../hooks/useKeyboardScroll'
@@ -43,8 +44,17 @@ export default function ComptePage() {
     getSubscriptions(userId).then(setSubscriptions)
     getUserPlan(userId).then(setPlan)
     getPayments(userId).then(setPayments)
-    setPrenom(localStorage.getItem('klyp_prenom') ?? '')
-    setNom(localStorage.getItem('klyp_nom') ?? '')
+    // Pré-remplir avec le nom Google si pas encore sauvegardé
+    const storedPrenom = localStorage.getItem('klyp_prenom')
+    const storedNom = localStorage.getItem('klyp_nom')
+    if (!storedPrenom && !storedNom && user?.name) {
+      const parts = user.name.split(' ')
+      setPrenom(parts[0] ?? '')
+      setNom(parts.slice(1).join(' ') ?? '')
+    } else {
+      setPrenom(storedPrenom ?? '')
+      setNom(storedNom ?? '')
+    }
   }, [userId])
 
   if (isLoading || !userId) {
@@ -117,8 +127,7 @@ export default function ComptePage() {
     if (deleteInput !== 'SUPPRIMER') return
     setDeleting(true)
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/delete-account`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }) })
-    localStorage.removeItem('klyp_user_id')
-    router.push('/')
+    await signOut({ callbackUrl: '/login' })
   }
 
   const navItems: { id: Section; label: string; icon: string }[] = [
@@ -148,10 +157,21 @@ export default function ComptePage() {
         >←</button>
 
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: '76px', height: '76px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '32px', border: '3px solid rgba(255,255,255,0.3)' }}>
-            👤
-          </div>
-          <p style={{ fontWeight: '800', fontSize: '18px', color: 'white', margin: '0 0 12px', letterSpacing: '-0.3px' }}>Mon espace</p>
+          {user?.image ? (
+            <img
+              src={user.image}
+              alt="Avatar"
+              width={76}
+              height={76}
+              style={{ width: '76px', height: '76px', borderRadius: '50%', margin: '0 auto 12px', display: 'block', border: '3px solid rgba(255,255,255,0.3)', objectFit: 'cover' }}
+            />
+          ) : (
+            <div style={{ width: '76px', height: '76px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '32px', border: '3px solid rgba(255,255,255,0.3)' }}>
+              👤
+            </div>
+          )}
+          <p style={{ fontWeight: '800', fontSize: '18px', color: 'white', margin: '0 0 4px', letterSpacing: '-0.3px' }}>{user?.name || 'Mon espace'}</p>
+          {user?.email && <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', margin: '0 0 12px' }}>{user.email}</p>}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: isPremium ? 'rgba(250,204,21,0.2)' : 'rgba(255,255,255,0.12)', borderRadius: '20px', padding: '4px 14px', border: isPremium ? '1px solid rgba(250,204,21,0.4)' : 'none' }}>
             <span style={{ fontSize: '11px' }}>{isPremium ? '⭐' : '🆓'}</span>
             <span style={{ fontSize: '11px', color: isPremium ? '#fcd34d' : 'rgba(255,255,255,0.8)', fontWeight: '700' }}>{isPremium ? 'Premium' : 'Gratuit'}</span>
@@ -238,6 +258,19 @@ export default function ComptePage() {
                 </div>
               ))}
             </div>
+
+            {/* Déconnexion */}
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', fontFamily: font }}
+            >
+              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🚪</div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '14px', fontWeight: '700', color: '#dc2626', margin: '0 0 2px' }}>Se déconnecter</p>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>Tes données restent sauvegardées</p>
+              </div>
+              <span style={{ fontSize: '16px', color: '#dc2626' }}>›</span>
+            </button>
 
             {/* Réinitialiser */}
             <button
