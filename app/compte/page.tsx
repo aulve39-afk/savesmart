@@ -24,7 +24,7 @@ type Section = 'profil' | 'abonnement' | 'paiements'
 
 export default function ComptePage() {
   const router = useRouter()
-  const { userId, user, isLoading } = useUserId()
+  const { userId, user, isLoading, isAuthenticated } = useUserId()
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [plan, setPlan] = useState<UserPlan | null>(null)
   const [payments, setPayments] = useState<Payment[]>([])
@@ -170,8 +170,11 @@ export default function ComptePage() {
               👤
             </div>
           )}
-          <p style={{ fontWeight: '800', fontSize: '18px', color: 'white', margin: '0 0 4px', letterSpacing: '-0.3px' }}>{user?.name || 'Mon espace'}</p>
-          {user?.email && <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', margin: '0 0 12px' }}>{user.email}</p>}
+          <p style={{ fontWeight: '800', fontSize: '18px', color: 'white', margin: '0 0 4px', letterSpacing: '-0.3px' }}>{user?.name || (prenom ? `${prenom}${nom ? ' ' + nom : ''}` : 'Mon espace')}</p>
+          {user?.email
+            ? <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', margin: '0 0 12px' }}>{user.email}</p>
+            : <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '0 0 12px' }}>Mode invité · cet appareil uniquement</p>
+          }
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: isPremium ? 'rgba(250,204,21,0.2)' : 'rgba(255,255,255,0.12)', borderRadius: '20px', padding: '4px 14px', border: isPremium ? '1px solid rgba(250,204,21,0.4)' : 'none' }}>
             <span style={{ fontSize: '11px' }}>{isPremium ? '⭐' : '🆓'}</span>
             <span style={{ fontSize: '11px', color: isPremium ? '#fcd34d' : 'rgba(255,255,255,0.8)', fontWeight: '700' }}>{isPremium ? 'Premium' : 'Gratuit'}</span>
@@ -210,6 +213,33 @@ export default function ComptePage() {
         {/* === SECTION PROFIL === */}
         {activeSection === 'profil' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+            {/* Bannière connexion — uniquement pour les utilisateurs anonymes */}
+            {!isAuthenticated && (
+              <div style={{ background: 'linear-gradient(135deg, #f5f3ff, #ede9fe)', border: '1.5px solid #c4b5fd', borderRadius: '16px', padding: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '22px', flexShrink: 0 }}>🔗</span>
+                  <div>
+                    <p style={{ fontWeight: '800', fontSize: '14px', color: '#4f46e5', margin: '0 0 4px' }}>Sync multi-appareils</p>
+                    <p style={{ fontSize: '12px', color: '#5b21b6', margin: '0', lineHeight: '1.5' }}>
+                      Actuellement, tes données sont uniquement sur <strong>cet appareil</strong>. Connecte-toi pour y accéder depuis ton téléphone, ton ordi, n'importe où.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => router.push('/login')}
+                  style={{ width: '100%', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: '12px', padding: '12px', color: 'white', fontWeight: '700', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: font }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 48 48">
+                    <path fill="white" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" opacity="0.9"/>
+                    <path fill="white" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" opacity="0.9"/>
+                    <path fill="white" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" opacity="0.9"/>
+                    <path fill="white" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" opacity="0.9"/>
+                  </svg>
+                  Connecter mon compte Google
+                </button>
+              </div>
+            )}
 
             {/* Nom / Prénom */}
             <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', overflow: 'hidden' }}>
@@ -259,18 +289,20 @@ export default function ComptePage() {
               ))}
             </div>
 
-            {/* Déconnexion */}
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', fontFamily: font }}
-            >
-              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🚪</div>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: '14px', fontWeight: '700', color: '#dc2626', margin: '0 0 2px' }}>Se déconnecter</p>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>Tes données restent sauvegardées</p>
-              </div>
-              <span style={{ fontSize: '16px', color: '#dc2626' }}>›</span>
-            </button>
+            {/* Déconnexion — uniquement si connecté */}
+            {isAuthenticated && (
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', fontFamily: font }}
+              >
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🚪</div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: '14px', fontWeight: '700', color: '#dc2626', margin: '0 0 2px' }}>Se déconnecter</p>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>Tes données restent sauvegardées sur ton compte</p>
+                </div>
+                <span style={{ fontSize: '16px', color: '#dc2626' }}>›</span>
+              </button>
+            )}
 
             {/* Réinitialiser */}
             <button

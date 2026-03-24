@@ -5,7 +5,7 @@ import { getSubscriptions } from '../store'
 import { useUserId } from './useUserId'
 
 export function useOnboarding() {
-  const { userId, user, status, isLoading } = useUserId()
+  const { userId, user, status, isLoading, isAuthenticated } = useUserId()
   const router = useRouter()
   const [onboardingChecked, setOnboardingChecked] = useState(false)
 
@@ -38,5 +38,6 @@ export function useOnboarding() {
     user,
     status,
     isLoading: isLoading || (!!userId && !onboardingChecked),
+    isAuthenticated,
   }
 }
