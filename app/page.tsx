@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSubscriptions, removeSubscription, addSubscription, type Subscription } from './store'
 import { useOnboarding as useUserId } from './hooks/useOnboarding'
+import { usePrivacyMode } from './hooks/usePrivacyMode'
 import Confetti from './components/Confetti'
 
 const competitorGroups: { name: string; keywords: string[] }[] = [
@@ -113,6 +114,9 @@ function compressImage(file: File): Promise<string> {
 
 export default function Home() {
   const { userId, user, isLoading } = useUserId()
+  const { hidden, toggle: togglePrivacy } = usePrivacyMode()
+  /** Masque un montant en mode discret */
+  const hide = (n: number, d = 2) => hidden ? '••••' : n.toFixed(d)
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [sort, setSort] = useState<SortOption>('amount_desc')
   const [filter, setFilter] = useState<FilterOption>('all')
@@ -356,6 +360,15 @@ export default function Home() {
             <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>SaveSmart</h1>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {/* Mode discret */}
+            <button
+              onClick={togglePrivacy}
+              aria-label={hidden ? 'Afficher les montants' : 'Masquer les montants'}
+              title={hidden ? 'Afficher les montants' : 'Masquer les montants'}
+              style={{ width: '38px', height: '38px', background: hidden ? '#f5f3ff' : 'var(--bg-secondary)', border: `1px solid ${hidden ? '#c4b5fd' : 'var(--border)'}`, borderRadius: '12px', fontSize: '17px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            >
+              {hidden ? '🙈' : '👁️'}
+            </button>
             <button onClick={() => navigate('/stats')} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {navLoading === '/stats'
                 ? <div style={{ width: '16px', height: '16px', border: '2px solid var(--border)', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
@@ -373,10 +386,10 @@ export default function Home() {
           <div style={{ position: 'absolute', bottom: '-30px', right: '40px', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
           <p style={{ fontSize: '12px', opacity: 0.6, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Total mensuel</p>
           <p style={{ fontSize: '42px', fontWeight: '800', margin: '0 0 4px', letterSpacing: '-1px' }}>
-            {total.toFixed(2)}<span style={{ fontSize: '20px', fontWeight: '400', opacity: 0.7 }}> €</span>
+            {hide(total)}<span style={{ fontSize: '20px', fontWeight: '400', opacity: 0.7 }}> €</span>
           </p>
           <p style={{ fontSize: '13px', opacity: 0.75, margin: '0', fontWeight: '700' }}>
-            {subscriptions.length} abonnement{subscriptions.length !== 1 ? 's' : ''} · soit {(total * 12).toFixed(0)} €/an
+            {subscriptions.length} abonnement{subscriptions.length !== 1 ? 's' : ''} · soit {hide(total * 12, 0)} €/an
           </p>
         </div>
       </div>
@@ -450,16 +463,16 @@ export default function Home() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <p style={{ fontSize: '13px', color: over ? '#ef4444' : barColor, margin: '0', fontWeight: '700' }}>
                       {over
-                        ? `⚠️ +${diff.toFixed(2)} € au-dessus`
+                        ? `⚠️ +${hide(diff)} € au-dessus`
                         : pct >= 99.9
                         ? '🎉 Objectif atteint !'
                         : pct >= 80
-                        ? `⏳ Plus que ${diff.toFixed(2)} € de marge`
-                        : `✓ ${diff.toFixed(2)} € de marge`
+                        ? `⏳ Plus que ${hide(diff)} € de marge`
+                        : `✓ ${hide(diff)} € de marge`
                       }
                     </p>
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0', fontWeight: '600' }}>
-                      {total.toFixed(0)} / {goal!.toFixed(0)} €
+                      {hide(total, 0)} / {hide(goal!, 0)} €
                     </p>
                   </div>
                 </div>
@@ -486,7 +499,7 @@ export default function Home() {
                 <p style={{ fontSize: '11px', fontWeight: '700', color: '#991b1b', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Alerte essai gratuit</p>
                 <p style={{ fontSize: '13px', fontWeight: '600', color: '#dc2626', margin: '0' }}>
                   Ton essai <strong>{nextAlert.sub.company_name}</strong> se termine le {fmtDate(nextAlert.date)}
-                  {' '}({nextAlert.sub.amount.toFixed(2)} €{cycleLabel[nextAlert.sub.billing_cycle] || ''})
+                  {' '}({hide(nextAlert.sub.amount)} €{cycleLabel[nextAlert.sub.billing_cycle] || ''})
                 </p>
                 <p style={{ fontSize: '11px', color: '#b91c1c', margin: '3px 0 0' }}>
                   {daysUntil(nextAlert.date) === 0 ? "Aujourd'hui !" : daysUntil(nextAlert.date) === 1 ? 'Demain !' : `Dans ${daysUntil(nextAlert.date)} jours`} · Tape pour agir →
@@ -506,14 +519,14 @@ export default function Home() {
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Prochain prélèvement</p>
                 <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', margin: '0' }}>
-                  <strong>{nextAlert.sub.company_name}</strong> — {nextAlert.sub.amount.toFixed(2)} €
+                  <strong>{nextAlert.sub.company_name}</strong> — {hide(nextAlert.sub.amount)} €
                   {cycleLabel[nextAlert.sub.billing_cycle] || ''}
                 </p>
                 <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '3px 0 0' }}>
                   Le {fmtDate(nextAlert.date)} · {daysUntil(nextAlert.date) === 0 ? "Aujourd'hui" : daysUntil(nextAlert.date) === 1 ? 'Demain' : `Dans ${daysUntil(nextAlert.date)} jours`} · Voir le calendrier →
                 </p>
               </div>
-              <p style={{ fontWeight: '800', fontSize: '16px', color: '#4f46e5', margin: '0', flexShrink: 0 }}>{nextAlert.sub.amount.toFixed(2)} €</p>
+              <p style={{ fontWeight: '800', fontSize: '16px', color: '#4f46e5', margin: '0', flexShrink: 0 }}>{hide(nextAlert.sub.amount)} €</p>
             </div>
           )}
         </div>
@@ -756,7 +769,7 @@ export default function Home() {
             ? <div style={{ width: '20px', height: '20px', border: '2px solid var(--border)', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'navSpinAnim 0.7s linear infinite' }} />
             : <span className="nav-tab-icon">💰</span>}
           <span className="nav-tab-label">Économies</span>
-          {ecoSavings > 1 && (
+          {ecoSavings > 1 && !hidden && (
             <span style={{ position: 'absolute', top: '4px', right: 'calc(50% - 14px)', background: '#16a34a', color: 'white', fontSize: '8px', fontWeight: '800', borderRadius: '6px', padding: '1px 4px', lineHeight: '14px' }}>
               -{ecoSavings.toFixed(0)}€
             </span>
@@ -981,7 +994,7 @@ export default function Home() {
                   <button key={cat} onClick={() => setFilter(filter === cat ? 'all' : cat as FilterOption)} style={{ flexShrink: 0, background: filter === cat ? cfg.color : 'var(--bg-secondary)', color: filter === cat ? 'white' : 'var(--text-secondary)', border: `1px solid ${filter === cat ? cfg.color : 'var(--border)'}`, borderRadius: '20px', padding: '5px 12px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <span style={{ fontSize: '12px' }}>{cfg.icon}</span>
                     {cfg.label}
-                    <span style={{ opacity: 0.75, fontWeight: '400' }}>{catTotal.toFixed(0)}€</span>
+                    <span style={{ opacity: 0.75, fontWeight: '400' }}>{hide(catTotal, 0)}€</span>
                   </button>
                 )
               })}
@@ -1017,7 +1030,7 @@ export default function Home() {
                       <span style={{ fontSize: '11px', fontWeight: '600', color: config.color, background: config.bg, padding: '2px 8px', borderRadius: '6px' }}>{config.label}</span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontWeight: '700', fontSize: '16px', margin: '0', color: 'var(--text-primary)' }}>{sub.amount.toFixed(2)} €</p>
+                      <p style={{ fontWeight: '700', fontSize: '16px', margin: '0', color: 'var(--text-primary)' }}>{hide(sub.amount)} €</p>
                       <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>{cycleLabel[sub.billing_cycle] || ''}</p>
                     </div>
                   </div>

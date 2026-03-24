@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { getSubscriptions, type Subscription } from '../store'
 import { useOnboarding as useUserId } from '../hooks/useOnboarding'
+import { usePrivacyMode } from '../hooks/usePrivacyMode'
+import { useCountUp } from '../hooks/useCountUp'
 
 const categoryConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   streaming:      { label: 'Streaming', icon: '▶', color: '#7c3aed', bg: '#f5f3ff' },
@@ -18,6 +20,7 @@ const categoryConfig: Record<string, { label: string; icon: string; color: strin
 export default function StatsPage() {
   const router = useRouter()
   const { userId, isLoading } = useUserId()
+  const { hidden, toggle: togglePrivacy } = usePrivacyMode()
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
@@ -27,6 +30,14 @@ export default function StatsPage() {
 
   const total = subscriptions.reduce((sum, s) => sum + s.amount, 0)
   const totalYear = total * 12
+
+  // Count-up animations
+  const animTotal = useCountUp(total)
+  const animYear = useCountUp(totalYear)
+  const animAvg = useCountUp(subscriptions.length > 0 ? total / subscriptions.length : 0)
+
+  /** Masque un montant en mode discret */
+  const hide = (n: number, d = 0) => hidden ? '••••' : n.toFixed(d)
 
   const byCategory = Object.entries(
     subscriptions.reduce((acc, s) => {
@@ -78,10 +89,17 @@ export default function StatsPage() {
 
       <div style={{ background: 'var(--bg-card)', padding: '52px 24px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
         <button onClick={() => router.push('/')} style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
-        <div>
+        <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>Statistiques</h1>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Vue globale de tes depenses</p>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Vue globale de tes dépenses</p>
         </div>
+        <button
+          onClick={togglePrivacy}
+          aria-label={hidden ? 'Afficher les montants' : 'Masquer les montants'}
+          style={{ width: '36px', height: '36px', borderRadius: '10px', background: hidden ? '#f5f3ff' : 'var(--bg-secondary)', border: `1px solid ${hidden ? '#c4b5fd' : 'var(--border)'}`, fontSize: '17px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+        >
+          {hidden ? '🙈' : '👁️'}
+        </button>
       </div>
 
       <div style={{ padding: '20px 16px' }}>
@@ -109,11 +127,11 @@ export default function StatsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
               <div style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', borderRadius: '16px', padding: '18px', color: 'white' }}>
                 <p style={{ fontSize: '11px', opacity: 0.6, margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '1px' }}>Par mois</p>
-                <p style={{ fontSize: '24px', fontWeight: '800', margin: '0', letterSpacing: '-0.5px' }}>{total.toFixed(0)} €</p>
+                <p style={{ fontSize: '24px', fontWeight: '800', margin: '0', letterSpacing: '-0.5px' }}>{hide(animTotal)} €</p>
               </div>
               <div style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 100%)', borderRadius: '16px', padding: '18px', color: 'white' }}>
                 <p style={{ fontSize: '11px', opacity: 0.6, margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '1px' }}>Par an</p>
-                <p style={{ fontSize: '24px', fontWeight: '800', margin: '0', letterSpacing: '-0.5px' }}>{totalYear.toFixed(0)} €</p>
+                <p style={{ fontSize: '24px', fontWeight: '800', margin: '0', letterSpacing: '-0.5px' }}>{hide(animYear)} €</p>
               </div>
               <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '18px', border: '1px solid var(--border)' }}>
                 <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '1px' }}>Abonnements</p>
@@ -121,7 +139,7 @@ export default function StatsPage() {
               </div>
               <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '18px', border: '1px solid var(--border)' }}>
                 <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '1px' }}>Moyenne</p>
-                <p style={{ fontSize: '24px', fontWeight: '800', margin: '0', color: 'var(--text-primary)' }}>{(total / subscriptions.length).toFixed(0)} €</p>
+                <p style={{ fontSize: '24px', fontWeight: '800', margin: '0', color: 'var(--text-primary)' }}>{hide(animAvg)} €</p>
               </div>
             </div>
 
@@ -138,7 +156,7 @@ export default function StatsPage() {
                         <span style={{ fontSize: '14px' }}>{config.icon}</span>
                         <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{config.label}</span>
                       </div>
-                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{amount.toFixed(2)} €</span>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{hide(amount, 2)} €</span>
                     </div>
                     <div style={{ height: '8px', background: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: pct + '%', background: config.color, borderRadius: '4px', transition: 'width 0.6s ease' }} />
@@ -160,7 +178,7 @@ export default function StatsPage() {
                     </p>
                   </div>
                   <p style={{ fontSize: '22px', fontWeight: '800', color: '#dc2626', margin: '0' }}>
-                    {mostExpensive.amount.toFixed(2)} €
+                    {hide(mostExpensive.amount, 2)} €
                   </p>
                 </div>
               </div>
