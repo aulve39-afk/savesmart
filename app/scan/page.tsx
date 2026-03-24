@@ -248,8 +248,8 @@ export default function ScanPage() {
                       category: result.category,
                       details: result.details || {},
                     }, userId)
-                    const fromOnboarding = localStorage.getItem('savesmart_onboarding_active') === '1'
-                    try { localStorage.removeItem('savesmart_onboarding_active') } catch {}
+                    const fromOnboarding = localStorage.getItem('klyp_onboarding_active') === '1'
+                    try { localStorage.removeItem('klyp_onboarding_active') } catch {}
                     router.push(fromOnboarding ? '/welcome' : '/')
                   }}
                   style={{ width: '100%', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '12px', padding: '15px', fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}

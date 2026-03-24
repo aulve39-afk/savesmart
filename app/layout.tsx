@@ -22,20 +22,20 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'SaveSmart — Gérez vos abonnements',
+  title: 'KLYP — Gérez vos abonnements',
   description: 'Analysez, optimisez et maîtrisez vos abonnements grâce à l\'IA Claude.',
-  applicationName: 'SaveSmart',
+  applicationName: 'KLYP',
   generator: 'Next.js',
   keywords: ['abonnements', 'budget', 'économies', 'netflix', 'spotify', 'finances'],
-  authors: [{ name: 'SaveSmart' }],
-  creator: 'SaveSmart',
+  authors: [{ name: 'KLYP' }],
+  creator: 'KLYP',
 
   // ── PWA manifest ────────────────────────────────────────────────────────────
   manifest: '/manifest.json',
 
   // ── Open Graph ──────────────────────────────────────────────────────────────
   openGraph: {
-    title: 'SaveSmart — Gérez vos abonnements',
+    title: 'KLYP — Gérez vos abonnements',
     description: 'Analysez et optimisez vos abonnements grâce à l\'IA.',
     type: 'website',
     locale: 'fr_FR',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   // ── iOS / Apple ──────────────────────────────────────────────────────────────
   appleWebApp: {
     capable: true,
-    title: 'SaveSmart',
+    title: 'KLYP',
     // "default" = shows the status bar (white bar on top)
     // "black-translucent" = overlays the status bar (needs top padding)
     statusBarStyle: 'default',

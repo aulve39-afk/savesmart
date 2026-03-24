@@ -5,7 +5,7 @@ import { addSubscription } from '../store'
 import { useUserId } from '../hooks/useUserId'
 import { useKeyboardScroll } from '../hooks/useKeyboardScroll'
 
-const DRAFT_KEY = 'savesmart_form_draft'
+const DRAFT_KEY = 'klyp_form_draft'
 
 const haptic = (ms = 8) => { try { navigator?.vibrate?.(ms) } catch {} }
 
@@ -148,11 +148,11 @@ export default function AjouterPage() {
     }
     try { localStorage.removeItem(DRAFT_KEY) } catch {}
     // Rediriger vers la page de succès si c'est le premier ajout (venant de l'onboarding)
-    const fromOnboarding = localStorage.getItem('savesmart_onboarding_active') === '1'
-    try { localStorage.removeItem('savesmart_onboarding_active') } catch {}
+    const fromOnboarding = localStorage.getItem('klyp_onboarding_active') === '1'
+    try { localStorage.removeItem('klyp_onboarding_active') } catch {}
     if (fromOnboarding) {
       // Transmet le nom pour personnaliser la page de succès
-      try { localStorage.setItem('savesmart_last_added', name.trim()) } catch {}
+      try { localStorage.setItem('klyp_last_added', name.trim()) } catch {}
     }
     router.push(fromOnboarding ? '/welcome' : '/')
   }

@@ -5,10 +5,10 @@ export function useUserId() {
   const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    let id = localStorage.getItem('savesmart_user_id')
+    let id = localStorage.getItem('klyp_user_id')
     if (!id) {
       id = crypto.randomUUID()
-      localStorage.setItem('savesmart_user_id', id)
+      localStorage.setItem('klyp_user_id', id)
     }
     setUserId(id)
   }, [])

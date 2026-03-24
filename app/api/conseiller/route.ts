@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       ? subs.map(s => `- ${s.company_name} (${s.category}): ${Number(s.amount).toFixed(2)}€${cycleLabel[s.billing_cycle] ?? ''}`).join('\n')
       : 'Aucun abonnement enregistré pour l\'instant.'
 
-    const systemPrompt = `Tu es SaveSmart, un conseiller financier personnel bienveillant et expert en optimisation des abonnements numériques. Tu parles français avec un ton chaleureux, direct et concret.
+    const systemPrompt = `Tu es KLYP, un conseiller financier personnel bienveillant et expert en optimisation des abonnements numériques. Tu parles français avec un ton chaleureux, direct et concret.
 
 Abonnements de l'utilisateur (total: ${total.toFixed(2)}€/mois — ${(total * 12).toFixed(0)}€/an):
 ${subsContext}

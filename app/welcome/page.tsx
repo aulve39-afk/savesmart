@@ -41,8 +41,8 @@ export default function WelcomePage() {
   useEffect(() => {
     // Récupère le nom du dernier abonnement ajouté (passé depuis ajouter/page.tsx)
     try {
-      const n = localStorage.getItem('savesmart_last_added') || ''
-      if (n) { setAddedName(n); localStorage.removeItem('savesmart_last_added') }
+      const n = localStorage.getItem('klyp_last_added') || ''
+      if (n) { setAddedName(n); localStorage.removeItem('klyp_last_added') }
     } catch {}
 
     // Légère pause avant d'afficher — laisse le temps au moteur de render
@@ -163,8 +163,8 @@ export default function WelcomePage() {
           animation: visible ? 'fadeSlideUp 0.5s ease-out 0.85s both' : 'none',
         }}>
           {addedName
-            ? <><strong style={{ color: 'var(--text-primary)' }}>{addedName}</strong> a été ajouté à ta liste.<br />SaveSmart veille pour toi maintenant.</>
-            : <>Ton premier abonnement est suivi.<br /><strong style={{ color: 'var(--text-primary)' }}>SaveSmart veille pour toi maintenant.</strong></>
+            ? <><strong style={{ color: 'var(--text-primary)' }}>{addedName}</strong> a été ajouté à ta liste.<br />KLYP veille pour toi maintenant.</>
+            : <>Ton premier abonnement est suivi.<br /><strong style={{ color: 'var(--text-primary)' }}>KLYP veille pour toi maintenant.</strong></>
           }
         </p>
 
