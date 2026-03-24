@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { addSubscription } from '../store'
 import { useUserId } from '../hooks/useUserId'
 import { useKeyboardScroll } from '../hooks/useKeyboardScroll'
+import { sanitizeText } from '../../lib/sanitize'
 
 const DRAFT_KEY = 'klyp_form_draft'
 
@@ -130,7 +131,7 @@ export default function AjouterPage() {
     if (engagementDate) details.engagement_end_date = engagementDate
     if (isTrial && trialEndDate) { details.is_trial = true; details.trial_end_date = trialEndDate }
     const saved = await addSubscription({
-      company_name: name.trim(),
+      company_name: sanitizeText(name, 100),
       amount: parseFloat(amount),
       billing_cycle: cycle,
       category,

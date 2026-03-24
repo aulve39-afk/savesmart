@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { useOnboarding as useUserId } from '../hooks/useOnboarding'
 import { useKeyboardScroll } from '../hooks/useKeyboardScroll'
+import { sanitizeLetterHtml } from '../../lib/sanitize'
 
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
@@ -291,7 +292,7 @@ function ResiliationContent() {
                 marginBottom: '16px',
                 overflow: 'auto',
               }}
-              dangerouslySetInnerHTML={{ __html: aiLetter }}
+              dangerouslySetInnerHTML={{ __html: sanitizeLetterHtml(aiLetter) }}
             />
 
             <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
