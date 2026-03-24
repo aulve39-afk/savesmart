@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Subtle shine overlay -->
+  <rect width="512" height="256" rx="0" fill="url(#shine)"/>
+  <rect width="512" height="112" rx="112" ry="112" fill="url(#shine)"/>
+
+  <!-- Coin circle -->
+  <circle cx="256" cy="222" r="148" fill="rgba(255,255,255,0.13)"/>
+  <circle cx="256" cy="222" r="128" fill="rgba(255,255,255,0.13)"/>
+
+  <!-- Euro sign (€) as paths — no font dependency -->
+  <!-- Main vertical stroke of € -->
+  <path d="M296 132 C253 132 218 158 205 196 L176 196 L176 214 L200 214 C199.5 220 199.5 226 200 232 L176 232 L176 250 L205 250 C218 288 253 314 296 314 C320 314 342 305 358 290 L340 272 C328 284 313 292 296 292 C271 292 250 277 240 256 L316 256 L316 238 L233 238 C232 232 232 220 233 214 L316 214 L316 196 L240 196 C250 175 271 160 296 160 C313 160 328 168 340 180 L358 162 C342 147 320 132 296 132 Z" fill="white"/>
+
+  <!-- Savings trend line at bottom -->
+  <g opacity="0.7">
+    <circle cx="142" cy="408" r="10" fill="white"/>
+    <circle cx="192" cy="380" r="10" fill="white"/>
+    <circle cx="256" cy="366" r="10" fill="white"/>
+    <circle cx="322" cy="350" r="10" fill="white"/>
+    <circle cx="382" cy="330" r="10" fill="white"/>
+    <!-- Arrow head -->
+    <path d="M372 316 L396 330 L380 348" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
