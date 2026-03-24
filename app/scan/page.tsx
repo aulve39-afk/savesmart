@@ -57,7 +57,7 @@ export default function ScanPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/scan', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: base64 }),

@@ -76,7 +76,7 @@ function ResiliationContent() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/resiliation', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resiliation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prenom, nom, adresse, ville, service: name, motif: selectedMotif, engagementEndDate }),

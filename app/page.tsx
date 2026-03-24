@@ -204,7 +204,7 @@ export default function Home() {
     setScanning(true)
     try {
       const base64 = await compressImage(file)
-      const res = await fetch('/api/scan', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: base64 }),
