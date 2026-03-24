@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 
 const MOTIF_INSTRUCTIONS: Record<string, string> = {
   libre: `L'utilisateur n'est plus engagé. La lettre doit être ferme, directe et sans appel. Citer l'article L215-1 du Code de la consommation (droit de résiliation à tout moment pour les contrats à tacite reconduction). Exiger la confirmation de résiliation sous 10 jours.`,
@@ -11,7 +11,7 @@ const MOTIF_INSTRUCTIONS: Record<string, string> = {
 }
 
 export async function POST(req: NextRequest) {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   try {
     const { prenom, nom, adresse, ville, service, motif, engagementEndDate } = await req.json()
 
@@ -42,16 +42,15 @@ Rédige la lettre complète en HTML simple (utilise <p>, <strong>, <br> uniqueme
 
 Réponds UNIQUEMENT avec le HTML de la lettre, sans markdown, sans explication.`
 
-    const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const content = message.content[0]
-    if (content.type !== 'text') throw new Error('Invalid response')
+    const letter = response.choices[0].message.content || ''
 
-    return NextResponse.json({ letter: content.text })
+    return NextResponse.json({ letter })
   } catch (err) {
     console.error(err)
     return NextResponse.json({ error: 'Erreur génération lettre' }, { status: 500 })
