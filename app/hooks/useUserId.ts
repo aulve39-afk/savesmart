@@ -7,6 +7,23 @@ export function useUserId() {
   const [localId, setLocalId] = useState<string | null>(null)
   const [localReady, setLocalReady] = useState(false)
 
+  // Migration des données invité → compte Google après connexion
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.user?.email) return
+    try {
+      const pendingMigration = localStorage.getItem('klyp_pending_migration')
+      if (!pendingMigration) return
+      // Lancer la migration en arrière-plan (fire and forget)
+      fetch('/api/migrate-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fromUserId: pendingMigration }),
+      }).catch(() => {})
+      // Supprimer le flag immédiatement (même si la migration échoue, on ne réessaie pas)
+      localStorage.removeItem('klyp_pending_migration')
+    } catch {}
+  }, [status, session?.user?.email])
+
   useEffect(() => {
     // Charger ou créer un UUID local pour les utilisateurs anonymes
     let id = localStorage.getItem('klyp_user_id')

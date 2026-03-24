@@ -17,6 +17,11 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true)
+    // Sauvegarder l'UUID local pour migration après connexion
+    try {
+      const localId = localStorage.getItem('klyp_user_id')
+      if (localId) localStorage.setItem('klyp_pending_migration', localId)
+    } catch {}
     await signIn('google', { callbackUrl: '/' })
   }
 
