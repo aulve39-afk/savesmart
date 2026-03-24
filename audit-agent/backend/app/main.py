@@ -2,8 +2,10 @@
 Point d'entrée FastAPI pour Audit-Agent AI.
 Initialisation: middleware CORS, rate limiting, observabilité, routes.
 """
+
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import structlog
@@ -26,7 +28,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Startup/shutdown hooks."""
     logger.info("startup", env=settings.ENVIRONMENT, version=settings.APP_VERSION)
     yield
@@ -57,7 +59,7 @@ app.add_middleware(
 
 # ── Rate Limiting ─────────────────────────────────────────────────────────────
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
 # ── Métriques Prometheus ──────────────────────────────────────────────────────
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")

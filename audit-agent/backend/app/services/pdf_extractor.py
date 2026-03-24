@@ -6,10 +6,11 @@ Stratégie:
   - PDF scanné (images): conversion page → PNG, envoi à Claude Vision
   - Chunking stratégique: basé sur la table des matières pour préserver le contexte
 """
+
 from __future__ import annotations
 
-import io
 from dataclasses import dataclass, field
+from typing import Any
 
 import structlog
 
@@ -21,7 +22,9 @@ try:
     PYMUPDF_AVAILABLE = True
 except ImportError:
     PYMUPDF_AVAILABLE = False
-    logger.warning("pymupdf.not_available", message="Install pymupdf for PDF extraction")
+    logger.warning(
+        "pymupdf.not_available", message="Install pymupdf for PDF extraction"
+    )
 
 
 @dataclass
@@ -87,9 +90,7 @@ class PdfExtractor:
                 # Convertir chaque page en image PNG pour Vision OCR
                 page_images = self._extract_page_images(doc)
                 # Le texte sera extrait par Claude Vision dans ContractAnalyzer
-                full_text = "\n\n".join(
-                    f"[PAGE {i+1}]" for i in range(page_count)
-                )
+                full_text = "\n\n".join(f"[PAGE {i + 1}]" for i in range(page_count))
             else:
                 logger.info(
                     "pdf_extractor.native_detected",
@@ -113,7 +114,7 @@ class PdfExtractor:
     def create_strategic_chunks(
         self,
         text: str,
-        table_of_contents: dict,
+        table_of_contents: dict[str, Any],
         chunk_target_tokens: int = 8_000,
         overlap_tokens: int = 400,
     ) -> list[TextChunk]:
@@ -170,7 +171,7 @@ class PdfExtractor:
         """Construit le texte complet avec marqueurs de page."""
         parts = []
         for i, text in enumerate(pages_text):
-            parts.append(f"[PAGE {i+1}]\n{text.strip()}")
+            parts.append(f"[PAGE {i + 1}]\n{text.strip()}")
         return "\n\n".join(parts)
 
     def _linear_chunks(
@@ -222,7 +223,7 @@ class PdfExtractor:
     def _toc_based_chunks(
         self,
         text: str,
-        relevant_sections: list[dict],
+        relevant_sections: list[dict[str, Any]],
         chunk_target_tokens: int,
         overlap_tokens: int,
     ) -> list[TextChunk]:
@@ -233,7 +234,9 @@ class PdfExtractor:
         chunks: list[TextChunk] = []
         current_chunk_parts: list[str] = []
         current_tokens = 0
-        current_start_page = relevant_sections[0].get("page_start", 1) if relevant_sections else 1
+        current_start_page = (
+            relevant_sections[0].get("page_start", 1) if relevant_sections else 1
+        )
 
         # Texte de la précédente section (overlap)
         overlap_text = ""
@@ -250,14 +253,19 @@ class PdfExtractor:
             section_tokens = len(section_text) // 4
 
             # Si ajouter cette section dépasse la taille cible → flush du chunk actuel
-            if current_tokens + section_tokens > chunk_target_tokens and current_chunk_parts:
+            if (
+                current_tokens + section_tokens > chunk_target_tokens
+                and current_chunk_parts
+            ):
                 combined = overlap_text + "\n\n".join(current_chunk_parts)
                 chunks.append(
                     TextChunk(
                         text=combined,
                         start_page=current_start_page,
                         end_page=section_start_page - 1,
-                        covered_sections=[s.get("title", "") for s in relevant_sections],
+                        covered_sections=[
+                            s.get("title", "") for s in relevant_sections
+                        ],
                         estimated_tokens=len(combined) // 4,
                     )
                 )
@@ -312,8 +320,14 @@ class PdfExtractor:
         """
         # Indicateurs lexicaux français
         french_indicators = [
-            "article", "contrat", "résiliation", "préavis",
-            "clause", "partie", "prestataire", "client",
+            "article",
+            "contrat",
+            "résiliation",
+            "préavis",
+            "clause",
+            "partie",
+            "prestataire",
+            "client",
         ]
         text_lower = text[:5000].lower()
         french_count = sum(1 for w in french_indicators if w in text_lower)

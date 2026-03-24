@@ -38,7 +38,17 @@ jobs:
           cache-dependency-path: audit-agent/backend/requirements.txt
 
       - name: Install linting tools only
-        run: pip install ruff==0.9.7 mypy==1.14.1 pydantic==2.10.6 pydantic-settings==2.7.1
+        run: |
+          pip install \
+            ruff==0.9.7 mypy==1.14.1 \
+            pydantic==2.10.6 pydantic-settings==2.7.1 \
+            anthropic==0.49.0 tenacity==9.0.0 structlog==25.1.0 \
+            fastapi==0.115.6 celery==5.4.0 boto3==1.37.10 \
+            python-dateutil==2.9.0 types-python-dateutil \
+            slowapi==0.1.9 prometheus-fastapi-instrumentator==7.1.0 \
+            opentelemetry-api==1.30.0 opentelemetry-sdk==1.30.0 \
+            "opentelemetry-exporter-otlp>=1.30.0" \
+            python-jose==3.3.0 passlib==1.7.4 pymupdf==1.25.3
 
       - name: Ruff lint
         run: ruff check app/ --output-format=github
@@ -47,7 +57,7 @@ jobs:
         run: ruff format app/ --check
 
       - name: Mypy type check
-        run: mypy app/ --strict --ignore-missing-imports
+        run: mypy app/ --strict --ignore-missing-imports --explicit-package-bases
 
 
   # ── 2. Tests unitaires ────────────────────────────────────────────────────

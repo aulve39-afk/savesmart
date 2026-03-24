@@ -2,6 +2,7 @@
 Tâches Celery asynchrones pour l'analyse de contrats.
 Ces tâches s'exécutent dans des workers séparés du serveur API.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -20,7 +21,7 @@ logger = structlog.get_logger(__name__)
 settings = get_settings()
 
 
-class AnalysisTask(Task):
+class AnalysisTask(Task):  # type: ignore[misc]
     """Base class avec initialisation paresseuse du ContractAnalyzer."""
 
     _analyzer: ContractAnalyzer | None = None
@@ -32,7 +33,7 @@ class AnalysisTask(Task):
         return self._analyzer
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[untyped-decorator]
     bind=True,
     base=AnalysisTask,
     name="tasks.run_contract_analysis",
@@ -46,7 +47,7 @@ def run_contract_analysis(
     tenant_id: str,
     s3_key: str,
     filename: str,
-) -> dict:
+) -> dict[str, object]:
     """
     Tâche principale: télécharge le PDF depuis S3 et lance l'analyse IA.
 
@@ -56,7 +57,9 @@ def run_contract_analysis(
 
     try:
         # ── Progress: 5% ────────────────────────────────────────────────────
-        self.update_state(state="PROGRESS", meta={"progress": 5, "step": "Téléchargement..."})
+        self.update_state(
+            state="PROGRESS", meta={"progress": 5, "step": "Téléchargement..."}
+        )
         log.info("task.started")
 
         # ── Téléchargement du PDF depuis S3 ──────────────────────────────────
@@ -106,4 +109,4 @@ def run_contract_analysis(
     except Exception as exc:
         log.error("task.failed", error=str(exc), exc_info=True)
         # Retry avec backoff exponentiel
-        raise self.retry(exc=exc, countdown=2 ** self.request.retries * 5)
+        raise self.retry(exc=exc, countdown=2**self.request.retries * 5)

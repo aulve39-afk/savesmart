@@ -5,11 +5,11 @@ Architecture: OCR → Chunking → Extraction → Validation → Consolidation
 Modèle: Claude claude-sonnet-4-6 (vision pour PDFs scannés, texte pour natifs)
 Retry: Exponentiel avec jitter (Tenacity) - max 3 tentatives par chunk
 """
+
 from __future__ import annotations
 
 import base64
 import json
-import logging
 import time
 from datetime import datetime
 from typing import Any
@@ -17,6 +17,7 @@ from uuid import UUID
 
 import anthropic
 import structlog
+from anthropic.types import ImageBlockParam, MessageParam, TextBlockParam
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -27,19 +28,14 @@ from tenacity import (
 from app.core.config import get_settings
 from app.models.contract import (
     AnalysisResult,
-    ClauseSource,
     ClauseType,
     ContractClause,
     ContractType,
     DocumentMetadata,
-    FinancialImpact,
     FinancialSummary,
-    NoticeDeadline,
     ProcessingMetadata,
     RiskLevel,
-    SourceConfidence,
 )
-from app.services.notice_calculator import compute_notice_deadline
 from app.services.pii_anonymizer import PiiAnonymizer
 from app.services.pdf_extractor import PdfExtractor
 from app.services.schema_validator import SchemaValidator
@@ -181,6 +177,7 @@ prix, durée, résiliation, préavis, pénalités, renouvellement, données.
 
 # ── Service Principal ──────────────────────────────────────────────────────────
 
+
 class ContractAnalyzer:
     """
     Orchestrateur complet du pipeline d'analyse de contrats PME.
@@ -287,7 +284,7 @@ class ContractAnalyzer:
         for idx, chunk in enumerate(chunks):
             progress = 20 + int(60 * (idx / len(chunks)))
             await self._report_progress(
-                on_progress, progress, f"Analyse chunk {idx+1}/{len(chunks)}..."
+                on_progress, progress, f"Analyse chunk {idx + 1}/{len(chunks)}..."
             )
 
             chunk_result = await self._extract_clauses_from_chunk(
@@ -358,14 +355,16 @@ class ContractAnalyzer:
     # ── Méthodes privées ───────────────────────────────────────────────────────
 
     @retry(
-        retry=retry_if_exception_type((anthropic.RateLimitError, anthropic.APIConnectionError)),
+        retry=retry_if_exception_type(
+            (anthropic.RateLimitError, anthropic.APIConnectionError)
+        ),
         wait=wait_exponential_jitter(initial=1, max=30),
         stop=stop_after_attempt(5),
         reraise=True,
     )
     async def _call_claude(
         self,
-        messages: list[dict],
+        messages: list[MessageParam],
         system: str | None = None,
         use_cache: bool = True,
     ) -> str:
@@ -378,20 +377,20 @@ class ContractAnalyzer:
         Le paramètre use_cache active le Prompt Caching Anthropic sur le system prompt,
         réduisant le coût des tokens répétitifs de ~40%.
         """
-        system_blocks: list[dict] = []
+        system_blocks: list[TextBlockParam] = []
         if system:
             if use_cache:
                 # Marquage pour le Prompt Caching Anthropic
                 # Le system prompt fixe est mis en cache entre les appels
                 system_blocks = [
-                    {
-                        "type": "text",
-                        "text": system,
-                        "cache_control": {"type": "ephemeral"},
-                    }
+                    TextBlockParam(
+                        type="text",
+                        text=system,
+                        cache_control={"type": "ephemeral"},
+                    )
                 ]
             else:
-                system_blocks = [{"type": "text", "text": system}]
+                system_blocks = [TextBlockParam(type="text", text=system)]
 
         response = self._client.messages.create(
             model=settings.CLAUDE_MODEL,
@@ -414,13 +413,16 @@ class ContractAnalyzer:
                 "Stopping analysis to prevent runaway costs."
             )
 
-        return response.content[0].text
+        first_block = response.content[0]
+        if not isinstance(first_block, anthropic.types.TextBlock):
+            raise ValueError(f"Unexpected response block type: {type(first_block)}")
+        return first_block.text
 
     async def _extract_table_of_contents(
         self,
         text: str,
         page_images: list[bytes] | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """
         Premier pass: extraction de la structure du contrat.
         Utilise les 6 premières pages maximum (suffisant pour le sommaire).
@@ -434,7 +436,7 @@ class ContractAnalyzer:
                 messages=[{"role": "user", "content": preview_text}],
                 use_cache=True,
             )
-            return json.loads(raw)
+            return dict(json.loads(raw))
         except (json.JSONDecodeError, Exception) as e:
             logger.warning("toc_extraction.failed", error=str(e))
             # Fallback: structure vide, on analysera tout le document linéairement
@@ -450,16 +452,18 @@ class ContractAnalyzer:
         chunk_text: str,
         start_page: int,
         end_page: int,
-        table_of_contents: dict,
+        table_of_contents: dict[str, Any],
         page_images: list[bytes] | None = None,
-    ) -> dict | None:
+    ) -> dict[str, Any] | None:
         """
         Extraction des clauses d'un chunk avec validation + retry.
 
         Le retry ici est sur les erreurs de VALIDATION (réponse JSON invalide de l'IA),
         pas seulement sur les erreurs réseau. Jusqu'à 3 tentatives avec prompt de correction.
         """
-        self._validation_retries += 1  # Compteur global (décrémenté si succès 1er essai)
+        self._validation_retries += (
+            1  # Compteur global (décrémenté si succès 1er essai)
+        )
 
         toc_summary = json.dumps(
             {"sections": table_of_contents.get("sections", [])[:10]},
@@ -493,7 +497,9 @@ class ContractAnalyzer:
         if validated is None:
             # Le validator ne peut pas corriger → retry avec prompt explicite
             self._validation_retries += 1
-            raise ValueError(f"Schema validation failed for chunk p{start_page}-{end_page}")
+            raise ValueError(
+                f"Schema validation failed for chunk p{start_page}-{end_page}"
+            )
 
         return validated
 
@@ -503,29 +509,31 @@ class ContractAnalyzer:
         page_images: list[bytes],
         start_page: int,
         end_page: int,
-    ) -> list[dict]:
+    ) -> list[MessageParam]:
         """
         Construit un message multimodal pour Claude Vision (PDFs scannés).
         Limite à 5 images par chunk pour éviter le dépassement du context window.
         """
-        content: list[dict] = [{"type": "text", "text": user_prompt}]
+        content: list[anthropic.types.ContentBlockParam] = [
+            anthropic.types.TextBlockParam(type="text", text=user_prompt)
+        ]
 
         # Pages concernées uniquement (index 0-based)
         relevant_images = page_images[start_page - 1 : end_page][:5]
 
         for img_bytes in relevant_images:
             content.append(
-                {
-                    "type": "image",
-                    "source": {
+                ImageBlockParam(
+                    type="image",
+                    source={
                         "type": "base64",
                         "media_type": "image/png",
                         "data": base64.standard_b64encode(img_bytes).decode(),
                     },
-                }
+                )
             )
 
-        return [{"role": "user", "content": content}]
+        return [MessageParam(role="user", content=content)]
 
     def _compute_global_risk_score(self, clauses: list[ContractClause]) -> float:
         """
@@ -557,7 +565,9 @@ class ContractAnalyzer:
             total_weighted_score += clause.risk_score * weight
             total_weight += weight
 
-        return round(total_weighted_score / total_weight, 2) if total_weight > 0 else 0.0
+        return (
+            round(total_weighted_score / total_weight, 2) if total_weight > 0 else 0.0
+        )
 
     def _compute_financial_summary(
         self, clauses: list[ContractClause]
@@ -584,7 +594,9 @@ class ContractAnalyzer:
         return FinancialSummary(
             annual_amount_eur=annual_amount,
             monthly_amount_eur=round(annual_amount / 12, 2) if annual_amount else None,
-            price_escalation_risk_pct=max(escalation_rates) if escalation_rates else None,
+            price_escalation_risk_pct=max(escalation_rates)
+            if escalation_rates
+            else None,
             total_penalty_exposure_eur=sum(penalties) if penalties else None,
         )
 
@@ -643,8 +655,6 @@ class ContractAnalyzer:
         return RiskLevel.CRITICAL
 
     @staticmethod
-    async def _report_progress(
-        callback: Any, pct: int, step: str
-    ) -> None:
+    async def _report_progress(callback: Any, pct: int, step: str) -> None:
         if callback:
             await callback(pct, step)

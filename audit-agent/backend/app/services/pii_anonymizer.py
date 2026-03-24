@@ -11,11 +11,12 @@ Flux:
   Texte original → Détection NER (spaCy fr_core_news_lg) → Remplacement →
   Texte anonymisé + Mapping de réversion → [Envoi IA] → [Réversion UI]
 """
+
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import NamedTuple
+from typing import Callable, NamedTuple
 
 import structlog
 
@@ -23,7 +24,7 @@ logger = structlog.get_logger(__name__)
 
 # Importations conditionnelles: Presidio est lourd, on le charge paresseusement
 try:
-    from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
+    from presidio_analyzer import AnalyzerEngine
     from presidio_analyzer.nlp_engine import NlpEngineProvider
     from presidio_anonymizer import AnonymizerEngine
     from presidio_anonymizer.entities import OperatorConfig
@@ -39,18 +40,18 @@ except ImportError:
 
 # Entités PII à détecter et anonymiser (conforme RGPD Art. 4)
 PII_ENTITIES = [
-    "PERSON",          # Noms de personnes physiques
-    "EMAIL_ADDRESS",   # Adresses email
-    "PHONE_NUMBER",    # Numéros de téléphone
-    "IBAN_CODE",       # Codes IBAN
-    "CREDIT_CARD",     # Numéros de carte bancaire
-    "IP_ADDRESS",      # Adresses IP
-    "URL",             # URLs pouvant contenir des identifiants
-    "LOCATION",        # Adresses postales
-    "DATE_TIME",       # Dates de naissance (pas les dates contractuelles!)
-    "NRP",             # Numéros de registre public (SIRET, SIREN)
-    "MEDICAL_LICENSE", # Licences médicales
-    "US_SSN",          # Pour les contrats internationaux
+    "PERSON",  # Noms de personnes physiques
+    "EMAIL_ADDRESS",  # Adresses email
+    "PHONE_NUMBER",  # Numéros de téléphone
+    "IBAN_CODE",  # Codes IBAN
+    "CREDIT_CARD",  # Numéros de carte bancaire
+    "IP_ADDRESS",  # Adresses IP
+    "URL",  # URLs pouvant contenir des identifiants
+    "LOCATION",  # Adresses postales
+    "DATE_TIME",  # Dates de naissance (pas les dates contractuelles!)
+    "NRP",  # Numéros de registre public (SIRET, SIREN)
+    "MEDICAL_LICENSE",  # Licences médicales
+    "US_SSN",  # Pour les contrats internationaux
 ]
 
 # Regex supplémentaires pour les entités françaises non couvertes par Presidio
@@ -73,6 +74,7 @@ class PiiMatch(NamedTuple):
 @dataclass
 class AnonymizationResult:
     """Résultat de l'anonymisation avec mapping de réversion."""
+
     anonymized_text: str
     # Mapping placeholder → valeur originale (stocké côté serveur, jamais envoyé à l'IA)
     reversion_map: dict[str, str] = field(default_factory=dict)
@@ -270,14 +272,15 @@ class PiiAnonymizer:
             if entity_type == "CODE_POSTAL":
                 continue
 
-            def make_replacer(etype: str) -> "re.Pattern[str]":
+            def make_replacer(etype: str) -> "Callable[[re.Match[str]], str]":
                 def replacer(m: "re.Match[str]") -> str:
                     original = m.group(0)
                     entity_counters[etype] = entity_counters.get(etype, 0) + 1
                     placeholder = f"[{etype}_{entity_counters[etype]}]"
                     reversion_map[placeholder] = original
                     return placeholder
-                return replacer  # type: ignore[return-value]
+
+                return replacer
 
             result = pattern.sub(make_replacer(entity_type), result)
 

@@ -3,6 +3,7 @@ Modèles Pydantic v2 pour l'analyse de contrats.
 Strict Mode activé: aucune coercition silencieuse de types.
 Dans un contexte légal, une erreur de type = une erreur métier.
 """
+
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -15,38 +16,39 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 # ── Enums ─────────────────────────────────────────────────────────────────────
 
+
 class ClauseType(StrEnum):
-    PRICE_ESCALATION = "PRICE_ESCALATION"     # Hausse de prix / indexation
-    AUTO_RENEWAL = "AUTO_RENEWAL"              # Renouvellement tacite
+    PRICE_ESCALATION = "PRICE_ESCALATION"  # Hausse de prix / indexation
+    AUTO_RENEWAL = "AUTO_RENEWAL"  # Renouvellement tacite
     TERMINATION_PENALTY = "TERMINATION_PENALTY"  # Pénalités de résiliation
-    NOTICE_PERIOD = "NOTICE_PERIOD"            # Délai de préavis
-    PAYMENT_TERMS = "PAYMENT_TERMS"            # Conditions de paiement
-    DATA_PROCESSING = "DATA_PROCESSING"        # Traitement des données
-    LIABILITY_CAP = "LIABILITY_CAP"            # Plafond de responsabilité
-    FORCE_MAJEURE = "FORCE_MAJEURE"            # Clause de force majeure
-    EXCLUSIVITY = "EXCLUSIVITY"               # Clause d'exclusivité
+    NOTICE_PERIOD = "NOTICE_PERIOD"  # Délai de préavis
+    PAYMENT_TERMS = "PAYMENT_TERMS"  # Conditions de paiement
+    DATA_PROCESSING = "DATA_PROCESSING"  # Traitement des données
+    LIABILITY_CAP = "LIABILITY_CAP"  # Plafond de responsabilité
+    FORCE_MAJEURE = "FORCE_MAJEURE"  # Clause de force majeure
+    EXCLUSIVITY = "EXCLUSIVITY"  # Clause d'exclusivité
     OTHER = "OTHER"
 
 
 class RiskLevel(StrEnum):
-    LOW = "LOW"         # 0-30: Favorable
-    MEDIUM = "MEDIUM"   # 31-60: Attention
-    HIGH = "HIGH"       # 61-85: Risque élevé
+    LOW = "LOW"  # 0-30: Favorable
+    MEDIUM = "MEDIUM"  # 31-60: Attention
+    HIGH = "HIGH"  # 61-85: Risque élevé
     CRITICAL = "CRITICAL"  # 86-100: Alerte immédiate
 
 
 class ActionRequired(StrEnum):
     OK = "OK"
-    ATTENTION = "ATTENTION"   # Délai > 90 jours
-    WARNING = "WARNING"       # Délai 8-30 jours
-    CRITICAL = "CRITICAL"     # Délai <= 7 jours
-    EXPIRED = "EXPIRED"       # Délai déjà passé
+    ATTENTION = "ATTENTION"  # Délai > 90 jours
+    WARNING = "WARNING"  # Délai 8-30 jours
+    CRITICAL = "CRITICAL"  # Délai <= 7 jours
+    EXPIRED = "EXPIRED"  # Délai déjà passé
 
 
 class ContractType(StrEnum):
     SERVICE = "SERVICE"
-    LEASE = "LEASE"               # Bail
-    SUPPLY = "SUPPLY"             # Fourniture
+    LEASE = "LEASE"  # Bail
+    SUPPLY = "SUPPLY"  # Fourniture
     MAINTENANCE = "MAINTENANCE"
     SUBSCRIPTION = "SUBSCRIPTION"
     NDA = "NDA"
@@ -55,20 +57,23 @@ class ContractType(StrEnum):
 
 
 class SourceConfidence(StrEnum):
-    HIGH = "high"     # Citation exacte trouvée, page + § identifiés
-    MEDIUM = "medium" # Citation approchée
-    LOW = "low"       # Inférence sans citation directe → human review requis
+    HIGH = "high"  # Citation exacte trouvée, page + § identifiés
+    MEDIUM = "medium"  # Citation approchée
+    LOW = "low"  # Inférence sans citation directe → human review requis
 
 
 # ── Sous-modèles ──────────────────────────────────────────────────────────────
 
+
 class StrictModel(BaseModel):
     """Base class: strict mode sur tous les modèles dérivés."""
+
     model_config = ConfigDict(strict=True, frozen=True)
 
 
 class ClauseSource(StrictModel):
     """Preuve vérifiable de l'extraction: page + paragraphe + citation."""
+
     page: Annotated[int, Field(ge=1, description="Numéro de page (commence à 1)")]
     paragraph: str | None = Field(
         default=None,
@@ -81,19 +86,22 @@ class ClauseSource(StrictModel):
             min_length=10,
             max_length=500,
             description="Citation textuelle exacte du contrat (20-500 chars)",
-        )
+        ),
     ]
     confidence: Annotated[
         float,
-        Field(ge=0.0, le=1.0, description="Score de confiance de l'extraction IA")
+        Field(ge=0.0, le=1.0, description="Score de confiance de l'extraction IA"),
     ]
     # strict=False sur ce champ: l'IA retourne des strings JSON (ex: "high")
     # Le strict global protège les numériques; les StrEnum acceptent la coercition str.
-    source_confidence: Annotated[SourceConfidence, Field(strict=False)] = SourceConfidence.HIGH
+    source_confidence: Annotated[SourceConfidence, Field(strict=False)] = (
+        SourceConfidence.HIGH
+    )
 
 
 class NoticeDeadline(StrictModel):
     """Résultat du calcul mathématique de préavis."""
+
     period_months: Annotated[int, Field(ge=0, le=36)]
     deadline_date: date | None = Field(
         description="Date limite pour envoyer la résiliation"
@@ -110,15 +118,14 @@ class NoticeDeadline(StrictModel):
 
 class FinancialImpact(StrictModel):
     """Impact financier calculé et annualisé."""
-    annualized_amount_eur: Annotated[
-        float,
-        Field(ge=0, description="Montant annuel en euros")
-    ] | None = None
+
+    annualized_amount_eur: (
+        Annotated[float, Field(ge=0, description="Montant annuel en euros")] | None
+    ) = None
 
     # Pour les clauses d'indexation de prix
     escalation_rate_min_pct: float | None = Field(
-        default=None,
-        description="Taux de hausse minimal (ex: 3.0 pour 3%)"
+        default=None, description="Taux de hausse minimal (ex: 3.0 pour 3%)"
     )
     escalation_rate_max_pct: float | None = None
 
@@ -142,6 +149,7 @@ class DocumentMetadata(StrictModel):
 
 class FinancialSummary(StrictModel):
     """Résumé financier global du contrat."""
+
     annual_amount_eur: float | None = None
     monthly_amount_eur: float | None = None
     price_escalation_risk_pct: float | None = Field(
@@ -158,6 +166,7 @@ class FinancialSummary(StrictModel):
 
 class ProcessingMetadata(StrictModel):
     """Métriques de traitement pour le monitoring des coûts IA."""
+
     model_used: str
     total_input_tokens: Annotated[int, Field(ge=0)]
     total_output_tokens: Annotated[int, Field(ge=0)]
@@ -170,11 +179,13 @@ class ProcessingMetadata(StrictModel):
 
 # ── Modèle principal ──────────────────────────────────────────────────────────
 
+
 class ContractClause(StrictModel):
     """
     Représente une clause contractuelle extraite et analysée.
     Chaque clause doit avoir une source vérifiable (page + citation).
     """
+
     clause_id: UUID = Field(default_factory=uuid4)
     type: Annotated[ClauseType, Field(strict=False)]
     title: Annotated[str, Field(min_length=3, max_length=200)]
@@ -193,9 +204,7 @@ class ContractClause(StrictModel):
     # Si True: l'IA n'était pas suffisamment confiante → revue humaine
     requires_human_review: bool = False
     ai_recommendation: str | None = Field(
-        default=None,
-        max_length=500,
-        description="Recommandation actionnable de l'IA"
+        default=None, max_length=500, description="Recommandation actionnable de l'IA"
     )
 
     @model_validator(mode="after")
@@ -228,9 +237,12 @@ class ContractClause(StrictModel):
         """
         score = self.risk_score
         expected = (
-            RiskLevel.LOW if score <= 30
-            else RiskLevel.MEDIUM if score <= 60
-            else RiskLevel.HIGH if score <= 85
+            RiskLevel.LOW
+            if score <= 30
+            else RiskLevel.MEDIUM
+            if score <= 60
+            else RiskLevel.HIGH
+            if score <= 85
             else RiskLevel.CRITICAL
         )
         if self.risk_level != expected:
@@ -246,6 +258,7 @@ class AnalysisResult(BaseModel):
     Résultat complet d'une analyse de contrat.
     Non-frozen: peut être enrichi progressivement (streaming updates).
     """
+
     model_config = ConfigDict(strict=True)
 
     contract_id: UUID = Field(default_factory=uuid4)
@@ -276,13 +289,16 @@ class AnalysisResult(BaseModel):
     def upcoming_deadlines(self) -> list[ContractClause]:
         """Clauses avec préavis dans les 90 prochains jours."""
         return [
-            c for c in self.clauses
-            if c.notice and c.notice.days_until_deadline is not None
+            c
+            for c in self.clauses
+            if c.notice
+            and c.notice.days_until_deadline is not None
             and 0 <= c.notice.days_until_deadline <= 90
         ]
 
 
 # ── Schémas de requête/réponse API ────────────────────────────────────────────
+
 
 class AnalysisJobStatus(StrEnum):
     PENDING = "pending"
@@ -294,6 +310,7 @@ class AnalysisJobStatus(StrEnum):
 
 class AnalysisJobResponse(BaseModel):
     """Réponse immédiate lors du démarrage d'une analyse asynchrone."""
+
     model_config = ConfigDict(strict=False)  # Souple pour la sérialisation
 
     job_id: str
@@ -305,6 +322,7 @@ class AnalysisJobResponse(BaseModel):
 
 class AnalysisStatusResponse(BaseModel):
     """Réponse de polling pour suivre la progression d'une analyse."""
+
     model_config = ConfigDict(strict=False)
 
     job_id: str

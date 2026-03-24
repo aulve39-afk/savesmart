@@ -3,6 +3,7 @@ Configuration centralisée via Pydantic BaseSettings.
 Toutes les valeurs sensibles viennent des variables d'environnement.
 Les valeurs par défaut sont sûres pour le développement local UNIQUEMENT.
 """
+
 from functools import lru_cache
 from typing import Literal
 
@@ -29,36 +30,33 @@ class Settings(BaseSettings):
     # ── API ───────────────────────────────────────────────────────────────────
     API_PREFIX: str = "/api/v1"
     # En production: liste stricte des origines autorisées
-    ALLOWED_ORIGINS: list[AnyHttpUrl] = Field(
-        default=["http://localhost:3000"]
-    )
+    # Pydantic v2 validates str→AnyHttpUrl at runtime; type: ignore avoids mypy false positives
+    ALLOWED_ORIGINS: list[AnyHttpUrl] = Field(default=["http://localhost:3000"])  # type: ignore[list-item]
 
     # ── Sécurité ──────────────────────────────────────────────────────────────
-    SECRET_KEY: SecretStr = Field(
+    SECRET_KEY: SecretStr = Field(  # type: ignore[assignment]
         default="CHANGE-ME-IN-PRODUCTION-USE-openssl-rand-hex-32"
     )
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     ALGORITHM: str = "HS256"
 
     # ── Supabase (Région EU obligatoire pour RGPD) ────────────────────────────
-    SUPABASE_URL: AnyHttpUrl = Field(
-        default="https://your-project.supabase.co"
-    )
-    SUPABASE_ANON_KEY: SecretStr = Field(default="your-anon-key")
-    SUPABASE_SERVICE_KEY: SecretStr = Field(default="your-service-key")
-    DATABASE_URL: SecretStr = Field(
+    SUPABASE_URL: AnyHttpUrl = Field(default="https://your-project.supabase.co")  # type: ignore[assignment]
+    SUPABASE_ANON_KEY: SecretStr = Field(default="your-anon-key")  # type: ignore[assignment]
+    SUPABASE_SERVICE_KEY: SecretStr = Field(default="your-service-key")  # type: ignore[assignment]
+    DATABASE_URL: SecretStr = Field(  # type: ignore[assignment]
         default="postgresql+asyncpg://user:pass@localhost:5432/auditdb"
     )
 
     # ── S3 (Région EU: eu-central-1 Frankfurt obligatoire pour RGPD) ─────────
     S3_BUCKET_NAME: str = "audit-agent-contracts-eu"
     S3_REGION: str = "eu-central-1"  # NE PAS CHANGER sans validation DPO
-    AWS_ACCESS_KEY_ID: SecretStr = Field(default="your-access-key")
-    AWS_SECRET_ACCESS_KEY: SecretStr = Field(default="your-secret-key")
+    AWS_ACCESS_KEY_ID: SecretStr = Field(default="your-access-key")  # type: ignore[assignment]
+    AWS_SECRET_ACCESS_KEY: SecretStr = Field(default="your-secret-key")  # type: ignore[assignment]
     S3_SIGNED_URL_TTL_SECONDS: int = 900  # 15 minutes
 
     # ── Claude AI ─────────────────────────────────────────────────────────────
-    ANTHROPIC_API_KEY: SecretStr = Field(default="sk-ant-...")
+    ANTHROPIC_API_KEY: SecretStr = Field(default="sk-ant-...")  # type: ignore[assignment]
     # Option RGPD: utiliser AWS Bedrock en région EU
     ANTHROPIC_BASE_URL: AnyHttpUrl | None = None  # None = API directe Anthropic
     CLAUDE_MODEL: str = "claude-sonnet-4-6"
@@ -67,12 +65,12 @@ class Settings(BaseSettings):
 
     # Limites de sécurité: empêcher les coûts runaway
     MAX_INPUT_TOKENS_PER_CONTRACT: int = 300_000  # ~400 pages max
-    MAX_COST_USD_PER_CONTRACT: float = 0.50        # Rejet au-delà
+    MAX_COST_USD_PER_CONTRACT: float = 0.50  # Rejet au-delà
 
     # ── Celery / Redis ────────────────────────────────────────────────────────
-    REDIS_URL: SecretStr = Field(default="redis://localhost:6379/0")
-    CELERY_TASK_SOFT_TIME_LIMIT: int = 180   # 3 minutes: exception levée
-    CELERY_TASK_TIME_LIMIT: int = 240         # 4 minutes: kill process
+    REDIS_URL: SecretStr = Field(default="redis://localhost:6379/0")  # type: ignore[assignment]
+    CELERY_TASK_SOFT_TIME_LIMIT: int = 180  # 3 minutes: exception levée
+    CELERY_TASK_TIME_LIMIT: int = 240  # 4 minutes: kill process
 
     # ── Upload ────────────────────────────────────────────────────────────────
     MAX_UPLOAD_SIZE_MB: int = 50
