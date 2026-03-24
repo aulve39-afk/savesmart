@@ -116,7 +116,7 @@ export default function ComptePage() {
   async function handleDeleteAccount() {
     if (deleteInput !== 'SUPPRIMER') return
     setDeleting(true)
-    await fetch('/api/delete-account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }) })
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/delete-account`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }) })
     localStorage.removeItem('savesmart_user_id')
     router.push('/')
   }

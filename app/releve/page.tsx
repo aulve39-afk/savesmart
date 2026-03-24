@@ -99,7 +99,7 @@ export default function RelevePage() {
     setError(null)
     setDetected([])
     try {
-      const res = await fetch('/api/releve', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/releve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: base64 }),
