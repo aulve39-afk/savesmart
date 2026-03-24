@@ -369,6 +369,13 @@ export default function Home() {
             >
               {hidden ? '🙈' : '👁️'}
             </button>
+            {/* Conseiller IA */}
+            <button onClick={() => navigate('/conseiller')} style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: '12px', padding: '8px 12px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              {navLoading === '/conseiller'
+                ? <div style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                : <span style={{ fontSize: '14px' }}>🤖</span>}
+              Claude
+            </button>
             <button onClick={() => navigate('/stats')} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {navLoading === '/stats'
                 ? <div style={{ width: '16px', height: '16px', border: '2px solid var(--border)', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />

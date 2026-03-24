@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '../../../lib/rateLimit'
-import OpenAI from 'openai'
+import Anthropic from '@anthropic-ai/sdk'
 
 const PROMPT = 'Tu es un expert comptable francais. Analyse ce releve bancaire et detecte TOUS les prelevements recurrents (abonnements, factures mensuelles). Pour chaque prelevement recurrent trouve, retourne un objet JSON. Reponds UNIQUEMENT avec un tableau JSON sans markdown: [{"company_name": "Netflix", "amount": 13.99, "billing_cycle": "monthly", "category": "streaming", "details": {}}, ...]. Regles pour category: streaming = Netflix Spotify Disney Canal+. telecom_mobile = forfait mobile SFR Free Orange Bouygues. telecom_box = box internet fibre Livebox Freebox Bbox. energie = EDF Engie electricite gaz. assurance = assurance habitation auto. saas = logiciel abonnement. other = reste. Ignore les achats ponctuels, retraits, virements. Ne retourne QUE les prelevements qui semblent recurrents. Si aucun prelevement recurrent trouve retourne []'
 
+const ALLOWED_MEDIA_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+
 export async function POST(req: NextRequest) {
-  // Rate limit by IP: 5 analyses per minute
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
   const { allowed, retryAfter } = checkRateLimit(`releve:${ip}`, 5)
   if (!allowed) {
@@ -15,38 +16,40 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   try {
     const { image } = await req.json()
 
-    if (!image || typeof image !== 'string' || !image.startsWith('data:image/')) {
+    if (!image || typeof image !== 'string') {
       return NextResponse.json({ error: 'Image invalide' }, { status: 400 })
     }
     if (image.length > 10 * 1024 * 1024) {
       return NextResponse.json({ error: 'Image trop grande (max 7,5 Mo)' }, { status: 400 })
     }
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+    const match = image.match(/^data:(image\/[a-z]+);base64,(.+)$/)
+    if (!match || !ALLOWED_MEDIA_TYPES.has(match[1])) {
+      return NextResponse.json({ error: 'Image invalide' }, { status: 400 })
+    }
+    const mediaType = match[1] as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+    const data = match[2]
+
+    const response = await client.messages.create({
+      model: 'claude-opus-4-6',
       max_tokens: 2000,
       messages: [
         {
           role: 'user',
           content: [
-            {
-              type: 'image_url',
-              image_url: { url: image, detail: 'high' },
-            },
-            {
-              type: 'text',
-              text: PROMPT,
-            },
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data } },
+            { type: 'text', text: PROMPT },
           ],
         },
       ],
     })
 
-    const content = response.choices[0].message.content || '[]'
+    const textBlock = response.content.find(b => b.type === 'text')
+    const content = textBlock?.type === 'text' ? textBlock.text : '[]'
     const cleaned = content.replace(/```json|```/g, '').trim()
     let result: unknown
     try {
