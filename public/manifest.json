@@ -1,0 +1,52 @@
+{
+  "name": "SaveSmart — Gérez vos abonnements",
+  "short_name": "SaveSmart",
+  "description": "Analysez, optimisez et maîtrisez vos abonnements grâce à l'IA.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#4f46e5",
+  "theme_color": "#4f46e5",
+  "lang": "fr",
+  "categories": ["finance", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Scanner une facture",
+      "short_name": "Scanner",
+      "description": "Analyser une facture ou un relevé bancaire",
+      "url": "/scan",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Conseiller IA",
+      "short_name": "Conseiller",
+      "description": "Obtenir des conseils personnalisés",
+      "url": "/conseiller",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Statistiques",
+      "short_name": "Stats",
+      "description": "Voir mes statistiques d'abonnements",
+      "url": "/stats",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    }
+  ]
+}
