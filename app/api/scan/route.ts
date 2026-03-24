@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../auth/[...nextauth]/route'
 import OpenAI from 'openai'
 
 const PROMPT = `Tu es un expert juridique et comptable français spécialisé dans l'analyse de factures d'abonnements. Examine ATTENTIVEMENT cette image de facture ou relevé.
@@ -23,9 +25,21 @@ RÈGLES pour details (cherche ACTIVEMENT dans toute la facture):
 Si ce n'est pas une facture reconnaissable, réponds uniquement: {"is_invoice": false}`
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  }
+
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   try {
     const { image } = await req.json()
+
+    if (!image || typeof image !== 'string' || !image.startsWith('data:image/')) {
+      return NextResponse.json({ error: 'Image invalide' }, { status: 400 })
+    }
+    if (image.length > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Image trop grande (max 7,5 Mo)' }, { status: 400 })
+    }
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
@@ -50,8 +64,6 @@ export async function POST(req: NextRequest) {
     const content = response.choices[0].message.content || '{}'
     const cleaned = content.replace(/```json|```/g, '').trim()
     const result = JSON.parse(cleaned)
-
-    console.log('Resultat IA:', JSON.stringify(result))
 
     return NextResponse.json(result)
   } catch (err) {
