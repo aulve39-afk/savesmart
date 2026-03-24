@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '../../../lib/rateLimit'
-import OpenAI from 'openai'
+import Anthropic from '@anthropic-ai/sdk'
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -21,7 +21,6 @@ const MOTIF_INSTRUCTIONS: Record<string, string> = {
 const MAX_FIELD_LEN = 200
 
 export async function POST(req: NextRequest) {
-  // Rate limit by IP: 10 letters per minute
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
   const { allowed, retryAfter } = checkRateLimit(`resiliation:${ip}`, 10)
   if (!allowed) {
@@ -31,7 +30,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   try {
     const { prenom, nom, adresse, ville, service, motif, engagementEndDate } = await req.json()
 
@@ -55,7 +54,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Paramètres invalides' }, { status: 400 })
     }
 
-    // Sanitize user inputs before embedding in AI prompt
     const safePrenom = sanitize(prenom)
     const safeNom = sanitize(nom)
     const safeAdresse = sanitize(adresse)
@@ -89,13 +87,14 @@ Rédige la lettre complète en HTML simple (utilise <p>, <strong>, <br> uniqueme
 
 Réponds UNIQUEMENT avec le HTML de la lettre, sans markdown, sans explication.`
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+    const response = await client.messages.create({
+      model: 'claude-opus-4-6',
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const letter = response.choices[0].message.content || ''
+    const textBlock = response.content.find(b => b.type === 'text')
+    const letter = textBlock?.type === 'text' ? textBlock.text : ''
 
     return NextResponse.json({ letter })
   } catch (err) {
