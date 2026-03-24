@@ -136,8 +136,7 @@ export default function ConseillerPage() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '20px' }}>🤖</span>
-            <h1 style={{ fontSize: '18px', fontWeight: '700', margin: '0', letterSpacing: '-0.4px', color: 'var(--text-primary)' }}>Conseiller IA</h1>
-            <span style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', fontSize: '9px', fontWeight: '800', padding: '2px 6px', borderRadius: '6px', letterSpacing: '0.5px' }}>Claude</span>
+            <h1 style={{ fontSize: '18px', fontWeight: '700', margin: '0', letterSpacing: '-0.4px', color: 'var(--text-primary)' }}>Conseiller KLYP</h1>
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>
             {subscriptions.length > 0
@@ -162,7 +161,7 @@ export default function ConseillerPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '24px', border: '1px solid var(--border)', textAlign: 'center' }}>
               <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '26px' }}>🤖</div>
-              <p style={{ fontWeight: '800', fontSize: '17px', margin: '0 0 6px', color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>Bonjour, je suis Claude !</p>
+              <p style={{ fontWeight: '800', fontSize: '17px', margin: '0 0 6px', color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>Bonjour, je suis ton conseiller KLYP !</p>
               <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '0', lineHeight: '1.55' }}>
                 {subscriptions.length > 0
                   ? `J'ai analysé tes ${subscriptions.length} abonnements. Pose-moi une question sur tes dépenses.`
@@ -280,7 +279,7 @@ export default function ConseillerPage() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Posez une question à Claude…"
+            placeholder="Posez une question à votre conseiller…"
             rows={1}
             disabled={streaming}
             style={{
@@ -328,7 +327,7 @@ export default function ConseillerPage() {
           </button>
         </div>
         <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '6px 0 0', textAlign: 'center' }}>
-          Propulsé par Claude Opus · Les données restent sur votre appareil
+          Les données restent sur votre appareil
         </p>
       </div>
 
