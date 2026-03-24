@@ -13,8 +13,21 @@ export function useOnboarding() {
     if (!userId) return
     getSubscriptions(userId).then((subs) => {
       if (subs.length === 0) {
-        router.push('/onboarding')
+        // Ne pas rediriger si l'utilisateur est en train de faire l'onboarding
+        // ou s'il a explicitement choisi de passer l'onboarding
+        const onboardingActive = localStorage.getItem('klyp_onboarding_active') === '1'
+        const onboardingSkipped = localStorage.getItem('klyp_onboarding_skipped') === '1'
+        if (!onboardingActive && !onboardingSkipped) {
+          router.push('/onboarding')
+        } else {
+          setOnboardingChecked(true)
+        }
       } else {
+        // Des abonnements existent → nettoyer les flags d'onboarding
+        try {
+          localStorage.removeItem('klyp_onboarding_active')
+          localStorage.removeItem('klyp_onboarding_skipped')
+        } catch {}
         setOnboardingChecked(true)
       }
     })
