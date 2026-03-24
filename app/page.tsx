@@ -542,7 +542,7 @@ export default function Home() {
               {navLoading === '/conseiller'
                 ? <div style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
                 : <span style={{ fontSize: '14px' }}>🤖</span>}
-              Claude
+              Conseiller
             </button>
             <button onClick={() => navigate('/stats')} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {navLoading === '/stats'
