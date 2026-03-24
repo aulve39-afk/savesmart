@@ -18,17 +18,39 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f172a;
-    --bg-card: #1e293b;
-    --bg-secondary: #1e293b;
-    --border: #334155;
-    --border-input: #334155;
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
-    --btn-secondary-bg: #1e293b;
-    --btn-secondary-border: #334155;
-    --btn-secondary-color: #f1f5f9;
+    --bg: #060a14;
+    --bg-card: #0d1526;
+    --bg-secondary: #111827;
+    --border: #1e2d45;
+    --border-input: #1e2d45;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --btn-secondary-bg: #0d1526;
+    --btn-secondary-border: #1e2d45;
+    --btn-secondary-color: #e2e8f0;
+    /* Neon accents */
+    --neon-primary: #818cf8;
+    --neon-glow: rgba(99,102,241,0.25);
+    --glass-bg: rgba(13,21,38,0.7);
+    --glass-border: rgba(99,102,241,0.15);
+  }
+}
+
+/* ── Glassmorphism card (dark mode only) ── */
+@media (prefers-color-scheme: dark) {
+  .glass-card {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  /* Neon glow on primary buttons in dark mode */
+  button[style*="#4f46e5"],
+  button[style*="linear-gradient(135deg, #4f46e5"] {
+    box-shadow: 0 0 20px rgba(99,102,241,0.35), 0 4px 12px rgba(0,0,0,0.3) !important;
   }
 }
 

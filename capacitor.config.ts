@@ -2,8 +2,8 @@ import type { CapacitorConfig } from '@capacitor/cli'
 import { KeyboardResize, KeyboardStyle } from '@capacitor/keyboard'
 
 const config: CapacitorConfig = {
-  appId: 'com.savesmart.app',
-  appName: 'SaveSmart',
+  appId: 'com.klyp.app',
+  appName: 'KLYP',
   webDir: 'out',
 
   server: {

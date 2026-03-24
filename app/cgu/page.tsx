@@ -6,17 +6,17 @@ const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 const sections = [
   {
     title: '1. Objet',
-    content: `Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de l'application SaveSmart. En utilisant l'application, tu acceptes les présentes conditions dans leur intégralité.`,
+    content: `Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de l'application KLYP. En utilisant l'application, tu acceptes les présentes conditions dans leur intégralité.`,
   },
   {
     title: '2. Description du service',
-    content: `SaveSmart est un outil personnel d'aide à la gestion des abonnements récurrents. L'application permet de :
+    content: `KLYP est un outil personnel d'aide à la gestion des abonnements récurrents. L'application permet de :
 • Importer et suivre tes abonnements
 • Analyser tes factures par intelligence artificielle
 • Recevoir des alertes de renouvellement
 • Comparer les offres et identifier des économies potentielles
 
-SaveSmart est un outil d'aide à la décision. Les montants affichés sont informatifs et ne constituent pas un relevé bancaire officiel.`,
+KLYP est un outil d'aide à la décision. Les montants affichés sont informatifs et ne constituent pas un relevé bancaire officiel.`,
   },
   {
     title: '3. Accès au service',
@@ -39,16 +39,16 @@ Les marques tierces (Netflix, Spotify, EDF, etc.) mentionnées dans l'applicatio
   },
   {
     title: '6. Limitation de responsabilité',
-    content: `SaveSmart ne constitue pas un conseil financier. Les économies estimées et comparaisons d'offres sont indicatives.
+    content: `KLYP ne constitue pas un conseil financier. Les économies estimées et comparaisons d'offres sont indicatives.
 
-SaveSmart ne peut être tenu responsable de :
+KLYP ne peut être tenu responsable de :
 • Toute décision financière prise sur la base des informations affichées
 • L'indisponibilité temporaire du service
 • La perte de données consécutive à un effacement volontaire ou involontaire de l'appareil`,
   },
   {
     title: '7. Modification des CGU',
-    content: `SaveSmart se réserve le droit de modifier les présentes CGU. Les modifications prennent effet à leur publication. L'utilisation continue de l'application après modification vaut acceptation des nouvelles conditions.`,
+    content: `KLYP se réserve le droit de modifier les présentes CGU. Les modifications prennent effet à leur publication. L'utilisation continue de l'application après modification vaut acceptation des nouvelles conditions.`,
   },
   {
     title: '8. Droit applicable',
@@ -82,7 +82,7 @@ export default function CguPage() {
         ))}
 
         <div style={{ textAlign: 'center', padding: '16px 0 0' }}>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Questions ? Contacte-nous à <strong>support@savesmart.fr</strong></p>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Questions ? Contacte-nous à <strong>support@subly.fr</strong></p>
         </div>
       </div>
     </main>

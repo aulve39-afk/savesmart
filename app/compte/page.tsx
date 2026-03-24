@@ -43,8 +43,8 @@ export default function ComptePage() {
     getSubscriptions(userId).then(setSubscriptions)
     getUserPlan(userId).then(setPlan)
     getPayments(userId).then(setPayments)
-    setPrenom(localStorage.getItem('savesmart_prenom') ?? '')
-    setNom(localStorage.getItem('savesmart_nom') ?? '')
+    setPrenom(localStorage.getItem('klyp_prenom') ?? '')
+    setNom(localStorage.getItem('klyp_nom') ?? '')
   }, [userId])
 
   if (isLoading || !userId) {
@@ -108,7 +108,7 @@ export default function ComptePage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `savesmart-${new Date().toISOString().slice(0, 10)}.csv`
+    a.download = `subly-${new Date().toISOString().slice(0, 10)}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -117,7 +117,7 @@ export default function ComptePage() {
     if (deleteInput !== 'SUPPRIMER') return
     setDeleting(true)
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/delete-account`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }) })
-    localStorage.removeItem('savesmart_user_id')
+    localStorage.removeItem('klyp_user_id')
     router.push('/')
   }
 
@@ -128,8 +128,8 @@ export default function ComptePage() {
   ]
 
   function saveName() {
-    localStorage.setItem('savesmart_prenom', prenom)
-    localStorage.setItem('savesmart_nom', nom)
+    localStorage.setItem('klyp_prenom', prenom)
+    localStorage.setItem('klyp_nom', nom)
     setEditingName(false)
     // Micro-récompense quand le profil est complété (prénom + nom renseignés)
     if (prenom.trim() && nom.trim()) setShowConfetti(true)
@@ -241,7 +241,7 @@ export default function ComptePage() {
 
             {/* Réinitialiser */}
             <button
-              onClick={() => { localStorage.removeItem('savesmart_prenom'); localStorage.removeItem('savesmart_nom'); router.push('/onboarding') }}
+              onClick={() => { localStorage.removeItem('klyp_prenom'); localStorage.removeItem('klyp_nom'); router.push('/onboarding') }}
               style={{ width: '100%', background: 'var(--bg-card)', border: '1.5px solid #4f46e5', borderRadius: '16px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', fontFamily: font }}
             >
               <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🔄</div>
@@ -382,7 +382,7 @@ export default function ComptePage() {
             ) : (
               <button
                 style={{ width: '100%', background: 'transparent', border: '1px solid var(--border)', borderRadius: '14px', padding: '13px', fontWeight: '600', fontSize: '13px', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: font }}
-                onClick={() => alert('Pour résilier, contacte-nous à support@savesmart.fr')}
+                onClick={() => alert('Pour résilier, contacte-nous à support@subly.fr')}
               >
                 Résilier mon abonnement Premium
               </button>
@@ -446,7 +446,7 @@ export default function ComptePage() {
           </button>
         </div>
         <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0', textAlign: 'center' }}>
-          SaveSmart · v1.0 · Données hébergées en Europe 🇪🇺
+          KLYP · v1.0 · Données hébergées en Europe 🇪🇺
         </p>
       </div>
 

@@ -6,14 +6,14 @@ export function usePrivacyMode() {
 
   useEffect(() => {
     try {
-      setHidden(localStorage.getItem('savesmart_privacy') === '1')
+      setHidden(localStorage.getItem('klyp_privacy') === '1')
     } catch {}
   }, [])
 
   const toggle = () => {
     setHidden(prev => {
       const next = !prev
-      try { localStorage.setItem('savesmart_privacy', next ? '1' : '0') } catch {}
+      try { localStorage.setItem('klyp_privacy', next ? '1' : '0') } catch {}
       return next
     })
   }

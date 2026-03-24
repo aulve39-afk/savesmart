@@ -6,7 +6,7 @@ import { useUserId } from '../hooks/useUserId'
 const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
 const setOnboardingActive = () => {
-  try { localStorage.setItem('savesmart_onboarding_active', '1') } catch {}
+  try { localStorage.setItem('klyp_onboarding_active', '1') } catch {}
 }
 
 export default function OnboardingPage() {

@@ -90,6 +90,133 @@ const SHAREABLE_CATALOG = [
   { keywords: ['canal+', 'canal plus'],      label: 'Canal+',          tip: 'jusqu\'à 4 profils dans le foyer' },
 ]
 
+// ── Service logo mapping (company name → domain) ──────────────────────────
+const SERVICE_DOMAINS: { keywords: string[]; domain: string }[] = [
+  { keywords: ['netflix'],            domain: 'netflix.com' },
+  { keywords: ['spotify'],            domain: 'spotify.com' },
+  { keywords: ['disney'],             domain: 'disneyplus.com' },
+  { keywords: ['amazon prime', 'amazon'], domain: 'amazon.fr' },
+  { keywords: ['apple tv', 'icloud', 'apple music', 'apple one'], domain: 'apple.com' },
+  { keywords: ['youtube'],            domain: 'youtube.com' },
+  { keywords: ['canal+', 'canal plus'], domain: 'canalplus.com' },
+  { keywords: ['sfr'],                domain: 'sfr.fr' },
+  { keywords: ['orange'],             domain: 'orange.fr' },
+  { keywords: ['free'],               domain: 'free.fr' },
+  { keywords: ['bouygues'],           domain: 'bouyguestelecom.fr' },
+  { keywords: ['sosh'],               domain: 'sosh.fr' },
+  { keywords: ['red by sfr', 'red '], domain: 'red-by-sfr.fr' },
+  { keywords: ['edf'],                domain: 'edf.fr' },
+  { keywords: ['engie'],              domain: 'engie.fr' },
+  { keywords: ['totalenergies', 'total'],  domain: 'totalenergies.fr' },
+  { keywords: ['deezer'],             domain: 'deezer.com' },
+  { keywords: ['tidal'],              domain: 'tidal.com' },
+  { keywords: ['microsoft 365', 'office 365', 'microsoft'], domain: 'microsoft.com' },
+  { keywords: ['notion'],             domain: 'notion.so' },
+  { keywords: ['dropbox'],            domain: 'dropbox.com' },
+  { keywords: ['google drive', 'google one', 'google workspace'], domain: 'google.com' },
+  { keywords: ['onedrive'],           domain: 'onedrive.live.com' },
+  { keywords: ['adobe'],              domain: 'adobe.com' },
+  { keywords: ['github'],             domain: 'github.com' },
+  { keywords: ['figma'],              domain: 'figma.com' },
+  { keywords: ['slack'],              domain: 'slack.com' },
+  { keywords: ['zoom'],               domain: 'zoom.us' },
+  { keywords: ['chatgpt', 'openai'],  domain: 'openai.com' },
+  { keywords: ['claude', 'anthropic'], domain: 'anthropic.com' },
+  { keywords: ['paramount'],          domain: 'paramountplus.com' },
+  { keywords: ['hbo', 'max'],         domain: 'max.com' },
+  { keywords: ['deliveroo'],          domain: 'deliveroo.fr' },
+  { keywords: ['uber eats', 'ubereats'], domain: 'ubereats.com' },
+  { keywords: ['qobuz'],              domain: 'qobuz.com' },
+]
+
+function getServiceDomain(name: string): string | null {
+  const lower = name.toLowerCase()
+  for (const entry of SERVICE_DOMAINS) {
+    if (entry.keywords.some(kw => lower.includes(kw))) return entry.domain
+  }
+  return null
+}
+
+function ServiceLogo({ name, fallbackIcon, fallbackBg }: { name: string; fallbackIcon: string; fallbackBg: string }) {
+  const domain = getServiceDomain(name)
+  const [failed, setFailed] = useState(false)
+  if (!domain || failed) {
+    return (
+      <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: fallbackBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
+        {fallbackIcon}
+      </div>
+    )
+  }
+  return (
+    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', border: '1px solid var(--border)' }}>
+      <img
+        src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+        alt={name}
+        width={28}
+        height={28}
+        onError={() => setFailed(true)}
+        style={{ width: '28px', height: '28px', objectFit: 'contain' }}
+      />
+    </div>
+  )
+}
+
+// ── KLYP Score ────────────────────────────────────────────────────────────
+function computeKLYPScore(subs: Subscription[], goal: number | null, doublons: DoublonAlert[]): number {
+  let score = 0
+  // 1. Has subscriptions (max 20 pts)
+  if (subs.length > 0) score += Math.min(subs.length * 5, 20)
+  // 2. Budget set (15 pts)
+  if (goal !== null) score += 15
+  // 3. Under budget (20 pts)
+  if (goal !== null) {
+    const total = subs.reduce((s, x) => s + x.amount, 0)
+    if (total <= goal) score += 20
+    else if (total <= goal * 1.1) score += 10
+  }
+  // 4. No duplicates (25 pts → -8 per doublon)
+  const dupPenalty = Math.min(doublons.length * 8, 25)
+  score += Math.max(0, 25 - dupPenalty)
+  // 5. Has trials managed (10 pts)
+  const hasTrials = subs.some(s => s.details?.is_trial)
+  if (!hasTrials) score += 10
+  // 6. Has varied categories (10 pts if subscriptions exist)
+  if (subs.length >= 2) {
+    const cats = new Set(subs.map(s => s.category))
+    if (cats.size >= 2) score += 10
+  }
+  return Math.min(100, score)
+}
+
+function ScoreRing({ score }: { score: number }) {
+  const r = 28; const circ = 2 * Math.PI * r
+  const color = score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#6366f1'
+  const label = score >= 80 ? 'Excellent' : score >= 60 ? 'Bon' : score >= 40 ? 'Moyen' : 'À améliorer'
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <svg width="72" height="72" viewBox="0 0 72 72" style={{ flexShrink: 0 }}>
+        <circle cx="36" cy="36" r={r} fill="none" stroke="var(--bg-secondary)" strokeWidth="5" />
+        <circle
+          cx="36" cy="36" r={r} fill="none"
+          stroke={color} strokeWidth="5"
+          strokeDasharray={`${(score / 100) * circ} ${circ}`}
+          strokeLinecap="round"
+          transform="rotate(-90 36 36)"
+          style={{ transition: 'stroke-dasharray 1s cubic-bezier(0.34,1.2,0.64,1)' }}
+        />
+        <text x="36" y="39" textAnchor="middle" fontSize="16" fontWeight="800" fill="var(--text-primary)">{score}</text>
+      </svg>
+      <div>
+        <p style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)', margin: '0 0 2px' }}>KLYP Score</p>
+        <p style={{ fontSize: '12px', color, fontWeight: '700', margin: '0 0 4px' }}>{label}</p>
+        <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0', lineHeight: '1.4' }}>
+          {score < 40 ? 'Définis ton budget pour démarrer' : score < 70 ? 'Résilie les doublons pour progresser' : 'Continue comme ça !'}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas')
@@ -137,6 +264,8 @@ export default function Home() {
   const [editingGoal, setEditingGoal] = useState(false)
   const [goalInput, setGoalInput] = useState('')
   const [showGoalConfetti, setShowGoalConfetti] = useState(false)
+  const [priceAlerts, setPriceAlerts] = useState<{ name: string; old: number; new: number }[]>([])
+  const [showKLYPScore, setShowKLYPScore] = useState(false)
   const cameraRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
   const filesRef = useRef<HTMLInputElement>(null)
@@ -153,12 +282,30 @@ export default function Home() {
     }
     setSubsLoading(true)
     setSubsLoadError(false)
-    getSubscriptions(userId).then(subs => { setSubscriptions(subs); setSubsLoading(false) })
+    getSubscriptions(userId).then(subs => {
+      setSubscriptions(subs)
+      setSubsLoading(false)
+      // ── Price change detection ──
+      try {
+        const key = `klyp_prices_${userId}`
+        const stored: Record<string, number> = JSON.parse(localStorage.getItem(key) || '{}')
+        const alerts: { name: string; old: number; new: number }[] = []
+        const updated: Record<string, number> = {}
+        for (const sub of subs) {
+          updated[sub.id] = sub.amount
+          if (stored[sub.id] !== undefined && stored[sub.id] !== sub.amount && sub.amount > stored[sub.id]) {
+            alerts.push({ name: sub.company_name, old: stored[sub.id], new: sub.amount })
+          }
+        }
+        localStorage.setItem(key, JSON.stringify(updated))
+        if (alerts.length > 0) setPriceAlerts(alerts)
+      } catch {}
+    })
   }, [userId])
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('savesmart_monthly_goal')
+      const stored = localStorage.getItem('klyp_monthly_goal')
       if (stored) setGoal(parseFloat(stored))
     } catch {}
   }, [])
@@ -167,7 +314,7 @@ export default function Home() {
     const n = parseFloat(goalInput)
     if (!isNaN(n) && n > 0) {
       setGoal(n)
-      try { localStorage.setItem('savesmart_monthly_goal', String(n)) } catch {}
+      try { localStorage.setItem('klyp_monthly_goal', String(n)) } catch {}
       // Confetti si l'utilisateur est déjà sous son objectif — moment dopamine !
       if (total <= n) setShowGoalConfetti(true)
     }
@@ -177,7 +324,7 @@ export default function Home() {
 
   const clearGoal = () => {
     setGoal(null)
-    try { localStorage.removeItem('savesmart_monthly_goal') } catch {}
+    try { localStorage.removeItem('klyp_monthly_goal') } catch {}
   }
 
   const reload = () => { if (userId) getSubscriptions(userId).then(setSubscriptions) }
@@ -311,6 +458,7 @@ export default function Home() {
   const total = subscriptions.reduce((sum, s) => sum + s.amount, 0)
   const categories = [...new Set(subscriptions.map(s => s.category))]
   const doublons = detectDoublons(subscriptions)
+  const sublyScore = computeKLYPScore(subscriptions, goal, doublons)
 
   // Économies potentielles via partage famille (estimation ~50% pour les services éligibles)
   const ecoSavings = subscriptions.reduce((sum, sub) => {
@@ -357,7 +505,7 @@ export default function Home() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '0 0 2px' }}>Bonjour 👋</p>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>SaveSmart</h1>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0', letterSpacing: '-0.5px', color: 'var(--text-primary)' }}>KLYP</h1>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {/* Mode discret */}
@@ -386,6 +534,25 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ── ALERTES HAUSSE DE PRIX ── */}
+      {priceAlerts.map((alert, i) => (
+        <div key={i} style={{ padding: '12px 16px 0' }}>
+          <div style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', border: '1.5px solid #f59e0b', borderRadius: '14px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '22px', flexShrink: 0 }}>📈</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '11px', fontWeight: '700', color: '#92400e', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Hausse de prix détectée</p>
+              <p style={{ fontSize: '13px', fontWeight: '600', color: '#78350f', margin: '0' }}>
+                <strong>{alert.name}</strong> est passé de <strong>{alert.old.toFixed(2)} €</strong> à <strong>{alert.new.toFixed(2)} €</strong>
+              </p>
+              <p style={{ fontSize: '11px', color: '#92400e', margin: '3px 0 0' }}>
+                +{(alert.new - alert.old).toFixed(2)} € · soit +{((alert.new - alert.old) * 12).toFixed(0)} € /an
+              </p>
+            </div>
+            <button onClick={() => setPriceAlerts(prev => prev.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', fontSize: '18px', color: '#92400e', cursor: 'pointer', padding: 0 }}>✕</button>
+          </div>
+        </div>
+      ))}
+
       {/* Total card */}
       <div style={{ padding: '20px 16px 0' }}>
         <div style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', borderRadius: '20px', padding: '28px 24px', color: 'white', position: 'relative', overflow: 'hidden' }}>
@@ -398,8 +565,46 @@ export default function Home() {
           <p style={{ fontSize: '13px', opacity: 0.75, margin: '0', fontWeight: '700' }}>
             {subscriptions.length} abonnement{subscriptions.length !== 1 ? 's' : ''} · soit {hide(total * 12, 0)} €/an
           </p>
+          {subscriptions.length > 0 && !hidden && (
+            <p style={{ fontSize: '11px', opacity: 0.55, margin: '6px 0 0', letterSpacing: '0.3px' }}>
+              💡 = {(total * 12 * 10).toFixed(0)} € sur 10 ans
+            </p>
+          )}
         </div>
       </div>
+
+      {/* ── SUBLY SCORE ── */}
+      {subscriptions.length > 0 && (
+        <div style={{ padding: '12px 16px 0' }}>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setShowKLYPScore(!showKLYPScore)}
+            onKeyDown={e => e.key === 'Enter' && setShowKLYPScore(!showKLYPScore)}
+            className="pressable glass-card"
+            style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', border: '1px solid var(--border)' }}
+          >
+            <ScoreRing score={sublyScore} />
+            {showKLYPScore && (
+              <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {[
+                  { label: 'Abonnements suivis', done: subscriptions.length > 0, pts: Math.min(subscriptions.length * 5, 20) },
+                  { label: 'Budget mensuel défini', done: goal !== null, pts: 15 },
+                  { label: 'Sous le budget', done: goal !== null && total <= goal, pts: 20 },
+                  { label: 'Aucun doublon', done: doublons.length === 0, pts: 25 },
+                  { label: 'Essais gratuits gérés', done: !subscriptions.some(s => s.details?.is_trial), pts: 10 },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '13px' }}>{item.done ? '✅' : '⭕'}</span>
+                    <p style={{ fontSize: '12px', color: item.done ? 'var(--text-primary)' : 'var(--text-muted)', margin: 0, flex: 1, fontWeight: item.done ? '600' : '400' }}>{item.label}</p>
+                    <span style={{ fontSize: '11px', color: item.done ? '#10b981' : 'var(--text-muted)', fontWeight: '700' }}>+{item.pts} pts</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── OBJECTIF MENSUEL ── */}
       {subscriptions.length > 0 && (
@@ -1023,6 +1228,7 @@ export default function Home() {
               return (
                 <div
                   key={sub.id}
+                  className="glass-card"
                   style={{
                     background: 'var(--bg-card)', borderRadius: '16px', padding: '16px', marginBottom: '10px', border: '1px solid var(--border)',
                     animation: 'cardEntrance 0.28s ease-out both',
@@ -1031,14 +1237,19 @@ export default function Home() {
                 >
                   {/* Service info */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>{config.icon}</div>
+                    <ServiceLogo name={sub.company_name} fallbackIcon={config.icon} fallbackBg={config.bg} />
                     <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: '600', fontSize: '15px', margin: '0 0 2px', color: 'var(--text-primary)' }}>{sub.company_name}</p>
                       <span style={{ fontSize: '11px', fontWeight: '600', color: config.color, background: config.bg, padding: '2px 8px', borderRadius: '6px' }}>{config.label}</span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontWeight: '700', fontSize: '16px', margin: '0', color: 'var(--text-primary)' }}>{hide(sub.amount)} €</p>
-                      <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0' }}>{cycleLabel[sub.billing_cycle] || ''}</p>
+                      <p style={{ fontWeight: '700', fontSize: '16px', margin: '0', color: 'var(--text-primary)' }}>{hide(sub.amount)} €<span style={{ fontSize: '11px', fontWeight: '400', color: 'var(--text-muted)' }}>{cycleLabel[sub.billing_cycle] || ''}</span></p>
+                      {!hidden && sub.billing_cycle === 'monthly' && (
+                        <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '0' }}>= {(sub.amount * 12 * 10).toFixed(0)} € sur 10 ans</p>
+                      )}
+                      {!hidden && sub.billing_cycle === 'yearly' && (
+                        <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '0' }}>= {(sub.amount * 10).toFixed(0)} € sur 10 ans</p>
+                      )}
                     </div>
                   </div>
 

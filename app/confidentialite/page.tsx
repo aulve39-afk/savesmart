@@ -6,7 +6,7 @@ const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 const sections = [
   {
     title: '1. Qui sommes-nous ?',
-    content: `SaveSmart est une application mobile d'analyse et de suivi des abonnements récurrents. Éditeur : SaveSmart (contact : privacy@savesmart.fr). La présente politique décrit quelles données sont collectées, pourquoi, et comment elles sont protégées.`,
+    content: `KLYP est une application mobile d'analyse et de suivi des abonnements récurrents. Éditeur : KLYP (contact : privacy@subly.fr). La présente politique décrit quelles données sont collectées, pourquoi, et comment elles sont protégées.`,
   },
   {
     title: '2. Données collectées',
@@ -55,13 +55,13 @@ L'analyse des factures est réalisée par l'API OpenAI (GPT-4 Vision). Les image
 • Droit à la portabilité : recevoir tes données dans un format structuré
 • Droit d'opposition : t'opposer à certains traitements
 
-Pour exercer ces droits : privacy@savesmart.fr — nous répondons dans les 30 jours.
+Pour exercer ces droits : privacy@subly.fr — nous répondons dans les 30 jours.
 
 Tu peux également supprimer ton compte directement depuis l'application (Mon compte → Supprimer mon compte).`,
   },
   {
     title: '7. Cookies et traceurs',
-    content: `SaveSmart n'utilise pas de cookies publicitaires. Un identifiant technique anonyme est stocké dans le stockage local de ton appareil (localStorage) pour maintenir ta session. Cet identifiant ne te suit pas en dehors de l'application.`,
+    content: `KLYP n'utilise pas de cookies publicitaires. Un identifiant technique anonyme est stocké dans le stockage local de ton appareil (localStorage) pour maintenir ta session. Cet identifiant ne te suit pas en dehors de l'application.`,
   },
   {
     title: '8. Modifications',
@@ -105,7 +105,7 @@ export default function ConfidentialitePage() {
         ))}
 
         <div style={{ textAlign: 'center', padding: '16px 0 0' }}>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Questions ? Écris-nous à <strong>privacy@savesmart.fr</strong></p>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0' }}>Questions ? Écris-nous à <strong>privacy@subly.fr</strong></p>
         </div>
       </div>
     </main>
