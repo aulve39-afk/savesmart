@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
-import { checkRateLimit } from '../../lib/rateLimit'
+import { checkRateLimit } from '../../../lib/rateLimit'
 import { deleteAccount } from '../../store'
 
 export async function DELETE(request: NextRequest) {
