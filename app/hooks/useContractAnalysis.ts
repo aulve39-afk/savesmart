@@ -11,7 +11,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { AnalysisResult } from '../components/audit/ContractHealthCard'
 
 // ── Types API ─────────────────────────────────────────────────────────────────
@@ -157,14 +157,15 @@ export function useContractAnalysis(): UseContractAnalysisReturn {
       return failureCount < 3 && error.isRetryable
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
+  })
 
-    onSuccess: (data) => {
-      if (data.status === 'completed') {
-        // Invalider la liste des contrats pour rafraîchir le dashboard
-        queryClient.invalidateQueries({ queryKey: ['contracts'] })
-      }
-    },
-  } as Parameters<typeof useQuery>[0])
+  // React Query v5: onSuccess retiré de useQuery → useEffect
+  const pollingData = pollingQuery.data
+  useEffect(() => {
+    if (pollingData?.status === 'completed') {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] })
+    }
+  }, [pollingData?.status, queryClient])
 
   const reset = useCallback(() => {
     setJobId(null)
@@ -175,7 +176,6 @@ export function useContractAnalysis(): UseContractAnalysisReturn {
   }, [jobId, uploadMutation, queryClient])
 
   // ── Agrégation de l'état ──────────────────────────────────────────────────
-  const pollingData = pollingQuery.data
   const uploadError = uploadMutation.error?.message ?? null
   const analysisError =
     pollingQuery.error?.message ??

@@ -21,7 +21,7 @@ from tenacity import (
     retry,
     retry_if_exception_type,
     stop_after_attempt,
-    wait_exponential_with_jitter,
+    wait_exponential_jitter,
 )
 
 from app.core.config import get_settings
@@ -359,7 +359,7 @@ class ContractAnalyzer:
 
     @retry(
         retry=retry_if_exception_type((anthropic.RateLimitError, anthropic.APIConnectionError)),
-        wait=wait_exponential_with_jitter(initial=1, max=30),
+        wait=wait_exponential_jitter(initial=1, max=30),
         stop=stop_after_attempt(5),
         reraise=True,
     )
@@ -442,7 +442,7 @@ class ContractAnalyzer:
 
     @retry(
         retry=retry_if_exception_type((ValueError, json.JSONDecodeError)),
-        wait=wait_exponential_with_jitter(initial=0.5, max=8),
+        wait=wait_exponential_jitter(initial=0.5, max=8),
         stop=stop_after_attempt(3),
     )
     async def _extract_clauses_from_chunk(
