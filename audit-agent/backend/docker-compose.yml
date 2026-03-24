@@ -1,0 +1,117 @@
+version: "3.9"
+
+# ── Réseau isolé ──────────────────────────────────────────────────────────────
+networks:
+  audit_net:
+    driver: bridge
+    # Isolation: les services ne sont pas accessibles depuis l'extérieur
+    # sauf les ports explicitement publiés.
+
+# ── Volumes persistants ───────────────────────────────────────────────────────
+volumes:
+  redis_data:
+    driver: local
+
+services:
+
+  # ── API FastAPI ────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: audit-agent-api:latest
+    container_name: audit-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      - ENVIRONMENT=production
+    networks:
+      - audit_net
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    # Limites de ressources (évite qu'un worker runaway mange tout le CPU)
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # ── Worker Celery ──────────────────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: audit-agent-worker:latest
+    container_name: audit-worker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - ENVIRONMENT=production
+    networks:
+      - audit_net
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    deploy:
+      replicas: 2  # 2 workers par défaut, scale up si charge élevée
+      resources:
+        limits:
+          cpus: "2.0"    # Les analyses IA sont gourmandes
+          memory: 2G     # spaCy + PyMuPDF + contexte Claude
+        reservations:
+          memory: 1G
+
+  # ── Redis (broker Celery + cache) ─────────────────────────────────────────
+  redis:
+    image: redis:7.4-alpine
+    container_name: audit-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1
+      --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - audit_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+
+  # ── Flower (monitoring Celery) ────────────────────────────────────────────
+  # Accessible uniquement en dev/staging, désactivé en prod via profil
+  flower:
+    image: mher/flower:2.0
+    container_name: audit-flower
+    restart: unless-stopped
+    command: ["celery", "--broker=${REDIS_URL}", "flower", "--port=5555", "--basic_auth=${FLOWER_USER}:${FLOWER_PASSWORD}"]
+    ports:
+      - "5555:5555"
+    networks:
+      - audit_net
+    depends_on:
+      - redis
+    profiles:
+      - monitoring  # Démarrer avec: docker compose --profile monitoring up

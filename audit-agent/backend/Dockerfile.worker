@@ -1,0 +1,33 @@
+# Dockerfile dédié aux workers Celery.
+# Même base que l'API mais commande de démarrage différente.
+# Séparer les workers de l'API permet de scaler indépendamment.
+FROM python:3.12-slim AS runtime
+
+RUN groupadd --gid 1000 app && \
+    useradd --uid 1000 --gid 1000 --create-home app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=audit-agent-api:latest /usr/local /usr/local
+COPY --chown=app:app app/ ./app/
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    ANONYMIZED_TELEMETRY=false \
+    SCARF_NO_ANALYTICS=true
+
+USER app
+
+# Worker Celery avec concurrence 2 (analyses CPU+réseau intensives)
+# --pool=threads: meilleur que prefork pour les tâches I/O-bound (appels API IA)
+CMD ["python", "-m", "celery", "-A", "app.worker.celery_app", "worker", \
+     "--loglevel=info", \
+     "--concurrency=2", \
+     "--pool=threads", \
+     "--queues=default", \
+     "--hostname=worker@%h"]
