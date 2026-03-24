@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../auth/[...nextauth]/route'
 import { checkRateLimit } from '../../../lib/rateLimit'
 import OpenAI from 'openai'
 
@@ -26,13 +24,9 @@ RÈGLES pour details (cherche ACTIVEMENT dans toute la facture):
 Si ce n'est pas une facture reconnaissable, réponds uniquement: {"is_invoice": false}`
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
-  }
-
-  // 5 scans per minute per user
-  const { allowed, retryAfter } = checkRateLimit(`scan:${session.userId}`, 5)
+  // Rate limit by IP: 5 scans per minute
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+  const { allowed, retryAfter } = checkRateLimit(`scan:${ip}`, 5)
   if (!allowed) {
     return NextResponse.json(
       { error: 'Trop de requêtes, réessayez dans un moment' },

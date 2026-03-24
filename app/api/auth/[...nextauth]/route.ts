@@ -1,19 +1,10 @@
-import NextAuth, { type NextAuthOptions, type Session } from 'next-auth'
-import { type JWT } from 'next-auth/jwt'
+import NextAuth, { type NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 
-// Augment next-auth types so TypeScript knows about our custom fields
+// Augment next-auth types for our custom session fields
 declare module 'next-auth' {
   interface Session {
     accessToken?: string
-    userId?: string
-  }
-}
-
-declare module 'next-auth/jwt' {
-  interface JWT {
-    accessToken?: string
-    refreshToken?: string
   }
 }
 
@@ -37,19 +28,13 @@ export const authOptions: NextAuthOptions = {
       if (account) {
         token.accessToken = account.access_token
         token.refreshToken = account.refresh_token
-        // token.sub is set automatically by NextAuth from the Google profile ID
       }
       return token
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
-      session.accessToken = token.accessToken
-      // Expose the stable Google account ID as userId
-      session.userId = token.sub
+    async session({ session, token }) {
+      session.accessToken = token.accessToken as string
       return session
     },
-  },
-  pages: {
-    signIn: '/login',
   },
 }
 

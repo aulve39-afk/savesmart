@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../auth/[...nextauth]/route'
 import { checkRateLimit } from '../../../lib/rateLimit'
 import OpenAI from 'openai'
 
@@ -23,13 +21,9 @@ const MOTIF_INSTRUCTIONS: Record<string, string> = {
 const MAX_FIELD_LEN = 200
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
-  }
-
-  // 10 letters per minute per user
-  const { allowed, retryAfter } = checkRateLimit(`resiliation:${session.userId}`, 10)
+  // Rate limit by IP: 10 letters per minute
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+  const { allowed, retryAfter } = checkRateLimit(`resiliation:${ip}`, 10)
   if (!allowed) {
     return NextResponse.json(
       { error: 'Trop de requêtes, réessayez dans un moment' },
