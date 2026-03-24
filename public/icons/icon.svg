@@ -5,33 +5,34 @@
       <stop offset="100%" stop-color="#7c3aed"/>
     </linearGradient>
     <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="0%" stop-color="rgba(255,255,255,0.15)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
     </linearGradient>
   </defs>
 
-  <!-- Background rounded rect -->
+  <!-- Background rounded square -->
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <!-- Subtle shine overlay -->
-  <rect width="512" height="256" rx="0" fill="url(#shine)"/>
+  <!-- Shine top overlay -->
+  <rect width="512" height="260" rx="0" fill="url(#shine)"/>
   <rect width="512" height="112" rx="112" ry="112" fill="url(#shine)"/>
 
-  <!-- Coin circle -->
-  <circle cx="256" cy="222" r="148" fill="rgba(255,255,255,0.13)"/>
-  <circle cx="256" cy="222" r="128" fill="rgba(255,255,255,0.13)"/>
+  <!-- Decorative circle behind K -->
+  <circle cx="256" cy="256" r="168" fill="rgba(255,255,255,0.08)"/>
 
-  <!-- Euro sign (€) as paths — no font dependency -->
-  <!-- Main vertical stroke of € -->
-  <path d="M296 132 C253 132 218 158 205 196 L176 196 L176 214 L200 214 C199.5 220 199.5 226 200 232 L176 232 L176 250 L205 250 C218 288 253 314 296 314 C320 314 342 305 358 290 L340 272 C328 284 313 292 296 292 C271 292 250 277 240 256 L316 256 L316 238 L233 238 C232 232 232 220 233 214 L316 214 L316 196 L240 196 C250 175 271 160 296 160 C313 160 328 168 340 180 L358 162 C342 147 320 132 296 132 Z" fill="white"/>
+  <!-- K — vertical bar -->
+  <rect x="138" y="134" width="66" height="244" rx="20" fill="white"/>
 
-  <!-- Savings trend line at bottom -->
-  <g opacity="0.7">
-    <circle cx="142" cy="408" r="10" fill="white"/>
-    <circle cx="192" cy="380" r="10" fill="white"/>
-    <circle cx="256" cy="366" r="10" fill="white"/>
-    <circle cx="322" cy="350" r="10" fill="white"/>
-    <circle cx="382" cy="330" r="10" fill="white"/>
-    <!-- Arrow head -->
-    <path d="M372 316 L396 330 L380 348" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
+  <!-- K — top arm (diagonal going top-right) -->
+  <path d="M198 256 L358 134 L398 134 L238 256 Z" fill="white"/>
+  <!-- K — bottom arm (diagonal going bottom-right) -->
+  <path d="M198 256 L358 378 L398 378 L238 256 Z" fill="white"/>
+
+  <!-- Subscription indicator dots (right side, linked) -->
+  <circle cx="400" cy="172" r="22" fill="rgba(255,255,255,0.35)"/>
+  <circle cx="400" cy="172" r="13" fill="white"/>
+
+  <rect x="394" y="194" width="12" height="124" rx="6" fill="rgba(255,255,255,0.35)"/>
+
+  <circle cx="400" cy="340" r="22" fill="rgba(255,255,255,0.35)"/>
+  <circle cx="400" cy="340" r="13" fill="white"/>
 </svg>

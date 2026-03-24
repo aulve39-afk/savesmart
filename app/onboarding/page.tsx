@@ -220,7 +220,18 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      <div style={{ marginTop: '16px', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+      {/* Bouton passer */}
+      <button
+        onClick={() => {
+          try { localStorage.setItem('klyp_onboarding_skipped', '1') } catch {}
+          router.push('/')
+        }}
+        style={{ marginTop: '20px', background: 'none', border: 'none', fontSize: '13px', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px 16px', textDecoration: 'underline', opacity: 0.7 }}
+      >
+        Passer pour l'instant →
+      </button>
+
+      <div style={{ marginTop: '8px', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
         <button
           onClick={() => router.push('/confidentialite')}
           style={{ background: 'none', border: 'none', fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px 0', textDecoration: 'underline' }}
