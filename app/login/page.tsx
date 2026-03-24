@@ -115,6 +115,17 @@ export default function LoginPage() {
           {' '}et notre{' '}
           <a href="/confidentialite" style={{ color: '#4f46e5', textDecoration: 'none', fontWeight: '600' }}>politique de confidentialité</a>
         </p>
+
+        {/* Continuer sans compte */}
+        <button
+          onClick={() => router.replace('/')}
+          style={{ marginTop: '20px', background: 'none', border: 'none', fontSize: '13px', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px 0', width: '100%', textAlign: 'center', fontFamily: font }}
+        >
+          Continuer sans compte →
+        </button>
+        <p style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', margin: '4px 0 0', opacity: 0.7 }}>
+          Tes données resteront sur cet appareil uniquement
+        </p>
       </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
