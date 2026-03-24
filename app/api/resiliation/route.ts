@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../auth/[...nextauth]/route'
 import OpenAI from 'openai'
 
 const MOTIF_INSTRUCTIONS: Record<string, string> = {
@@ -10,10 +12,28 @@ const MOTIF_INSTRUCTIONS: Record<string, string> = {
   deces: `Motif : décès du titulaire (lettre rédigée par un proche/ayant droit). La lettre doit mentionner le décès du titulaire, invoquer la fin automatique du contrat personnel en cas de décès, demander la résiliation immédiate et le remboursement de tout prélèvement postérieur au décès. Ton respectueux et formel.`,
 }
 
+const MAX_FIELD_LEN = 200
+
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  }
+
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   try {
     const { prenom, nom, adresse, ville, service, motif, engagementEndDate } = await req.json()
+
+    if (
+      typeof prenom !== 'string' || prenom.trim().length === 0 || prenom.length > MAX_FIELD_LEN ||
+      typeof nom !== 'string' || nom.trim().length === 0 || nom.length > MAX_FIELD_LEN ||
+      typeof adresse !== 'string' || adresse.trim().length === 0 || adresse.length > MAX_FIELD_LEN ||
+      typeof ville !== 'string' || ville.trim().length === 0 || ville.length > MAX_FIELD_LEN ||
+      typeof service !== 'string' || service.trim().length === 0 || service.length > MAX_FIELD_LEN ||
+      typeof motif !== 'string' || !Object.prototype.hasOwnProperty.call(MOTIF_INSTRUCTIONS, motif)
+    ) {
+      return NextResponse.json({ error: 'Paramètres invalides' }, { status: 400 })
+    }
 
     const motifInstruction = MOTIF_INSTRUCTIONS[motif] || MOTIF_INSTRUCTIONS.libre
     const today = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
