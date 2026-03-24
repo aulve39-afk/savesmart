@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
+import { checkRateLimit } from '../../../lib/rateLimit'
 import OpenAI from 'openai'
 
 const PROMPT = `Tu es un expert juridique et comptable français spécialisé dans l'analyse de factures d'abonnements. Examine ATTENTIVEMENT cette image de facture ou relevé.
@@ -28,6 +29,15 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  }
+
+  // 5 scans per minute per user
+  const { allowed, retryAfter } = checkRateLimit(`scan:${session.userId}`, 5)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Trop de requêtes, réessayez dans un moment' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    )
   }
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -63,7 +73,12 @@ export async function POST(req: NextRequest) {
 
     const content = response.choices[0].message.content || '{}'
     const cleaned = content.replace(/```json|```/g, '').trim()
-    const result = JSON.parse(cleaned)
+    let result: unknown
+    try {
+      result = JSON.parse(cleaned)
+    } catch {
+      result = { is_invoice: false }
+    }
 
     return NextResponse.json(result)
   } catch (err) {

@@ -241,7 +241,7 @@ export default function ComptePage() {
 
             {/* Réinitialiser */}
             <button
-              onClick={() => { localStorage.removeItem('savesmart_user_id'); localStorage.removeItem('savesmart_prenom'); localStorage.removeItem('savesmart_nom'); router.push('/onboarding') }}
+              onClick={() => { localStorage.removeItem('savesmart_prenom'); localStorage.removeItem('savesmart_nom'); router.push('/onboarding') }}
               style={{ width: '100%', background: 'var(--bg-card)', border: '1.5px solid #4f46e5', borderRadius: '16px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', fontFamily: font }}
             >
               <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🔄</div>
