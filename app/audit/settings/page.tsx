@@ -9,7 +9,7 @@ const SETTINGS_SECTIONS = [
     title: 'Sécurité & Confidentialité',
     items: [
       { label: 'Chiffrement des données', value: 'AES-256 activé', badge: 'Actif' },
-      { label: 'Anonymisation PII', value: 'Avant envoi à l'IA', badge: 'Actif' },
+      { label: 'Anonymisation PII', value: "Avant envoi à l'IA", badge: 'Actif' },
       { label: 'Région de stockage', value: 'EU (Frankfurt)', badge: 'RGPD' },
     ],
   },
