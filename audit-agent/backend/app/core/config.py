@@ -55,11 +55,10 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: SecretStr = Field(default="your-secret-key")  # type: ignore[assignment]
     S3_SIGNED_URL_TTL_SECONDS: int = 900  # 15 minutes
 
-    # ── Claude AI ─────────────────────────────────────────────────────────────
-    ANTHROPIC_API_KEY: SecretStr = Field(default="sk-ant-...")  # type: ignore[assignment]
-    # Option RGPD: utiliser AWS Bedrock en région EU
-    ANTHROPIC_BASE_URL: AnyHttpUrl | None = None  # None = API directe Anthropic
-    CLAUDE_MODEL: str = "claude-sonnet-4-6"
+    # ── OpenAI ────────────────────────────────────────────────────────────────
+    OPENAI_API_KEY: SecretStr = Field(default="sk-...")  # type: ignore[assignment]
+    OPENAI_BASE_URL: AnyHttpUrl | None = None  # None = API directe OpenAI
+    CLAUDE_MODEL: str = "gpt-4o"
     CLAUDE_MAX_TOKENS: int = 8192
     CLAUDE_TEMPERATURE: float = 0.0  # Déterminisme maximal pour extraction
 

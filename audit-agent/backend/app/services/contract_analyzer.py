@@ -2,7 +2,7 @@
 ContractAnalyzer: Orchestrateur principal du pipeline d'analyse IA.
 
 Architecture: OCR → Chunking → Extraction → Validation → Consolidation
-Modèle: Claude claude-sonnet-4-6 (vision pour PDFs scannés, texte pour natifs)
+Modèle: GPT-4o (vision pour PDFs scannés, texte pour natifs)
 Retry: Exponentiel avec jitter (Tenacity) - max 3 tentatives par chunk
 """
 
@@ -15,9 +15,8 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-import anthropic
+import openai
 import structlog
-from anthropic.types import ImageBlockParam, MessageParam, TextBlockParam
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -199,12 +198,11 @@ class ContractAnalyzer:
     MAX_CHUNKS = 50
 
     def __init__(self) -> None:
-        self._client = anthropic.Anthropic(
-            api_key=settings.ANTHROPIC_API_KEY.get_secret_value(),
-            # Option RGPD: pointer vers Bedrock EU si configuré
+        self._client = openai.OpenAI(
+            api_key=settings.OPENAI_API_KEY.get_secret_value(),
             base_url=(
-                str(settings.ANTHROPIC_BASE_URL)
-                if settings.ANTHROPIC_BASE_URL
+                str(settings.OPENAI_BASE_URL)
+                if settings.OPENAI_BASE_URL
                 else None
             ),
         )
@@ -356,7 +354,7 @@ class ContractAnalyzer:
 
     @retry(
         retry=retry_if_exception_type(
-            (anthropic.RateLimitError, anthropic.APIConnectionError)
+            (openai.RateLimitError, openai.APIConnectionError)
         ),
         wait=wait_exponential_jitter(initial=1, max=30),
         stop=stop_after_attempt(5),
@@ -364,45 +362,32 @@ class ContractAnalyzer:
     )
     async def _call_claude(
         self,
-        messages: list[MessageParam],
+        messages: list[dict[str, Any]],
         system: str | None = None,
         use_cache: bool = True,
     ) -> str:
         """
-        Appel Claude avec retry exponentiel + jitter.
+        Appel GPT-4o avec retry exponentiel + jitter.
 
         Retry sur: RateLimitError, APIConnectionError
-        Pas de retry sur: AuthenticationError, InvalidRequestError (erreurs définitives)
-
-        Le paramètre use_cache active le Prompt Caching Anthropic sur le system prompt,
-        réduisant le coût des tokens répétitifs de ~40%.
+        Pas de retry sur: AuthenticationError, BadRequestError (erreurs définitives)
         """
-        system_blocks: list[TextBlockParam] = []
+        openai_messages: list[dict[str, Any]] = []
         if system:
-            if use_cache:
-                # Marquage pour le Prompt Caching Anthropic
-                # Le system prompt fixe est mis en cache entre les appels
-                system_blocks = [
-                    TextBlockParam(
-                        type="text",
-                        text=system,
-                        cache_control={"type": "ephemeral"},
-                    )
-                ]
-            else:
-                system_blocks = [TextBlockParam(type="text", text=system)]
+            openai_messages.append({"role": "system", "content": system})
+        openai_messages.extend(messages)
 
-        response = self._client.messages.create(
+        response = self._client.chat.completions.create(
             model=settings.CLAUDE_MODEL,
             max_tokens=settings.CLAUDE_MAX_TOKENS,
             temperature=settings.CLAUDE_TEMPERATURE,
-            system=system_blocks if system_blocks else anthropic.NOT_GIVEN,
-            messages=messages,
+            messages=openai_messages,  # type: ignore[arg-type]
         )
 
         # Tracking des tokens pour le monitoring des coûts
-        self._total_input_tokens += response.usage.input_tokens
-        self._total_output_tokens += response.usage.output_tokens
+        if response.usage:
+            self._total_input_tokens += response.usage.prompt_tokens
+            self._total_output_tokens += response.usage.completion_tokens
 
         # Vérification du seuil de coût max par contrat
         current_cost = self._compute_cost()
@@ -413,10 +398,10 @@ class ContractAnalyzer:
                 "Stopping analysis to prevent runaway costs."
             )
 
-        first_block = response.content[0]
-        if not isinstance(first_block, anthropic.types.TextBlock):
-            raise ValueError(f"Unexpected response block type: {type(first_block)}")
-        return first_block.text
+        content = response.choices[0].message.content
+        if not content:
+            raise ValueError("Empty response from OpenAI")
+        return content
 
     async def _extract_table_of_contents(
         self,
@@ -509,31 +494,26 @@ class ContractAnalyzer:
         page_images: list[bytes],
         start_page: int,
         end_page: int,
-    ) -> list[MessageParam]:
+    ) -> list[dict[str, Any]]:
         """
-        Construit un message multimodal pour Claude Vision (PDFs scannés).
+        Construit un message multimodal pour GPT-4o Vision (PDFs scannés).
         Limite à 5 images par chunk pour éviter le dépassement du context window.
         """
-        content: list[anthropic.types.ContentBlockParam] = [
-            anthropic.types.TextBlockParam(type="text", text=user_prompt)
-        ]
+        content: list[dict[str, Any]] = [{"type": "text", "text": user_prompt}]
 
         # Pages concernées uniquement (index 0-based)
         relevant_images = page_images[start_page - 1 : end_page][:5]
 
         for img_bytes in relevant_images:
+            b64 = base64.standard_b64encode(img_bytes).decode()
             content.append(
-                ImageBlockParam(
-                    type="image",
-                    source={
-                        "type": "base64",
-                        "media_type": "image/png",
-                        "data": base64.standard_b64encode(img_bytes).decode(),
-                    },
-                )
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/png;base64,{b64}"},
+                }
             )
 
-        return [MessageParam(role="user", content=content)]
+        return [{"role": "user", "content": content}]
 
     def _compute_global_risk_score(self, clauses: list[ContractClause]) -> float:
         """
@@ -638,10 +618,10 @@ class ContractAnalyzer:
     def _compute_cost(self) -> float:
         """
         Calcule le coût estimé en USD basé sur l'usage de tokens.
-        Tarifs Claude claude-sonnet-4-6 (2026): $3/M input, $15/M output.
+        Tarifs GPT-4o: $2.50/M input, $10/M output.
         """
-        input_cost = (self._total_input_tokens / 1_000_000) * 3.0
-        output_cost = (self._total_output_tokens / 1_000_000) * 15.0
+        input_cost = (self._total_input_tokens / 1_000_000) * 2.50
+        output_cost = (self._total_output_tokens / 1_000_000) * 10.0
         return round(input_cost + output_cost, 6)
 
     @staticmethod
