@@ -25,8 +25,6 @@ from app.core.config import get_settings
 from app.models.contract import (
     AnalysisJobResponse,
     AnalysisJobStatus,
-    AnalysisResult,
-    AnalysisStatusResponse,
 )
 from app.worker.tasks import run_contract_analysis
 
@@ -41,11 +39,11 @@ logger = structlog.get_logger(__name__)
 def get_current_tenant_id() -> uuid.UUID:
     """
     Extrait le tenant_id du JWT (injecté par le middleware d'auth).
-    En production: parser le JWT et vérifier la signature.
+    Dev: UUID fixe pour permettre la récupération des résultats entre requêtes.
+    Production: remplacer par la vraie extraction JWT (cf. app.api.deps).
     """
-    # TODO: Remplacer par la vraie extraction JWT
-    # token = Depends(oauth2_scheme) → decoder → extraire tenant_id
-    return uuid.uuid4()
+    # UUID déterministe pour le dev local (même tenant toujours)
+    return uuid.UUID("00000000-0000-0000-0000-000000000001")
 
 
 def get_s3_client() -> Any:
@@ -166,7 +164,7 @@ async def upload_contract(
         contract_id=contract_id,
         status=AnalysisJobStatus.PENDING,
         estimated_completion_seconds=60,
-        polling_url=f"/api/v1/analysis/{job.id}",
+        polling_url=f"{settings.API_PREFIX}/analysis/{job.id}",
     )
 
 
@@ -213,61 +211,5 @@ async def list_contracts(
     )
 
 
-@router.get(
-    "/analysis/{job_id}",
-    response_model=AnalysisStatusResponse,
-    summary="Polling du statut d'une analyse Celery",
-)
-async def get_analysis_status(job_id: str) -> AnalysisStatusResponse:
-    """
-    Endpoint de polling pour suivre la progression d'une analyse.
-    Le frontend appelle cet endpoint toutes les 2 secondes.
-
-    Transitions d'état:
-      pending → processing (0%) → processing (25%/50%/75%/90%) → completed (100%)
-      pending → failed (erreur)
-    """
-    from celery.result import AsyncResult
-    from app.worker.celery_app import celery_app
-
-    task = AsyncResult(job_id, app=celery_app)
-
-    if task.state == "PENDING":
-        return AnalysisStatusResponse(
-            job_id=job_id,
-            status=AnalysisJobStatus.PENDING,
-            progress_pct=0,
-            current_step="En attente de traitement...",
-        )
-    elif task.state == "PROGRESS":
-        # Les workers envoient des updates via task.update_state()
-        meta = task.info or {}
-        return AnalysisStatusResponse(
-            job_id=job_id,
-            status=AnalysisJobStatus.PROCESSING,
-            progress_pct=meta.get("progress", 0),
-            current_step=meta.get("step", "Analyse en cours..."),
-        )
-    elif task.state == "SUCCESS":
-        return AnalysisStatusResponse(
-            job_id=job_id,
-            status=AnalysisJobStatus.COMPLETED,
-            progress_pct=100,
-            current_step="Analyse terminée",
-            result=task.result,
-        )
-    elif task.state == "FAILURE":
-        return AnalysisStatusResponse(
-            job_id=job_id,
-            status=AnalysisJobStatus.FAILED,
-            progress_pct=0,
-            current_step="Échec de l'analyse",
-            error_message=str(task.info),
-        )
-
-    return AnalysisStatusResponse(
-        job_id=job_id,
-        status=AnalysisJobStatus.PROCESSING,
-        progress_pct=50,
-        current_step="Traitement en cours...",
-    )
+# NOTE: L'endpoint de polling /analysis/{job_id} est dans analysis.py
+# (séparé pour éviter le conflit de route FastAPI avec /{contract_id})

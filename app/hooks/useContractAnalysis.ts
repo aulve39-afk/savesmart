@@ -135,7 +135,7 @@ export function useContractAnalysis(): UseContractAnalysisReturn {
   // ── Query de polling ───────────────────────────────────────────────────────
   const pollingQuery = useQuery<AnalysisStatusResponse, ApiError>({
     queryKey: ['analysis-status', jobId],
-    queryFn: () => apiGet<AnalysisStatusResponse>(`/contracts/analysis/${jobId}`),
+    queryFn: () => apiGet<AnalysisStatusResponse>(`/analysis/${jobId}`),
 
     // Désactivé si pas de jobId
     enabled: !!jobId,

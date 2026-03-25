@@ -23,10 +23,10 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# Télécharger le modèle spaCy français
-# Note: en production, ce modèle devrait être inclus dans le build ou
-# chargé depuis un volume persistant pour accélérer le démarrage.
-RUN /install/bin/python -m spacy download fr_core_news_lg --target /install/lib/python3.12/site-packages
+# Télécharger le modèle spaCy français via pip (compatible spacy 3.8.x)
+# Installe directement dans le prefix pour être copié dans le stage runtime
+RUN pip install --no-cache-dir --prefix=/install \
+    "fr-core-news-lg @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_lg-3.8.0/fr_core_news_lg-3.8.0-py3-none-any.whl"
 
 
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────

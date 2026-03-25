@@ -2,7 +2,7 @@
 ContractAnalyzer: Orchestrateur principal du pipeline d'analyse IA.
 
 Architecture: OCR → Chunking → Extraction → Validation → Consolidation
-Modèle: GPT-4o (vision pour PDFs scannés, texte pour natifs)
+Modèle: GPT-4o (OpenAI SDK — phase de dev; basculer vers Claude en prod)
 Retry: Exponentiel avec jitter (Tenacity) - max 3 tentatives par chunk
 """
 
@@ -44,8 +44,8 @@ settings = get_settings()
 
 # ── Prompts ───────────────────────────────────────────────────────────────────
 
-# Ce prompt est FIXE et sera mis en cache côté Anthropic (Prompt Caching).
-# Économie estimée: ~40% sur le coût tokens pour les chunks répétitifs.
+# Ce prompt est FIXE. En prod (Anthropic), il sera mis en cache (Prompt Caching).
+# Avec OpenAI (dev), le caching n'est pas activé — coût légèrement supérieur.
 EXTRACTION_SYSTEM_PROMPT = """\
 Tu es un expert juridique senior spécialisé en contrats commerciaux PME français.
 Ton rôle est d'extraire avec une précision maximale les clauses à risque financier.
@@ -198,13 +198,9 @@ class ContractAnalyzer:
     MAX_CHUNKS = 50
 
     def __init__(self) -> None:
-        self._client = openai.OpenAI(
+        self._client = openai.AsyncOpenAI(
             api_key=settings.OPENAI_API_KEY.get_secret_value(),
-            base_url=(
-                str(settings.OPENAI_BASE_URL)
-                if settings.OPENAI_BASE_URL
-                else None
-            ),
+            base_url=settings.OPENAI_BASE_URL,  # None → api.openai.com par défaut
         )
         self._pii = PiiAnonymizer()
         self._pdf = PdfExtractor()
@@ -364,30 +360,35 @@ class ContractAnalyzer:
         self,
         messages: list[dict[str, Any]],
         system: str | None = None,
-        use_cache: bool = True,
+        use_cache: bool = True,  # Ignoré avec OpenAI (pas de prompt caching)
     ) -> str:
         """
-        Appel GPT-4o avec retry exponentiel + jitter.
+        Appel GPT-4o (OpenAI SDK) avec retry exponentiel + jitter.
 
         Retry sur: RateLimitError, APIConnectionError
         Pas de retry sur: AuthenticationError, BadRequestError (erreurs définitives)
-        """
-        openai_messages: list[dict[str, Any]] = []
-        if system:
-            openai_messages.append({"role": "system", "content": system})
-        openai_messages.extend(messages)
 
-        response = self._client.chat.completions.create(
-            model=settings.CLAUDE_MODEL,
+        Note: use_cache n'a pas d'effet avec OpenAI (le prompt caching sera
+        réactivé lors du passage au SDK Anthropic en production).
+        """
+        # OpenAI: le system prompt est le premier message avec role="system"
+        oai_messages: list[dict[str, Any]] = []
+        if system:
+            oai_messages.append({"role": "system", "content": system})
+        oai_messages.extend(messages)
+
+        response = await self._client.chat.completions.create(
+            model=settings.CLAUDE_MODEL,  # "gpt-4o" en dev
             max_tokens=settings.CLAUDE_MAX_TOKENS,
             temperature=settings.CLAUDE_TEMPERATURE,
-            messages=openai_messages,  # type: ignore[arg-type]
+            messages=oai_messages,  # type: ignore[arg-type]
         )
 
         # Tracking des tokens pour le monitoring des coûts
-        if response.usage:
-            self._total_input_tokens += response.usage.prompt_tokens
-            self._total_output_tokens += response.usage.completion_tokens
+        usage = response.usage
+        if usage:
+            self._total_input_tokens += usage.prompt_tokens
+            self._total_output_tokens += usage.completion_tokens
 
         # Vérification du seuil de coût max par contrat
         current_cost = self._compute_cost()
@@ -400,7 +401,7 @@ class ContractAnalyzer:
 
         content = response.choices[0].message.content
         if not content:
-            raise ValueError("Empty response from OpenAI")
+            raise ValueError("Empty response from GPT-4o")
         return content
 
     async def _extract_table_of_contents(
@@ -497,21 +498,29 @@ class ContractAnalyzer:
     ) -> list[dict[str, Any]]:
         """
         Construit un message multimodal pour GPT-4o Vision (PDFs scannés).
+        Format OpenAI: image_url avec data URI base64.
         Limite à 5 images par chunk pour éviter le dépassement du context window.
         """
-        content: list[dict[str, Any]] = [{"type": "text", "text": user_prompt}]
+        content: list[dict[str, Any]] = []
 
         # Pages concernées uniquement (index 0-based)
         relevant_images = page_images[start_page - 1 : end_page][:5]
 
+        # Format OpenAI Vision: data URI base64
         for img_bytes in relevant_images:
             b64 = base64.standard_b64encode(img_bytes).decode()
             content.append(
                 {
                     "type": "image_url",
-                    "image_url": {"url": f"data:image/png;base64,{b64}"},
+                    "image_url": {
+                        "url": f"data:image/png;base64,{b64}",
+                        "detail": "high",  # Haute résolution pour les contrats
+                    },
                 }
             )
+
+        # Le texte du prompt APRÈS les images
+        content.append({"type": "text", "text": user_prompt})
 
         return [{"role": "user", "content": content}]
 
@@ -618,7 +627,8 @@ class ContractAnalyzer:
     def _compute_cost(self) -> float:
         """
         Calcule le coût estimé en USD basé sur l'usage de tokens.
-        Tarifs GPT-4o: $2.50/M input, $10/M output.
+        Tarifs GPT-4o (2026): $2.50/M input, $10.00/M output.
+        À mettre à jour lors du passage à Claude (tarifs différents).
         """
         input_cost = (self._total_input_tokens / 1_000_000) * 2.50
         output_cost = (self._total_output_tokens / 1_000_000) * 10.0
@@ -636,5 +646,11 @@ class ContractAnalyzer:
 
     @staticmethod
     async def _report_progress(callback: Any, pct: int, step: str) -> None:
+        """Supporte les callbacks sync (Celery) ET async (tests/streaming)."""
         if callback:
-            await callback(pct, step)
+            import inspect
+
+            if inspect.iscoroutinefunction(callback):
+                await callback(pct, step)
+            else:
+                callback(pct, step)

@@ -17,6 +17,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from app.api.routes.analysis import router as analysis_router
 from app.api.routes.contracts import router as contracts_router
 from app.core.config import get_settings
 
@@ -66,6 +67,7 @@ Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 app.include_router(contracts_router, prefix=settings.API_PREFIX)
+app.include_router(analysis_router, prefix=settings.API_PREFIX)
 
 
 @app.get("/health", tags=["monitoring"])

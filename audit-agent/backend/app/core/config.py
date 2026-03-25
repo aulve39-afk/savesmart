@@ -55,9 +55,10 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: SecretStr = Field(default="your-secret-key")  # type: ignore[assignment]
     S3_SIGNED_URL_TTL_SECONDS: int = 900  # 15 minutes
 
-    # ── OpenAI ────────────────────────────────────────────────────────────────
-    OPENAI_API_KEY: SecretStr = Field(default="sk-...")  # type: ignore[assignment]
-    OPENAI_BASE_URL: AnyHttpUrl | None = None  # None = API directe OpenAI
+    # ── OpenAI / GPT-4o ──────────────────────────────────────────────────────
+    OPENAI_API_KEY: SecretStr = Field(default="sk-proj-...")  # type: ignore[assignment]
+    OPENAI_BASE_URL: str | None = None  # Optionnel: proxy/Azure endpoint
+    # Modèle à utiliser pour la phase de dev (bascule vers Claude plus tard)
     CLAUDE_MODEL: str = "gpt-4o"
     CLAUDE_MAX_TOKENS: int = 8192
     CLAUDE_TEMPERATURE: float = 0.0  # Déterminisme maximal pour extraction

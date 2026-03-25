@@ -8,7 +8,7 @@ pydantic==2.10.6
 pydantic-settings==2.7.1
 
 # ── AI / LLM ──────────────────────────────────────────────────────────────────
-openai==1.75.0                 # GPT-4o + Vision
+openai==1.75.0                 # GPT-4o (OpenAI SDK — dev phase)
 
 # ── PDF Processing ────────────────────────────────────────────────────────────
 pymupdf==1.25.3                # PyMuPDF: fast native PDF text extraction
@@ -19,7 +19,6 @@ Pillow==11.1.0                 # Image manipulation for OCR pages
 presidio-analyzer==2.2.355
 presidio-anonymizer==2.2.355
 spacy==3.8.2
-# After install: python -m spacy download fr_core_news_lg
 
 # ── Database ──────────────────────────────────────────────────────────────────
 supabase==2.13.0

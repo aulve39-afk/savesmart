@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# Mais on commit les fichiers exemple (pas de secrets dedans)
+!.env.example
+!**/.env.example
 
 # vercel
 .vercel
@@ -39,3 +42,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Dossier dupliqué (à supprimer)
+savesmart/
