@@ -5,6 +5,7 @@ import './globals.css'
 import Providers from './providers'
 import PwaSetup from './components/PwaSetup'
 import InstallBanner from './components/InstallBanner'
+import StyledJsxRegistry from './registry'
 
 const geistSans = GeistSans
 const geistMono = GeistMono
@@ -99,7 +100,7 @@ export default function RootLayout({
         onTouchStart={} vide sur body = fix iOS Safari :active.
       */}
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        <StyledJsxRegistry><Providers>{children}</Providers></StyledJsxRegistry>
         {/* PWA: service worker + Capacitor native setup */}
         <PwaSetup />
         {/* Install banner (iOS & Android Chrome) */}
