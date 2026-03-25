@@ -64,7 +64,7 @@ export default function SettingsPage() {
               <span className="section-title">{title}</span>
             </div>
             <div className="section-body">
-              {items.map(({ label, value, badge }) => (
+              {items.map(({ label, value, badge }: { label: string; value: string; badge?: string }) => (
                 <div key={label} className="setting-row">
                   <div className="setting-info">
                     <span className="setting-label">{label}</span>
