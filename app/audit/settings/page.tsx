@@ -38,7 +38,7 @@ const SETTINGS_SECTIONS = [
     icon: Globe,
     title: 'Langue & Localisation',
     items: [
-      { label: 'Langue d'interface', value: 'Français' },
+      { label: "Langue d'interface", value: 'Français' },
       { label: 'Devise par défaut', value: 'Euro (€)' },
       { label: 'Format de date', value: 'JJ/MM/AAAA' },
     ],
