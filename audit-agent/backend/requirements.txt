@@ -58,6 +58,10 @@ tenacity==9.0.0                # Exponential retry
 structlog==25.1.0              # Structured logging
 python-ulid==3.0.0             # Sortable unique IDs
 
+# ── Unsubscribe.ai — Résiliation Engine ──────────────────────────────────────
+stripe==11.4.1                 # Usage-based billing (Stripe Meters API)
+jinja2==3.1.6                  # Templating HTML lettre (Prompt-to-PDF)
+weasyprint==62.3               # HTML → PDF (lettres de résiliation)
 # ── Dev / Test ────────────────────────────────────────────────────────────────
 pytest==8.3.4
 pytest-asyncio==0.25.3
