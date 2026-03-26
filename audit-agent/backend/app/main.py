@@ -19,6 +19,7 @@ from slowapi.util import get_remote_address
 
 from app.api.routes.analysis import router as analysis_router
 from app.api.routes.contracts import router as contracts_router
+from app.api.routes.termination import router as termination_router
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -68,6 +69,7 @@ Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 # ── Routes ────────────────────────────────────────────────────────────────────
 app.include_router(contracts_router, prefix=settings.API_PREFIX)
 app.include_router(analysis_router, prefix=settings.API_PREFIX)
+app.include_router(termination_router, prefix=settings.API_PREFIX)
 
 
 @app.get("/health", tags=["monitoring"])
