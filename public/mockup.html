@@ -1535,5 +1535,184 @@ window.addEventListener('load', function() {
 });
 </script>
 
+<!-- ══════════════════════════════════════════════════════ BOUTON FLOTTANT DÉMO -->
+<button onclick="showDemoModal()"
+  class="fixed bottom-6 right-6 z-40 bg-brand-600 hover:bg-brand-700 text-white font-bold px-5 py-3.5 rounded-2xl shadow-xl hover:shadow-brand-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 no-print"
+  style="box-shadow:0 8px 32px rgba(79,70,229,0.35)">
+  <svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
+    <path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>
+  </svg>
+  Demander une démo gratuite
+</button>
+
+<!-- ══════════════════════════════════════════════════════ MODAL DÉMO -->
+<div id="modal-demo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden" onclick="if(event.target===this)closeDemoModal()">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-slide-in">
+
+    <!-- Header dégradé -->
+    <div class="bg-gradient-to-br from-brand-600 to-purple-600 px-8 py-7 text-white relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
+      <div class="relative">
+        <div class="text-xs font-semibold text-white/60 uppercase tracking-widest mb-2">Unsubscribe.ai</div>
+        <h2 class="text-2xl font-black mb-1">Démo gratuite 30 min</h2>
+        <p class="text-white/70 text-sm">On analyse un de vos vrais contrats en direct. Zéro engagement.</p>
+        <div class="flex items-center gap-4 mt-4 text-xs font-semibold text-white/80">
+          <span class="flex items-center gap-1.5"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Réponse sous 24h</span>
+          <span class="flex items-center gap-1.5"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Sans engagement</span>
+          <span class="flex items-center gap-1.5"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>100% gratuit</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="px-8 py-6">
+      <div id="demo-form-wrap">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="text-xs font-semibold text-slate-600 block mb-1.5">Email professionnel *</label>
+            <input id="demo-email" type="email" placeholder="jean@entreprise.fr"
+              class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all placeholder-slate-300"/>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-600 block mb-1.5">Société *</label>
+            <input id="demo-company" type="text" placeholder="TechCorp SAS"
+              class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all placeholder-slate-300"/>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="text-xs font-semibold text-slate-600 block mb-1.5">Téléphone</label>
+          <input id="demo-phone" type="tel" placeholder="+33 6 12 34 56 78"
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all placeholder-slate-300"/>
+        </div>
+        <div class="mb-5">
+          <label class="text-xs font-semibold text-slate-600 block mb-1.5">Combien de contrats à résilier ? <span class="text-slate-400 font-normal">(optionnel)</span></label>
+          <textarea id="demo-message" rows="2" placeholder="Ex : 3 contrats télécom, 2 SaaS — environ 15 000 €/an..."
+            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all placeholder-slate-300 resize-none"></textarea>
+        </div>
+        <div id="demo-error" class="hidden mb-4 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3.5 py-2.5"></div>
+        <div class="flex items-center gap-3">
+          <button onclick="closeDemoModal()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors">
+            Annuler
+          </button>
+          <button onclick="submitDemo()" id="demo-submit"
+            class="flex-1 bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+            <svg width="15" height="15" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+            <span id="demo-submit-text">Réserver ma démo gratuite</span>
+          </button>
+        </div>
+        <p class="text-xs text-slate-400 text-center mt-3">
+          Pas de spam · Conformité RGPD · Données hébergées en EU
+        </p>
+      </div>
+
+      <!-- Succès -->
+      <div id="demo-success" class="hidden text-center py-4">
+        <div class="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg width="32" height="32" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3 class="text-lg font-black text-slate-900 mb-2">Demande envoyée !</h3>
+        <p class="text-sm text-slate-500 mb-1">On revient vers vous sous <strong>24h</strong> pour caler la démo.</p>
+        <p class="text-xs text-slate-400 mb-5">Vérifiez vos spams si vous ne recevez pas d'email.</p>
+        <button onclick="closeDemoModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-colors">
+          Fermer
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ SCRIPT DÉMO -->
+<script>
+var SUPA_URL  = 'https://swjpcqinfawyirlqgeqd.supabase.co';
+var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3anBjcWluZmF3eWlybHFnZXFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDg4MzAsImV4cCI6MjA5MDAyNDgzMH0.nTc4DZOA-srt7BPw659NUEZWYIo8SUIEGj2nx77UMvI';
+
+function showDemoModal() {
+  document.getElementById('modal-demo').classList.remove('hidden');
+  setTimeout(function() { document.getElementById('demo-email').focus(); }, 100);
+}
+
+function closeDemoModal() {
+  document.getElementById('modal-demo').classList.add('hidden');
+  // Reset
+  document.getElementById('demo-email').value    = '';
+  document.getElementById('demo-company').value  = '';
+  document.getElementById('demo-phone').value    = '';
+  document.getElementById('demo-message').value  = '';
+  document.getElementById('demo-error').classList.add('hidden');
+  document.getElementById('demo-success').classList.add('hidden');
+  document.getElementById('demo-form-wrap').classList.remove('hidden');
+  document.getElementById('demo-submit-text').textContent = 'Réserver ma démo gratuite';
+  document.getElementById('demo-submit').disabled = false;
+}
+
+function submitDemo() {
+  var email   = document.getElementById('demo-email').value.trim();
+  var company = document.getElementById('demo-company').value.trim();
+  var phone   = document.getElementById('demo-phone').value.trim();
+  var message = document.getElementById('demo-message').value.trim();
+  var errEl   = document.getElementById('demo-error');
+  var submitBtn = document.getElementById('demo-submit');
+
+  // Validation
+  if (!email || !email.includes('@')) {
+    errEl.textContent = 'Veuillez saisir un email valide.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (!company) {
+    errEl.textContent = 'Veuillez indiquer le nom de votre société.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
+
+  // Chargement
+  submitBtn.disabled = true;
+  document.getElementById('demo-submit-text').innerHTML = '<span class="spin">⟳</span>&nbsp;Envoi...';
+
+  fetch(SUPA_URL + '/rest/v1/leads', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_ANON,
+      'Authorization': 'Bearer ' + SUPA_ANON,
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      email:   email,
+      company: company,
+      phone:   phone || null,
+      message: message || null,
+      source:  'mockup'
+    })
+  })
+  .then(function(res) {
+    if (res.ok || res.status === 201) {
+      document.getElementById('demo-form-wrap').classList.add('hidden');
+      document.getElementById('demo-success').classList.remove('hidden');
+    } else if (res.status === 409) {
+      // Email déjà inscrit
+      document.getElementById('demo-form-wrap').classList.add('hidden');
+      document.getElementById('demo-success').classList.remove('hidden');
+    } else {
+      return res.text().then(function(t) { throw new Error(t); });
+    }
+  })
+  .catch(function(err) {
+    submitBtn.disabled = false;
+    document.getElementById('demo-submit-text').textContent = 'Réserver ma démo gratuite';
+    errEl.textContent = 'Erreur réseau. Réessayez ou contactez-nous directement.';
+    errEl.classList.remove('hidden');
+    console.error('Supabase error:', err);
+  });
+}
+
+// Fermer avec Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeDemoModal();
+});
+</script>
+
 </body>
 </html>
