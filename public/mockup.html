@@ -90,6 +90,16 @@
   .step-done { background:#f0fdf4; border-color:#86efac; }
   .step-active { border-color:#4f46e5; border-width:2px; box-shadow:0 4px 12px rgba(79,70,229,0.15); }
 
+  /* Landing page */
+  .landing-page { display:none; }
+  .landing-page.active { display:block; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .float { animation:float 3s ease-in-out infinite; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+  .fade-up { animation:fadeUp 0.6s ease-out forwards; }
+  .fade-up-2 { animation:fadeUp 0.6s 0.15s ease-out both; }
+  .fade-up-3 { animation:fadeUp 0.6s 0.3s ease-out both; }
+
   /* Print */
   @media print {
     aside, header, .no-print { display:none !important; }
@@ -101,8 +111,256 @@
 </head>
 <body class="min-h-screen">
 
+<!-- ═══════════════════════════════════════════════════════ LANDING PAGE -->
+<div id="landing" class="landing-page active">
+<div class="min-h-screen bg-white">
+
+  <!-- NAV -->
+  <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-100 px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
+          <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 14l-4-4 4-4M15 10l4 4-4 4M13 5l-2 14"/></svg>
+        </div>
+        <span class="font-black text-slate-900">Unsubscribe<span class="text-brand-600">.ai</span></span>
+      </div>
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+        <a href="#fonctionnement" class="hover:text-brand-600 transition-colors">Comment ça marche</a>
+        <a href="#tarifs" class="hover:text-brand-600 transition-colors">Tarifs</a>
+        <a href="#temoignages" class="hover:text-brand-600 transition-colors">Témoignages</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="enterApp()" class="text-sm font-semibold text-brand-600 hover:text-brand-700 transition-colors hidden sm:block">Se connecter</button>
+        <button onclick="showDemoModal()" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors">Démo gratuite</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="pt-20 pb-24 px-6 text-center relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-brand-50/60 to-white pointer-events-none"></div>
+    <div class="absolute top-10 left-1/4 w-64 h-64 bg-brand-100 rounded-full blur-3xl opacity-40"></div>
+    <div class="absolute top-20 right-1/4 w-48 h-48 bg-purple-100 rounded-full blur-3xl opacity-40"></div>
+    <div class="relative max-w-4xl mx-auto">
+      <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-100 text-brand-700 text-xs font-bold px-4 py-1.5 rounded-full mb-8 fade-up">
+        <div class="w-2 h-2 rounded-full bg-brand-500 animate-pulse-slow"></div>
+        Plateforme B2B · Résiliation de contrats par IA
+      </div>
+      <h1 class="text-5xl sm:text-6xl font-black text-slate-900 leading-tight mb-6 fade-up-2">
+        Résiliez vos contrats<br/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-purple-600">avant qu'ils vous coûtent</span>
+      </h1>
+      <p class="text-xl text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed fade-up-3">
+        L'IA analyse vos contrats, détecte les fenêtres de résiliation, génère la lettre légale et envoie la LRE AR24. Zéro effort, économies garanties.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 fade-up-3">
+        <button onclick="showDemoModal()" class="w-full sm:w-auto bg-brand-600 hover:bg-brand-700 text-white font-bold px-8 py-4 rounded-2xl text-base shadow-xl hover:shadow-brand-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
+          Demander une démo gratuite →
+        </button>
+        <button onclick="enterApp()" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700 font-semibold px-8 py-4 rounded-2xl text-base border border-slate-200 hover:border-slate-300 transition-all flex items-center justify-center gap-2">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Voir la démo interactive
+        </button>
+      </div>
+      <!-- Preuves sociales -->
+      <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-400 fade-up-3">
+        <span class="flex items-center gap-1.5"><svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Sans engagement</span>
+        <span class="flex items-center gap-1.5"><svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Conforme RGPD · Données EU</span>
+        <span class="flex items-center gap-1.5"><svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>LRE eIDAS valeur légale</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="py-16 px-6 bg-slate-900">
+    <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      <div>
+        <div class="text-4xl font-black text-white mb-1">14 800 €</div>
+        <div class="text-slate-400 text-sm">économisés en moyenne / an</div>
+      </div>
+      <div>
+        <div class="text-4xl font-black text-emerald-400 mb-1">97%</div>
+        <div class="text-slate-400 text-sm">de taux de succès</div>
+      </div>
+      <div>
+        <div class="text-4xl font-black text-white mb-1">&lt; 5 min</div>
+        <div class="text-slate-400 text-sm">pour résilier un contrat</div>
+      </div>
+      <div>
+        <div class="text-4xl font-black text-purple-400 mb-1">100%</div>
+        <div class="text-slate-400 text-sm">valeur légale eIDAS</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMENT ÇA MARCHE -->
+  <section id="fonctionnement" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16">
+        <div class="text-xs font-bold text-brand-600 uppercase tracking-widest mb-3">Processus</div>
+        <h2 class="text-4xl font-black text-slate-900">4 étapes, zéro effort</h2>
+      </div>
+      <div class="grid md:grid-cols-4 gap-6">
+        <div class="text-center p-6">
+          <div class="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center mx-auto mb-4 float" style="animation-delay:0s">
+            <svg width="28" height="28" fill="none" stroke="#4f46e5" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="text-xs font-bold text-brand-500 mb-2">Étape 01</div>
+          <h3 class="font-bold text-slate-900 mb-2">Upload</h3>
+          <p class="text-sm text-slate-500">Déposez votre contrat PDF. L'OCR extrait tout le texte automatiquement.</p>
+        </div>
+        <div class="text-center p-6">
+          <div class="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-4 float" style="animation-delay:0.3s">
+            <svg width="28" height="28" fill="none" stroke="#7c3aed" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <div class="text-xs font-bold text-purple-500 mb-2">Étape 02</div>
+          <h3 class="font-bold text-slate-900 mb-2">Analyse IA</h3>
+          <p class="text-sm text-slate-500">GPT-4o détecte les clauses critiques, calcule le préavis optimal et le risque juridique.</p>
+        </div>
+        <div class="text-center p-6">
+          <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4 float" style="animation-delay:0.6s">
+            <svg width="28" height="28" fill="none" stroke="#d97706" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="text-xs font-bold text-amber-500 mb-2">Étape 03</div>
+          <h3 class="font-bold text-slate-900 mb-2">Lettre légale</h3>
+          <p class="text-sm text-slate-500">Génération automatique avec fondement juridique exact (Loi Chatel, Code Conso…)</p>
+        </div>
+        <div class="text-center p-6">
+          <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 float" style="animation-delay:0.9s">
+            <svg width="28" height="28" fill="none" stroke="#10b981" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          </div>
+          <div class="text-xs font-bold text-emerald-500 mb-2">Étape 04</div>
+          <h3 class="font-bold text-slate-900 mb-2">LRE AR24</h3>
+          <p class="text-sm text-slate-500">Envoi automatique par Lettre Recommandée Électronique avec preuve opposable eIDAS.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TARIFS -->
+  <section id="tarifs" class="py-24 px-6 bg-slate-50">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-16">
+        <div class="text-xs font-bold text-brand-600 uppercase tracking-widest mb-3">Tarifs</div>
+        <h2 class="text-4xl font-black text-slate-900">Paiement au résultat</h2>
+        <p class="text-slate-500 mt-3">Zéro abonnement. Vous payez uniquement quand ça marche.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200">
+          <div class="text-sm font-bold text-slate-500 mb-4">Lettre générée</div>
+          <div class="text-4xl font-black text-slate-900 mb-1">0,99 €</div>
+          <div class="text-xs text-slate-400 mb-5">par lettre</div>
+          <ul class="space-y-2 text-sm text-slate-600">
+            <li class="flex items-center gap-2"><svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Template Jinja2 + GPT-4o</li>
+            <li class="flex items-center gap-2"><svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Base légale injectée</li>
+            <li class="flex items-center gap-2"><svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Export PDF</li>
+          </ul>
+        </div>
+        <div class="bg-brand-600 rounded-2xl p-6 border border-brand-500 relative shadow-xl shadow-brand-500/20">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">POPULAIRE</div>
+          <div class="text-sm font-bold text-white/70 mb-4">Envoi LRE</div>
+          <div class="text-4xl font-black text-white mb-1">4,90 €</div>
+          <div class="text-xs text-white/60 mb-5">par LRE envoyée</div>
+          <ul class="space-y-2 text-sm text-white/80">
+            <li class="flex items-center gap-2"><svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>AR24 · eIDAS Niveau 1</li>
+            <li class="flex items-center gap-2"><svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Preuve de dépôt légale</li>
+            <li class="flex items-center gap-2"><svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Accusé réception inclus</li>
+          </ul>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-slate-200">
+          <div class="text-sm font-bold text-slate-500 mb-4">Succès résiliation</div>
+          <div class="text-4xl font-black text-slate-900 mb-1">5%</div>
+          <div class="text-xs text-slate-400 mb-5">des économies réalisées (max 500 €)</div>
+          <ul class="space-y-2 text-sm text-slate-600">
+            <li class="flex items-center gap-2"><svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Commission au succès</li>
+            <li class="flex items-center gap-2"><svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Suivi AR automatique</li>
+            <li class="flex items-center gap-2"><svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Dashboard économies</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TÉMOIGNAGES -->
+  <section id="temoignages" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16">
+        <div class="text-xs font-bold text-brand-600 uppercase tracking-widest mb-3">Témoignages</div>
+        <h2 class="text-4xl font-black text-slate-900">Ils ont économisé</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+          <div class="flex items-center gap-1 mb-4">
+            <span class="text-amber-400 text-sm">★★★★★</span>
+          </div>
+          <p class="text-slate-600 text-sm leading-relaxed mb-5">« On avait 3 contrats télécom en renouvellement tacite. Unsubscribe.ai a tout géré en 10 minutes. 7 200 €/an économisés. »</p>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-sm">ML</div>
+            <div><div class="text-xs font-bold text-slate-800">Marie L.</div><div class="text-xs text-slate-400">DAF · PME 45 salariés</div></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+          <div class="flex items-center gap-1 mb-4">
+            <span class="text-amber-400 text-sm">★★★★★</span>
+          </div>
+          <p class="text-slate-600 text-sm leading-relaxed mb-5">« L'IA a détecté une clause de renouvellement tacite qu'on avait complètement ratée. La LRE est partie 5 jours avant la deadline. »</p>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold text-sm">TK</div>
+            <div><div class="text-xs font-bold text-slate-800">Thomas K.</div><div class="text-xs text-slate-400">CEO · SaaS B2B</div></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+          <div class="flex items-center gap-1 mb-4">
+            <span class="text-amber-400 text-sm">★★★★★</span>
+          </div>
+          <p class="text-slate-600 text-sm leading-relaxed mb-5">« Notre DAF passait 2h par mois à gérer les contrats. Maintenant c'est 0. Le tableau de bord économies est bluffant. »</p>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm">SR</div>
+            <div><div class="text-xs font-bold text-slate-800">Sophie R.</div><div class="text-xs text-slate-400">COO · Scale-up 120p</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="py-24 px-6 bg-gradient-to-br from-brand-600 to-purple-700 text-center relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle at 2px 2px, white 1px, transparent 0);background-size:32px 32px"></div>
+    <div class="relative max-w-2xl mx-auto">
+      <h2 class="text-4xl font-black text-white mb-4">Combien perdez-vous chaque mois ?</h2>
+      <p class="text-white/70 text-lg mb-10">Démo 30 min gratuite. On analyse un vrai contrat en direct.</p>
+      <button onclick="showDemoModal()" class="bg-white text-brand-700 font-black px-10 py-5 rounded-2xl text-lg shadow-2xl hover:scale-[1.03] active:scale-[0.98] transition-all">
+        Réserver ma démo gratuite →
+      </button>
+      <div class="flex items-center justify-center gap-6 mt-8 text-sm text-white/60">
+        <span>Réponse sous 24h</span>
+        <span>·</span>
+        <span>Sans engagement</span>
+        <span>·</span>
+        <span>Données EU</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 px-6 py-12">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-brand-600 flex items-center justify-center">
+          <svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 14l-4-4 4-4M15 10l4 4-4 4M13 5l-2 14"/></svg>
+        </div>
+        <span class="font-black text-white text-sm">Unsubscribe<span class="text-brand-400">.ai</span></span>
+      </div>
+      <div class="text-slate-500 text-xs text-center">Hébergé en Europe · RGPD · eIDAS · © 2026 Unsubscribe.ai</div>
+      <button onclick="enterApp()" class="text-xs font-semibold text-brand-400 hover:text-brand-300 transition-colors">Voir la démo interactive →</button>
+    </div>
+  </footer>
+
+</div>
+</div>
+
 <!-- ═══════════════════════════════════════════════════════ LAYOUT -->
-<div class="flex h-screen overflow-hidden">
+<div id="app-layout" class="flex h-screen overflow-hidden" style="display:none">
 
 <!-- ─────────────────────────────────────────────────────── SIDEBAR -->
 <aside class="w-60 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
@@ -1127,8 +1385,7 @@
 <!-- FIN PAGE SAVINGS -->
 
 </main>
-</div>
-<!-- FIN LAYOUT -->
+</div><!-- FIN APP LAYOUT -->
 
 <!-- ══════════════════════════════════════════════════════ MODAL SIGNATURE -->
 <div id="modal-sign" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden" onclick="closeSignModal()">
@@ -1184,6 +1441,16 @@
 
 <!-- ══════════════════════════════════════════════════════ JAVASCRIPT COMPLET -->
 <script>
+// ═══════════════════════════════════════════════════════════
+// LANDING ↔ APP
+// ═══════════════════════════════════════════════════════════
+function enterApp() {
+  document.getElementById('landing').classList.remove('active');
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('app-layout').style.display = 'flex';
+  showPage('dashboard');
+}
+
 // ═══════════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════
