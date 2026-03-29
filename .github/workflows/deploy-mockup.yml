@@ -1,0 +1,56 @@
+name: Deploy Mockup → GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'public/mockup.html'
+      - '.github/workflows/deploy-mockup.yml'
+  workflow_dispatch: # Permet de lancer manuellement depuis GitHub
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Préparer le dossier de déploiement
+        run: |
+          mkdir -p ./deploy
+          # Copier le mockup comme page principale
+          cp public/mockup.html ./deploy/index.html
+          cp public/mockup.html ./deploy/mockup.html
+          # Page de redirection simple
+          cat > ./deploy/404.html << 'EOF'
+          <!DOCTYPE html>
+          <html><head>
+          <meta charset="UTF-8">
+          <meta http-equiv="refresh" content="0; url=/">
+          <title>Unsubscribe.ai</title>
+          </head><body>Redirection...</body></html>
+          EOF
+          echo "✅ Fichiers prêts :"
+          ls -la ./deploy/
+
+      - name: Upload artifact GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./deploy
+
+      - name: Déployer sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
