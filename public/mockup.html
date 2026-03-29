@@ -3,22 +3,21 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Unsubscribe.ai — Audit Résultat</title>
+<title>Unsubscribe.ai — Résiliation Intelligente</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
     theme: {
       extend: {
         colors: {
-          brand: { 50:'#eef2ff', 100:'#e0e7ff', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca' },
+          brand: { 50:'#eef2ff', 100:'#e0e7ff', 200:'#c7d2fe', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca' },
         },
         animation: {
           'pulse-slow': 'pulse 2.5s cubic-bezier(0.4,0,0.6,1) infinite',
-          'slide-in': 'slideIn 0.4s ease-out',
-          'count-up': 'countUp 1.2s ease-out',
+          'slide-in': 'slideIn 0.35s ease-out',
         },
         keyframes: {
-          slideIn: { '0%': { opacity:'0', transform:'translateY(12px)' }, '100%': { opacity:'1', transform:'translateY(0)' } },
+          slideIn: { '0%': { opacity:'0', transform:'translateY(10px)' }, '100%': { opacity:'1', transform:'translateY(0)' } },
         }
       }
     }
@@ -26,626 +25,1515 @@
 </script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-  * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
-  body { background: #f1f5f9; }
+  * { font-family:'Inter',sans-serif; box-sizing:border-box; }
+  body { background:#f1f5f9; }
 
-  /* Sidebar active */
-  .nav-item.active { background: #4f46e5; color: white; }
-  .nav-item.active svg { stroke: white; }
-  .nav-item { transition: all 0.15s; }
-  .nav-item:hover:not(.active) { background: #e0e7ff; color: #4338ca; }
+  /* Sidebar */
+  .nav-item { transition:all 0.15s; border-radius:0.75rem; }
+  .nav-item:hover:not(.active) { background:#e0e7ff; color:#4338ca; }
+  .nav-item.active { background:#4f46e5; color:white; }
+  .nav-item.active svg { stroke:white !important; }
 
-  /* Card hover */
-  .card-hover { transition: box-shadow 0.2s, transform 0.2s; }
-  .card-hover:hover { box-shadow: 0 8px 30px rgba(79,70,229,0.12); transform: translateY(-2px); }
+  /* Cards */
+  .card { background:white; border-radius:1rem; border:1px solid #f1f5f9; }
+  .card-hover { transition:box-shadow 0.2s,transform 0.2s; }
+  .card-hover:hover { box-shadow:0 8px 30px rgba(79,70,229,0.10); transform:translateY(-2px); }
 
-  /* Risk gauge arc */
-  .gauge-bg { fill: none; stroke: #f1f5f9; stroke-width: 12; }
-  .gauge-fill { fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(0.34,1.56,0.64,1); }
-
-  /* Timeline marker pulse */
-  @keyframes ring-pulse {
-    0%   { transform: scale(1);   opacity: 0.8; }
-    70%  { transform: scale(2.2); opacity: 0;   }
-    100% { transform: scale(2.2); opacity: 0;   }
-  }
-  .ring-pulse::after {
-    content: ''; position: absolute; inset: -4px;
-    border-radius: 50%; border: 2px solid currentColor;
-    animation: ring-pulse 1.8s ease-out infinite;
-  }
-
-  /* LRE button shimmer */
-  @keyframes shimmer {
-    0%   { background-position: -200% center; }
-    100% { background-position: 200% center; }
-  }
-  .btn-lre {
-    background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 40%, #4f46e5 80%, #4f46e5 100%);
-    background-size: 200% auto;
-    animation: shimmer 3s linear infinite;
-  }
-  .btn-lre:hover { animation-duration: 1.2s; }
-
-  /* Badge urgence */
+  /* Badges */
   .badge-ok       { background:#dcfce7; color:#15803d; border:1px solid #86efac; }
   .badge-warning  { background:#fef3c7; color:#b45309; border:1px solid #fde68a; }
   .badge-critical { background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; }
+  .badge-expired  { background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; }
+
+  /* Pages */
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* Gauge */
+  .gauge-bg  { fill:none; stroke:#f1f5f9; stroke-width:14; }
+  .gauge-fill{ fill:none; stroke-width:14; stroke-linecap:round; }
+
+  /* Timeline pulse */
+  @keyframes ring-pulse {
+    0%  { transform:scale(1);   opacity:0.8; }
+    70% { transform:scale(2.2); opacity:0;   }
+    100%{ transform:scale(2.2); opacity:0;   }
+  }
+  .ring-pulse::after {
+    content:''; position:absolute; inset:-4px;
+    border-radius:50%; border:2px solid currentColor;
+    animation:ring-pulse 1.8s ease-out infinite;
+  }
+
+  /* LRE shimmer */
+  @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+  .btn-lre {
+    background:linear-gradient(90deg,#4f46e5 0%,#7c3aed 40%,#4f46e5 80%,#4f46e5 100%);
+    background-size:200% auto;
+    animation:shimmer 3s linear infinite;
+  }
 
   /* Letter paper */
-  .letter-paper {
-    background: #fffef7;
-    border: 1px solid #e5e4d0;
-    box-shadow: 2px 4px 12px rgba(0,0,0,0.06);
-    font-family: 'Georgia', serif;
+  .letter-paper { background:#fffef7; border:1px solid #e5e4d0; font-family:'Georgia',serif; box-shadow:2px 4px 12px rgba(0,0,0,0.06); }
+
+  /* Spin */
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .spin { display:inline-block; animation:spin 0.8s linear infinite; }
+
+  /* Signature canvas */
+  #sig-canvas { cursor:crosshair; touch-action:none; }
+
+  /* Upload drag zone */
+  .drag-over { border-color:#4f46e5 !important; background:#eef2ff !important; }
+
+  /* Step done */
+  .step-done { background:#f0fdf4; border-color:#86efac; }
+  .step-active { border-color:#4f46e5; border-width:2px; box-shadow:0 4px 12px rgba(79,70,229,0.15); }
+
+  /* Print */
+  @media print {
+    aside, header, .no-print { display:none !important; }
+    body { background:white !important; }
+    .letter-paper { box-shadow:none !important; border:none !important; }
+    #page-letter { display:block !important; }
   }
 </style>
 </head>
 <body class="min-h-screen">
 
-<!-- ═══════════════════════════════════════════════════════════
-     LAYOUT WRAPPER
-═══════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════ LAYOUT -->
 <div class="flex h-screen overflow-hidden">
 
-  <!-- ─── SIDEBAR ──────────────────────────────────────────── -->
-  <aside class="w-60 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
+<!-- ─────────────────────────────────────────────────────── SIDEBAR -->
+<aside class="w-60 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
 
-    <!-- Logo -->
-    <div class="px-5 py-5 border-b border-slate-100">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
-          <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
-            <path d="M9 14l-4-4 4-4M15 10l4 4-4 4M13 5l-2 14"/>
-          </svg>
-        </div>
-        <div>
-          <div class="font-black text-slate-900 text-sm leading-tight">Unsubscribe</div>
-          <div class="font-bold text-brand-600 text-xs">.ai</div>
-        </div>
+  <!-- Logo -->
+  <div class="px-5 py-5 border-b border-slate-100">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
+        <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M9 14l-4-4 4-4M15 10l4 4-4 4M13 5l-2 14"/>
+        </svg>
       </div>
-    </div>
-
-    <!-- Nav -->
-    <nav class="flex-1 px-3 py-4 space-y-1">
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 cursor-pointer">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        Dashboard
-      </a>
-      <a href="#" class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 12h6M9 16h6M9 8h2M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
-        Audit Contrat
-      </a>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 cursor-pointer">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-        Historique
-      </a>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 cursor-pointer">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Économies
-      </a>
-      <div class="pt-3 pb-1 px-3">
-        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Paramètres</div>
-      </div>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 cursor-pointer">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-        Profil
-      </a>
-    </nav>
-
-    <!-- User -->
-    <div class="px-4 py-4 border-t border-slate-100">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">JD</div>
-        <div class="flex-1 min-w-0">
-          <div class="text-xs font-semibold text-slate-800 truncate">Jean Dupont</div>
-          <div class="text-xs text-slate-400">Plan Pro</div>
-        </div>
-        <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- ─── MAIN ──────────────────────────────────────────────── -->
-  <main class="flex-1 overflow-y-auto">
-
-    <!-- Top bar -->
-    <header class="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between">
       <div>
-        <div class="flex items-center gap-2 text-xs text-slate-400 mb-0.5">
-          <span>Contrats</span>
-          <span>›</span>
-          <span class="text-brand-600 font-medium">Audit Résultat</span>
-        </div>
-        <h1 class="text-lg font-bold text-slate-900">Contrat SFR Business — Fibre Pro 1 Gb</h1>
+        <div class="font-black text-slate-900 text-sm leading-tight">Unsubscribe</div>
+        <div class="font-bold text-brand-600 text-xs">.ai</div>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="badge-critical text-xs font-bold px-3 py-1.5 rounded-full">🚨 CRITIQUE — J–6</span>
-        <button class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
-          <svg width="16" height="16" fill="none" stroke="#64748b" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 px-3 py-4 space-y-1">
+    <a onclick="showPage('dashboard')" id="nav-dashboard" class="nav-item active flex items-center gap-3 px-3 py-2.5 text-sm font-semibold cursor-pointer">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Dashboard
+    </a>
+    <a onclick="showPage('upload')" id="nav-upload" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 cursor-pointer">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Nouveau Contrat
+    </a>
+    <a onclick="showPage('audit')" id="nav-audit" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 cursor-pointer">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 12h6M9 16h6M9 8h2M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+      Audit Contrat
+    </a>
+    <a onclick="showPage('letter')" id="nav-letter" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 cursor-pointer">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Lettre & Envoi
+    </a>
+    <a onclick="showPage('savings')" id="nav-savings" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 cursor-pointer">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Mes Économies
+    </a>
+  </nav>
+
+  <!-- User -->
+  <div class="px-4 py-4 border-t border-slate-100">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">JD</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs font-semibold text-slate-800 truncate">Jean Dupont</div>
+        <div class="text-xs text-slate-400">Plan Pro</div>
+      </div>
+      <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ─────────────────────────────────────────────────────── MAIN -->
+<main class="flex-1 overflow-y-auto" id="main-scroll">
+
+<!-- ══════════════════════════════════════════════════════ PAGE: DASHBOARD -->
+<div id="page-dashboard" class="page active animate-slide-in">
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200 px-8 py-4 flex items-center justify-between no-print">
+    <div>
+      <div class="text-xs text-slate-400 mb-0.5">Bonjour, Jean 👋</div>
+      <h1 class="text-lg font-bold text-slate-900">Tableau de Bord</h1>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="showPage('upload')" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors flex items-center gap-2">
+        <svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouveau contrat
+      </button>
+    </div>
+  </header>
+
+  <div class="px-8 py-6 space-y-6">
+
+    <!-- KPI CARDS -->
+    <div class="grid grid-cols-4 gap-4">
+
+      <div class="card card-hover p-5 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-emerald-50 rounded-full -translate-y-6 translate-x-6 opacity-60"></div>
+        <div class="relative">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Économies totales</span>
+          </div>
+          <div class="text-2xl font-black text-emerald-600" id="dash-savings">0 €</div>
+          <div class="text-xs text-slate-400 mt-1">depuis le début</div>
+          <div class="mt-2 text-xs font-semibold text-emerald-600 flex items-center gap-1">
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+            +23% ce mois
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-hover p-5 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-brand-50 rounded-full -translate-y-6 translate-x-6 opacity-60"></div>
+        <div class="relative">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center">
+              <svg width="16" height="16" fill="none" stroke="#4f46e5" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6M9 16h6M9 8h2M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Contrats actifs</span>
+          </div>
+          <div class="text-2xl font-black text-brand-600">8</div>
+          <div class="text-xs text-slate-400 mt-1">sous surveillance IA</div>
+          <div class="mt-2 text-xs text-slate-500">3 en attente d'action</div>
+        </div>
+      </div>
+
+      <div class="card card-hover p-5 relative overflow-hidden border-red-100">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-red-50 rounded-full -translate-y-6 translate-x-6 opacity-60"></div>
+        <div class="relative">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+              <svg width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Alertes urgentes</span>
+          </div>
+          <div class="text-2xl font-black text-red-500">3</div>
+          <div class="text-xs text-slate-400 mt-1">dans les 7 jours</div>
+          <div class="mt-2 flex items-center gap-1.5">
+            <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse-slow"></div>
+            <span class="text-xs font-semibold text-red-500">Action requise</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-hover p-5 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-amber-50 rounded-full -translate-y-6 translate-x-6 opacity-60"></div>
+        <div class="relative">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+              <svg width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Prochaine deadline</span>
+          </div>
+          <div class="text-2xl font-black text-amber-500">J–6</div>
+          <div class="text-xs text-slate-400 mt-1">SFR Business · 02/04/2026</div>
+          <div class="mt-2 text-xs font-semibold text-amber-600">2 400 €/an en jeu</div>
+        </div>
+      </div>
+
+    </div>
+    <!-- FIN KPI CARDS -->
+
+    <!-- LISTE CONTRATS -->
+    <div class="card">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <h2 class="font-bold text-slate-900">Mes Contrats</h2>
+        <button onclick="showPage('upload')" class="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1.5 transition-colors">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter un contrat
         </button>
       </div>
-    </header>
 
-    <div class="px-8 py-6 space-y-6 animate-slide-in">
+      <div class="divide-y divide-slate-50">
 
-      <!-- ══════════════════════════════════════════════════════
-           KPI CARDS
-      ══════════════════════════════════════════════════════ -->
-      <div class="grid grid-cols-3 gap-4">
-
-        <!-- Économies réalisées -->
-        <div class="card-hover bg-white rounded-2xl p-5 border border-slate-100 relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full -translate-y-8 translate-x-8 opacity-60"></div>
-          <div class="relative">
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                <svg width="18" height="18" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-              </div>
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Économies réalisées</span>
-            </div>
-            <div class="text-3xl font-black text-emerald-600 mb-1" id="kpi-savings">0 €</div>
-            <div class="text-xs text-slate-400">3 contrats résiliés cette année</div>
-            <div class="mt-3 flex items-center gap-1 text-xs font-semibold text-emerald-600">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-              +23% vs mois dernier
-            </div>
+        <!-- Contrat 1 : CRITIQUE -->
+        <div class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 cursor-pointer transition-colors group" onclick="showPage('audit')">
+          <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
+            <svg width="20" height="20" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.6 19.79 19.79 0 0 1 1.63 5a2 2 0 0 1 1.99-2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 10.9A16 16 0 0 0 13.1 16.1l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21 17.44"/></svg>
           </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="text-sm font-bold text-slate-900">SFR Business — Fibre Pro 1 Gb</span>
+              <span class="badge-critical text-xs font-bold px-2 py-0.5 rounded-full">CRITIQUE J–6</span>
+            </div>
+            <div class="text-xs text-slate-400">Signé le 15/03/2023 · Renouvellement 15/06/2026 · 200 €/mois</div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div class="text-sm font-bold text-red-600">2 400 €/an</div>
+            <div class="text-xs text-slate-400">à économiser</div>
+          </div>
+          <svg width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" class="group-hover:stroke-brand-600 transition-colors flex-shrink-0"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
 
-        <!-- Économies en cours -->
-        <div class="card-hover bg-white rounded-2xl p-5 border border-slate-100 relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-24 h-24 bg-brand-50 rounded-full -translate-y-8 translate-x-8 opacity-60"></div>
-          <div class="relative">
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-9 h-9 rounded-xl bg-brand-50 flex items-center justify-center">
-                <svg width="18" height="18" fill="none" stroke="#4f46e5" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-              </div>
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">En cours</span>
-            </div>
-            <div class="text-3xl font-black text-brand-600 mb-1" id="kpi-pending">0 €</div>
-            <div class="text-xs text-slate-400">5 plans de résiliation actifs</div>
-            <div class="mt-3 w-full bg-slate-100 rounded-full h-1.5">
-              <div class="bg-brand-500 h-1.5 rounded-full transition-all duration-1000" id="progress-bar" style="width:0%"></div>
-            </div>
+        <!-- Contrat 2 : ATTENTION -->
+        <div class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 cursor-pointer transition-colors group" onclick="showPage('audit')">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+            <svg width="20" height="20" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="text-sm font-bold text-slate-900">Microsoft 365 Business Premium</span>
+              <span class="badge-warning text-xs font-bold px-2 py-0.5 rounded-full">ATTENTION J–28</span>
+            </div>
+            <div class="text-xs text-slate-400">Signé le 01/06/2024 · Renouvellement 01/05/2026 · 85 €/mois</div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div class="text-sm font-bold text-amber-600">1 020 €/an</div>
+            <div class="text-xs text-slate-400">à économiser</div>
+          </div>
+          <svg width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" class="group-hover:stroke-brand-600 transition-colors flex-shrink-0"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
 
-        <!-- Alertes urgentes -->
-        <div class="card-hover bg-white rounded-2xl p-5 border border-red-100 relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-full -translate-y-8 translate-x-8 opacity-60"></div>
-          <div class="relative">
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
-                <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              </div>
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Deadlines urgentes</span>
-            </div>
-            <div class="text-3xl font-black text-red-500 mb-1">3</div>
-            <div class="text-xs text-slate-400">Agir dans les 7 prochains jours</div>
-            <div class="mt-3 flex items-center gap-1.5">
-              <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse-slow"></div>
-              <span class="text-xs font-semibold text-red-500">Action requise maintenant</span>
-            </div>
+        <!-- Contrat 3 : OK -->
+        <div class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 cursor-pointer transition-colors group" onclick="showPage('audit')">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+            <svg width="20" height="20" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
           </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="text-sm font-bold text-slate-900">AWS — EC2 Reserved Instances</span>
+              <span class="badge-ok text-xs font-bold px-2 py-0.5 rounded-full">OK J–90</span>
+            </div>
+            <div class="text-xs text-slate-400">Signé le 01/09/2025 · Renouvellement 01/07/2026 · 340 €/mois</div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div class="text-sm font-bold text-emerald-600">4 080 €/an</div>
+            <div class="text-xs text-slate-400">à économiser</div>
+          </div>
+          <svg width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" class="group-hover:stroke-brand-600 transition-colors flex-shrink-0"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
 
-      </div>
-      <!-- FIN KPI CARDS -->
-
-      <!-- ══════════════════════════════════════════════════════
-           TIMELINE DE RÉSILIATION
-      ══════════════════════════════════════════════════════ -->
-      <div class="bg-white rounded-2xl border border-slate-100 p-6 card-hover">
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h2 class="font-bold text-slate-900 text-base">📅 Fenêtre de Résiliation</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Préavis 3 mois · Loi Chatel · Renouvellement tacite annuel</p>
+        <!-- Contrat 4 : EXPIRÉ -->
+        <div class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 cursor-pointer transition-colors group opacity-70" onclick="showPage('savings')">
+          <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+            <svg width="20" height="20" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
-          <span class="badge-critical text-xs font-bold px-3 py-1.5 rounded-full">J–6 · CRITIQUE</span>
-        </div>
-
-        <!-- Barre timeline -->
-        <div class="relative pt-2 pb-14">
-          <!-- Track grise -->
-          <div class="absolute top-5 left-4 right-4 h-2.5 bg-slate-100 rounded-full"></div>
-
-          <!-- Zone passée (gris foncé) : signature → aujourd'hui -->
-          <div class="absolute top-5 left-4 h-2.5 rounded-l-full bg-slate-300" style="width:66%"></div>
-
-          <!-- Zone "OK" (vert clair) avant la deadline -->
-          <div class="absolute top-5 h-2.5 rounded-r-full bg-red-200" style="left:calc(4px + 66%); width:6%"></div>
-
-          <!-- ── MARQUEUR : Signature (gauche) ── -->
-          <div class="absolute top-1 left-2 flex flex-col items-center" style="width:32px">
-            <div class="w-4 h-4 rounded-full bg-slate-400 border-2 border-white shadow"></div>
-            <div class="mt-8 text-center" style="width:60px; margin-left:-14px">
-              <div class="text-xs font-bold text-slate-500">Signature</div>
-              <div class="text-xs text-slate-400">15/03/2023</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="text-sm font-bold text-slate-600">Orange Pro — Standard</span>
+              <span class="badge-expired text-xs font-bold px-2 py-0.5 rounded-full">RÉSILIÉ</span>
             </div>
+            <div class="text-xs text-slate-400">LRE envoyée le 10/01/2026 · Résiliation effective 10/04/2026</div>
           </div>
-
-          <!-- ── MARQUEUR : Aujourd'hui (curseur animé) ── -->
-          <div class="absolute top-0 flex flex-col items-center" style="left:calc(66% - 8px); width:20px">
-            <div class="ring-pulse relative w-5 h-5 rounded-full bg-brand-600 border-2 border-white shadow-lg cursor-pointer" style="color:#4f46e5"></div>
-            <div class="mt-7 text-center" style="width:72px; margin-left:-26px">
-              <div class="text-xs font-black text-brand-600">Aujourd'hui</div>
-              <div class="text-xs text-slate-400">27/03/2026</div>
-            </div>
+          <div class="text-right flex-shrink-0">
+            <div class="text-sm font-bold text-emerald-600">+ 1 800 €</div>
+            <div class="text-xs text-emerald-500">économisés ✓</div>
           </div>
-
-          <!-- ── MARQUEUR : Deadline (rouge, urgent) ── -->
-          <div class="absolute top-0 flex flex-col items-center" style="left:calc(72% - 8px); width:20px">
-            <div class="relative w-5 h-5 rounded-full bg-red-500 border-2 border-white shadow-lg animate-pulse-slow"></div>
-            <div class="mt-7 text-center" style="width:76px; margin-left:-28px">
-              <div class="text-xs font-black text-red-600">⚠ Deadline</div>
-              <div class="text-xs text-red-400 font-semibold">02/04/2026</div>
-            </div>
-          </div>
-
-          <!-- ── MARQUEUR : Renouvellement (droite) ── -->
-          <div class="absolute top-1 flex flex-col items-center" style="right:2px; width:32px">
-            <div class="w-4 h-4 rounded-full bg-slate-700 border-2 border-white shadow"></div>
-            <div class="mt-8 text-center" style="width:72px; margin-left:-20px">
-              <div class="text-xs font-bold text-slate-700">Renouvellement</div>
-              <div class="text-xs text-slate-400">15/06/2026</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Légende + montant bloqué -->
-        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
-          <div class="flex items-center gap-5 text-xs">
-            <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-sm bg-slate-300"></div><span class="text-slate-500">Passé</span></div>
-            <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-sm bg-red-200"></div><span class="text-slate-500">Fenêtre critique</span></div>
-            <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-sm bg-slate-100 border border-slate-300"></div><span class="text-slate-500">Prochain cycle</span></div>
-          </div>
-          <div class="flex items-center gap-2 text-xs font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            2 400 €/an bloqués si deadline ratée
-          </div>
-        </div>
-      </div>
-      <!-- FIN TIMELINE -->
-
-      <!-- ══════════════════════════════════════════════════════
-           RISK SCORE + LETTER PREVIEW (2 colonnes)
-      ══════════════════════════════════════════════════════ -->
-      <div class="grid grid-cols-5 gap-4">
-
-        <!-- ── RISK SCORE (2/5) ────────────────────────────── -->
-        <div class="col-span-2 bg-white rounded-2xl border border-slate-100 p-6 card-hover">
-          <h2 class="font-bold text-slate-900 text-base mb-1">🛡️ Score de Risque IA</h2>
-          <p class="text-xs text-slate-400 mb-5">Analyse GPT-4o · Confiance 97%</p>
-
-          <!-- Gauge SVG -->
-          <div class="flex justify-center mb-4">
-            <svg width="180" height="100" viewBox="0 0 180 100">
-              <!-- Track -->
-              <path d="M 20 90 A 70 70 0 0 1 160 90" class="gauge-bg" stroke="#f1f5f9" stroke-width="14" fill="none" stroke-linecap="round"/>
-              <!-- Fill (rouge = risque élevé, score 82/100) -->
-              <path id="gauge-arc" d="M 20 90 A 70 70 0 0 1 160 90"
-                fill="none" stroke-linecap="round" stroke-width="14"
-                stroke="#ef4444"
-                stroke-dasharray="220"
-                stroke-dashoffset="220"
-                style="transition: stroke-dashoffset 1.4s cubic-bezier(0.34,1.2,0.64,1)"
-              />
-              <!-- Score texte -->
-              <text x="90" y="78" text-anchor="middle" font-size="32" font-weight="900" fill="#1e293b" font-family="Inter,sans-serif" id="gauge-score">0</text>
-              <text x="90" y="95" text-anchor="middle" font-size="10" fill="#94a3b8" font-family="Inter,sans-serif">/100</text>
-            </svg>
-          </div>
-
-          <!-- Level badge -->
-          <div class="flex justify-center mb-5">
-            <span class="badge-critical text-sm font-bold px-4 py-1.5 rounded-full">CRITIQUE</span>
-          </div>
-
-          <!-- Clauses détectées -->
-          <div class="space-y-2.5">
-            <div class="flex items-center justify-between py-2 px-3 bg-red-50 rounded-xl border border-red-100">
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-red-500"></div>
-                <span class="text-xs font-semibold text-slate-700">Renouvellement tacite</span>
-              </div>
-              <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-md">95</span>
-            </div>
-            <div class="flex items-center justify-between py-2 px-3 bg-amber-50 rounded-xl border border-amber-100">
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-amber-400"></div>
-                <span class="text-xs font-semibold text-slate-700">Hausse prix (+3.2%/an)</span>
-              </div>
-              <span class="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-md">74</span>
-            </div>
-            <div class="flex items-center justify-between py-2 px-3 bg-amber-50 rounded-xl border border-amber-100">
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-amber-400"></div>
-                <span class="text-xs font-semibold text-slate-700">Pénalité résiliation</span>
-              </div>
-              <span class="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-md">61</span>
-            </div>
-            <div class="flex items-center justify-between py-2 px-3 bg-emerald-50 rounded-xl border border-emerald-100">
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                <span class="text-xs font-semibold text-slate-700">Délai préavis (3 mois)</span>
-              </div>
-              <span class="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">28</span>
-            </div>
-          </div>
-
-          <!-- Base légale -->
-          <div class="mt-4 p-3 bg-brand-50 rounded-xl border border-brand-100">
-            <div class="text-xs font-bold text-brand-700 mb-1">⚖️ Fondement juridique</div>
-            <div class="text-xs text-brand-600 leading-relaxed">Art. L.215-3 Code de la Consommation — Loi Chatel (opérateurs télécom)</div>
-          </div>
-        </div>
-
-        <!-- ── LETTER PREVIEW (3/5) ─────────────────────────── -->
-        <div class="col-span-3 bg-white rounded-2xl border border-slate-100 p-6 card-hover">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h2 class="font-bold text-slate-900 text-base">✉️ Lettre de Résiliation</h2>
-              <p class="text-xs text-slate-400 mt-0.5">Générée par GPT-4o · Base légale injectée par template</p>
-            </div>
-            <div class="flex gap-2">
-              <button class="text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
-                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Éditer
-              </button>
-              <button class="text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
-                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                PDF
-              </button>
-            </div>
-          </div>
-
-          <!-- Paper letter -->
-          <div class="letter-paper rounded-xl p-6 text-sm leading-relaxed max-h-72 overflow-y-auto">
-            <!-- Sender -->
-            <div class="mb-6">
-              <div class="font-bold text-slate-900">Jean Dupont</div>
-              <div class="text-slate-600 text-xs">42 Rue de la Paix, 75001 Paris</div>
-              <div class="text-slate-500 text-xs mt-1">N° Client : <strong>SFR-2023-847291</strong></div>
-            </div>
-
-            <!-- Recipient -->
-            <div class="text-right mb-5">
-              <div class="font-bold text-slate-800 text-xs">SFR Business</div>
-              <div class="text-slate-500 text-xs">Service Résiliations</div>
-            </div>
-
-            <!-- Date -->
-            <div class="text-right text-slate-500 text-xs mb-5 italic">Paris, le 27 mars 2026</div>
-
-            <!-- Subject -->
-            <div class="font-bold text-slate-900 text-xs underline mb-4">
-              Objet : Résiliation du contrat Fibre Pro 1 Gb — Lettre Recommandée Électronique (LRE)
-            </div>
-
-            <!-- Body -->
-            <div class="text-slate-700 text-xs space-y-3">
-              <p>Madame, Monsieur,</p>
-              <p>Par la présente, je vous informe de ma décision de résilier le contrat <strong>Fibre Pro 1 Gb</strong> (référence SFR-2023-847291), conclu le 15 mars 2023 avec votre société SFR Business.</p>
-              <p>Cette résiliation intervient conformément aux dispositions de <strong>l'Article L.215-3 du Code de la Consommation</strong> (Loi Chatel), qui encadre les contrats de communications électroniques à renouvellement tacite. Le délai de préavis de 3 mois prévu contractuellement est respecté.</p>
-
-              <!-- Legal box -->
-              <div class="border-l-4 border-brand-500 bg-brand-50 px-3 py-2 rounded-r-lg my-3">
-                <div class="font-bold text-brand-800 text-xs mb-1">Fondement juridique :</div>
-                <div class="text-brand-700 text-xs">Art. L.215-3 Code de la Consommation — Loi Chatel (opérateurs télécom)</div>
-                <div class="text-brand-600 text-xs mt-1 italic">Extrait contrat (p. 8) : « Le présent contrat est renouvelable par tacite reconduction... préavis de 3 mois avant la date anniversaire. »</div>
-              </div>
-
-              <p>Je vous demande de bien vouloir confirmer la prise en compte de cette résiliation et de m'adresser une confirmation écrite. La résiliation sera effective au <strong>15 juin 2026</strong>.</p>
-              <p>Dans l'attente de votre accusé de réception, je vous adresse, Madame, Monsieur, mes sincères salutations.</p>
-              <div class="pt-2">
-                <div class="text-slate-500 text-xs italic">Signature électronique eIDAS Niveau 1 :</div>
-                <div class="font-bold text-slate-800 mt-1">Jean Dupont</div>
-                <div class="text-xs text-slate-400 mt-1">Réf. signature : ESIGN-2026-A7F3</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- SHA256 integrity proof -->
-          <div class="mt-3 flex items-center gap-2 text-xs text-slate-400 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-            <svg width="12" height="12" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span>Intégrité: <code class="font-mono text-slate-600">sha256:a3f7c2b1e9d4...</code></span>
-            <span class="ml-auto text-emerald-500 font-semibold">✓ Vérifié</span>
-          </div>
+          <svg width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24" class="group-hover:stroke-brand-600 transition-colors flex-shrink-0"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
 
       </div>
-      <!-- FIN RISK + LETTER -->
+    </div>
+    <!-- FIN LISTE CONTRATS -->
 
-      <!-- ══════════════════════════════════════════════════════
-           PLAN D'ACTION + BOUTON LRE
-      ══════════════════════════════════════════════════════ -->
-      <div class="bg-white rounded-2xl border border-slate-100 p-6 card-hover">
-        <h2 class="font-bold text-slate-900 text-base mb-4">🚀 Plan d'Action — 4 Étapes</h2>
+  </div>
+</div>
+<!-- FIN PAGE DASHBOARD -->
 
-        <div class="grid grid-cols-4 gap-3 mb-6">
-          <!-- Étape 1 : complétée -->
-          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 relative">
-            <div class="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold mb-3">✓</div>
-            <div class="text-xs font-bold text-emerald-800 mb-1">📄 Lettre générée</div>
-            <div class="text-xs text-emerald-600">Template Jinja2 + GPT-4o · Base légale injectée</div>
-            <div class="text-xs text-emerald-500 mt-2 font-semibold">✓ Complété · ~2 min</div>
+<!-- ══════════════════════════════════════════════════════ PAGE: UPLOAD -->
+<div id="page-upload" class="page animate-slide-in">
+
+  <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200 px-8 py-4 flex items-center justify-between no-print">
+    <div>
+      <div class="flex items-center gap-2 text-xs text-slate-400 mb-0.5">
+        <span class="cursor-pointer hover:text-brand-600" onclick="showPage('dashboard')">Dashboard</span>
+        <span>›</span><span class="text-brand-600 font-medium">Nouveau Contrat</span>
+      </div>
+      <h1 class="text-lg font-bold text-slate-900">Analyser un Nouveau Contrat</h1>
+    </div>
+  </header>
+
+  <div class="px-8 py-8 max-w-3xl mx-auto space-y-6">
+
+    <!-- Zones d'upload -->
+    <div class="card p-8">
+      <h2 class="font-bold text-slate-900 mb-1">Déposer votre contrat</h2>
+      <p class="text-xs text-slate-400 mb-6">PDF, Word, image scan — L'IA extrait toutes les clauses automatiquement</p>
+
+      <!-- Drop zone -->
+      <div id="drop-zone"
+        class="border-2 border-dashed border-slate-300 rounded-2xl p-12 text-center cursor-pointer transition-all hover:border-brand-400 hover:bg-brand-50/40"
+        onclick="document.getElementById('file-input').click()"
+        ondragover="event.preventDefault(); this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="handleDrop(event)">
+        <div id="drop-default">
+          <div class="w-16 h-16 bg-brand-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg width="32" height="32" fill="none" stroke="#4f46e5" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
-
-          <!-- Étape 2 : active -->
-          <div class="bg-brand-50 border-2 border-brand-400 rounded-xl p-4 relative shadow-md">
-            <div class="absolute -top-2 -right-2 bg-brand-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">EN COURS</div>
-            <div class="w-7 h-7 rounded-full bg-brand-600 flex items-center justify-center text-white text-xs font-bold mb-3">2</div>
-            <div class="text-xs font-bold text-brand-900 mb-1">✍️ Signer</div>
-            <div class="text-xs text-brand-700">eIDAS Niveau 1 · Dropbox Sign</div>
-            <div class="text-xs text-brand-500 mt-2 font-semibold">→ En attente · ~5 min</div>
-          </div>
-
-          <!-- Étape 3 : à faire -->
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-            <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold mb-3">3</div>
-            <div class="text-xs font-bold text-slate-700 mb-1">📮 Envoyer LRE</div>
-            <div class="text-xs text-slate-500">AR24 · eIDAS · Preuve opposable</div>
-            <div class="text-xs text-red-500 mt-2 font-semibold">⚠ Avant le 02/04/2026</div>
-          </div>
-
-          <!-- Étape 4 : à faire -->
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-            <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold mb-3">4</div>
-            <div class="text-xs font-bold text-slate-700 mb-1">✅ Vérifier AR</div>
-            <div class="text-xs text-slate-500">Accusé de réception AR24</div>
-            <div class="text-xs text-slate-400 mt-2">Sous 48h après envoi</div>
+          <p class="font-bold text-slate-700 mb-1">Glissez votre contrat ici</p>
+          <p class="text-xs text-slate-400 mb-4">ou cliquez pour parcourir vos fichiers</p>
+          <div class="flex items-center justify-center gap-3">
+            <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-medium">PDF</span>
+            <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-medium">DOCX</span>
+            <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-medium">JPG/PNG</span>
+            <span class="text-xs text-slate-400">jusqu'à 20 Mo</span>
           </div>
         </div>
-
-        <!-- Bandeau d'alerte deadline -->
-        <div class="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-5">
-          <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-            <svg width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div id="drop-file" class="hidden">
+          <div class="w-14 h-14 bg-emerald-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <svg width="28" height="28" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           </div>
+          <p class="font-bold text-slate-700" id="file-name">contrat.pdf</p>
+          <p class="text-xs text-emerald-600 mt-1 font-semibold">✓ Fichier prêt</p>
+        </div>
+      </div>
+      <input type="file" id="file-input" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="handleFileSelect(this)"/>
+
+      <!-- OU séparateur -->
+      <div class="flex items-center gap-3 my-5">
+        <div class="flex-1 h-px bg-slate-100"></div>
+        <span class="text-xs text-slate-400 font-medium">ou utiliser un exemple</span>
+        <div class="flex-1 h-px bg-slate-100"></div>
+      </div>
+
+      <!-- Exemples rapides -->
+      <div class="grid grid-cols-3 gap-3">
+        <button onclick="selectDemo('SFR Business — Fibre Pro 1 Gb', '2.3 Mo')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50/40 transition-all text-left group">
+          <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0 group-hover:bg-red-100">
+            <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-bold text-slate-700 truncate">SFR Business</div>
+            <div class="text-xs text-slate-400">Fibre Pro 1 Gb</div>
+          </div>
+        </button>
+        <button onclick="selectDemo('Microsoft 365 Business', '1.8 Mo')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50/40 transition-all text-left group">
+          <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100">
+            <svg width="18" height="18" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-bold text-slate-700 truncate">Microsoft 365</div>
+            <div class="text-xs text-slate-400">Business Premium</div>
+          </div>
+        </button>
+        <button onclick="selectDemo('AWS Reserved Instances', '3.1 Mo')" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50/40 transition-all text-left group">
+          <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100">
+            <svg width="18" height="18" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-bold text-slate-700 truncate">AWS EC2</div>
+            <div class="text-xs text-slate-400">Reserved Instances</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Progression analyse IA -->
+    <div id="analysis-card" class="card p-6 hidden">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 class="font-bold text-slate-900">Analyse IA en cours</h3>
+          <p class="text-xs text-slate-400 mt-0.5">GPT-4o · Extraction des clauses · Calcul préavis</p>
+        </div>
+        <div class="text-sm font-black text-brand-600" id="analysis-pct">0%</div>
+      </div>
+
+      <!-- Barre globale -->
+      <div class="w-full bg-slate-100 rounded-full h-2 mb-5">
+        <div id="analysis-bar" class="bg-brand-500 h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+      </div>
+
+      <!-- Étapes -->
+      <div class="space-y-3" id="analysis-steps">
+        <div id="step-ocr" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
+          <div id="step-ocr-icon" class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 flex-shrink-0">1</div>
           <div class="flex-1">
-            <div class="text-xs font-bold text-red-700">Deadline dans <span id="countdown" class="text-red-600">6 jours</span> — La LRE doit partir avant le 02/04/2026</div>
-            <div class="text-xs text-red-500 mt-0.5">Passé cette date : le contrat se renouvelle automatiquement pour 12 mois → 2 400 € supplémentaires</div>
+            <div class="text-xs font-bold text-slate-700">OCR & Extraction texte</div>
+            <div class="text-xs text-slate-400">Lecture du document PDF</div>
           </div>
-          <div class="text-2xl font-black text-red-500 flex-shrink-0">J–6</div>
+          <div id="step-ocr-status" class="text-xs text-slate-400">En attente</div>
         </div>
-
-        <!-- CTA principal LRE -->
-        <div class="flex items-center gap-3">
-          <button id="btn-lre" onclick="sendLRE()" class="btn-lre flex-1 text-white font-bold py-4 rounded-2xl text-base shadow-lg hover:shadow-brand-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">
-            <svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
-            <span id="btn-lre-text">Envoyer par LRE · AR24 (eIDAS)</span>
-          </button>
-          <button class="w-14 h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors" title="Télécharger PDF">
-            <svg width="20" height="20" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          </button>
-          <button class="w-14 h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors" title="Envoyer par email">
-            <svg width="20" height="20" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          </button>
+        <div id="step-clauses" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
+          <div id="step-clauses-icon" class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 flex-shrink-0">2</div>
+          <div class="flex-1">
+            <div class="text-xs font-bold text-slate-700">Détection des clauses critiques</div>
+            <div class="text-xs text-slate-400">Renouvellement tacite, pénalités, préavis</div>
+          </div>
+          <div id="step-clauses-status" class="text-xs text-slate-400">En attente</div>
         </div>
-
-        <!-- Note facturation -->
-        <div class="mt-3 flex items-center justify-center gap-2 text-xs text-slate-400">
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Facturation au succès · 4,90 € par LRE · Économies estimées : <strong class="text-emerald-600 ml-1">2 400 €/an</strong>
+        <div id="step-legal" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
+          <div id="step-legal-icon" class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 flex-shrink-0">3</div>
+          <div class="flex-1">
+            <div class="text-xs font-bold text-slate-700">Matching base légale</div>
+            <div class="text-xs text-slate-400">Code de la Consommation, Loi Chatel, RGPD</div>
+          </div>
+          <div id="step-legal-status" class="text-xs text-slate-400">En attente</div>
+        </div>
+        <div id="step-plan" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
+          <div id="step-plan-icon" class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 flex-shrink-0">4</div>
+          <div class="flex-1">
+            <div class="text-xs font-bold text-slate-700">Génération du plan de résiliation</div>
+            <div class="text-xs text-slate-400">Calcul fenêtre optimale + lettre</div>
+          </div>
+          <div id="step-plan-status" class="text-xs text-slate-400">En attente</div>
         </div>
       </div>
+    </div>
 
-    </div><!-- /px-8 py-6 -->
-  </main>
+  </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     MODAL SUCCESS LRE
-═══════════════════════════════════════════════════════════ -->
-<div id="modal-success" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden" onclick="closeModal()">
+<!-- ══════════════════════════════════════════════════════ PAGE: AUDIT -->
+<div id="page-audit" class="page animate-slide-in">
+
+  <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200 px-8 py-4 flex items-center justify-between no-print">
+    <div>
+      <div class="flex items-center gap-2 text-xs text-slate-400 mb-0.5">
+        <span class="cursor-pointer hover:text-brand-600" onclick="showPage('dashboard')">Contrats</span>
+        <span>›</span><span class="text-brand-600 font-medium">Audit Résultat</span>
+      </div>
+      <h1 class="text-lg font-bold text-slate-900">SFR Business — Fibre Pro 1 Gb</h1>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="badge-critical text-xs font-bold px-3 py-1.5 rounded-full">🚨 CRITIQUE — J–6</span>
+    </div>
+  </header>
+
+  <div class="px-8 py-6 space-y-6">
+
+    <!-- KPI CARDS -->
+    <div class="grid grid-cols-3 gap-4">
+      <div class="card card-hover p-5 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full -translate-y-8 translate-x-8 opacity-60"></div>
+        <div class="relative">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <svg width="18" height="18" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Économies annuelles</span>
+          </div>
+          <div class="text-3xl font-black text-emerald-600" id="audit-savings">0 €</div>
+          <div class="text-xs text-slate-400 mt-1">si résiliation avant deadline</div>
+        </div>
+      </div>
+      <div class="card card-hover p-5 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-brand-50 rounded-full -translate-y-8 translate-x-8 opacity-60"></div>
+        <div class="relative">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-brand-50 flex items-center justify-center">
+              <svg width="18" height="18" fill="none" stroke="#4f46e5" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Préavis contractuel</span>
+          </div>
+          <div class="text-3xl font-black text-brand-600">3 mois</div>
+          <div class="text-xs text-slate-400 mt-1">Loi Chatel · Art. L.215-3</div>
+        </div>
+      </div>
+      <div class="card card-hover p-5 relative overflow-hidden border-red-100">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-full -translate-y-8 translate-x-8 opacity-60"></div>
+        <div class="relative">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
+              <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Deadline LRE</span>
+          </div>
+          <div class="text-3xl font-black text-red-500">J–6</div>
+          <div class="text-xs text-slate-400 mt-1">02/04/2026 · 18h00</div>
+          <div class="mt-2 flex items-center gap-1.5">
+            <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse-slow"></div>
+            <span class="text-xs font-semibold text-red-500">Agir maintenant</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="card card-hover p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="font-bold text-slate-900">📅 Fenêtre de Résiliation</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Préavis 3 mois · Loi Chatel · Renouvellement tacite annuel</p>
+        </div>
+        <span class="badge-critical text-xs font-bold px-3 py-1.5 rounded-full">J–6 · CRITIQUE</span>
+      </div>
+      <div class="relative pt-2 pb-14">
+        <div class="absolute top-5 left-4 right-4 h-2.5 bg-slate-100 rounded-full"></div>
+        <div class="absolute top-5 left-4 h-2.5 rounded-l-full bg-slate-300" style="width:66%"></div>
+        <div class="absolute top-5 h-2.5 rounded-r-full bg-red-200" style="left:calc(4px + 66%); width:6%"></div>
+        <!-- Signature -->
+        <div class="absolute top-1 left-2 flex flex-col items-center" style="width:32px">
+          <div class="w-4 h-4 rounded-full bg-slate-400 border-2 border-white shadow"></div>
+          <div class="mt-8 text-center" style="width:60px; margin-left:-14px">
+            <div class="text-xs font-bold text-slate-500">Signature</div>
+            <div class="text-xs text-slate-400">15/03/2023</div>
+          </div>
+        </div>
+        <!-- Aujourd'hui -->
+        <div class="absolute top-0 flex flex-col items-center" style="left:calc(66% - 8px); width:20px">
+          <div class="ring-pulse relative w-5 h-5 rounded-full bg-brand-600 border-2 border-white shadow-lg" style="color:#4f46e5"></div>
+          <div class="mt-7 text-center" style="width:72px; margin-left:-26px">
+            <div class="text-xs font-black text-brand-600">Aujourd'hui</div>
+            <div class="text-xs text-slate-400">27/03/2026</div>
+          </div>
+        </div>
+        <!-- Deadline -->
+        <div class="absolute top-0 flex flex-col items-center" style="left:calc(72% - 8px); width:20px">
+          <div class="w-5 h-5 rounded-full bg-red-500 border-2 border-white shadow-lg animate-pulse-slow"></div>
+          <div class="mt-7 text-center" style="width:76px; margin-left:-28px">
+            <div class="text-xs font-black text-red-600">⚠ Deadline</div>
+            <div class="text-xs text-red-400 font-semibold">02/04/2026</div>
+          </div>
+        </div>
+        <!-- Renouvellement -->
+        <div class="absolute top-1 flex flex-col items-center" style="right:2px; width:32px">
+          <div class="w-4 h-4 rounded-full bg-slate-700 border-2 border-white shadow"></div>
+          <div class="mt-8 text-center" style="width:72px; margin-left:-20px">
+            <div class="text-xs font-bold text-slate-700">Renouvellement</div>
+            <div class="text-xs text-slate-400">15/06/2026</div>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+        <div class="flex items-center gap-5 text-xs">
+          <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-sm bg-slate-300"></div><span class="text-slate-500">Passé</span></div>
+          <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-sm bg-red-200"></div><span class="text-slate-500">Fenêtre critique</span></div>
+          <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-sm bg-slate-100 border border-slate-300"></div><span class="text-slate-500">Prochain cycle</span></div>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          2 400 €/an bloqués si deadline ratée
+        </div>
+      </div>
+    </div>
+
+    <!-- RISK SCORE + LETTER PREVIEW -->
+    <div class="grid grid-cols-5 gap-4">
+
+      <!-- Risk Score -->
+      <div class="col-span-2 card card-hover p-6">
+        <h2 class="font-bold text-slate-900 mb-1">🛡️ Score de Risque IA</h2>
+        <p class="text-xs text-slate-400 mb-5">Analyse GPT-4o · Confiance 97%</p>
+        <div class="flex justify-center mb-4">
+          <svg width="180" height="100" viewBox="0 0 180 100">
+            <path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="#f1f5f9" stroke-width="14" stroke-linecap="round"/>
+            <path id="gauge-arc" d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke-linecap="round" stroke-width="14"
+              stroke="#ef4444" stroke-dasharray="220" stroke-dashoffset="220"
+              style="transition:stroke-dashoffset 1.4s cubic-bezier(0.34,1.2,0.64,1)"/>
+            <text x="90" y="78" text-anchor="middle" font-size="32" font-weight="900" fill="#1e293b" font-family="Inter,sans-serif" id="gauge-score">0</text>
+            <text x="90" y="95" text-anchor="middle" font-size="10" fill="#94a3b8" font-family="Inter,sans-serif">/100</text>
+          </svg>
+        </div>
+        <div class="flex justify-center mb-5">
+          <span class="badge-critical text-sm font-bold px-4 py-1.5 rounded-full">CRITIQUE</span>
+        </div>
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between py-2 px-3 bg-red-50 rounded-xl border border-red-100">
+            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500"></div><span class="text-xs font-semibold text-slate-700">Renouvellement tacite</span></div>
+            <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-md">95</span>
+          </div>
+          <div class="flex items-center justify-between py-2 px-3 bg-amber-50 rounded-xl border border-amber-100">
+            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-amber-400"></div><span class="text-xs font-semibold text-slate-700">Hausse prix (+3.2%/an)</span></div>
+            <span class="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-md">74</span>
+          </div>
+          <div class="flex items-center justify-between py-2 px-3 bg-amber-50 rounded-xl border border-amber-100">
+            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-amber-400"></div><span class="text-xs font-semibold text-slate-700">Pénalité résiliation</span></div>
+            <span class="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-md">61</span>
+          </div>
+          <div class="flex items-center justify-between py-2 px-3 bg-emerald-50 rounded-xl border border-emerald-100">
+            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-xs font-semibold text-slate-700">Délai préavis (3 mois)</span></div>
+            <span class="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">28</span>
+          </div>
+        </div>
+        <div class="mt-4 p-3 bg-brand-50 rounded-xl border border-brand-100">
+          <div class="text-xs font-bold text-brand-700 mb-1">⚖️ Fondement juridique</div>
+          <div class="text-xs text-brand-600 leading-relaxed">Art. L.215-3 Code de la Consommation — Loi Chatel (opérateurs télécom)</div>
+        </div>
+      </div>
+
+      <!-- Letter Preview -->
+      <div class="col-span-3 card card-hover p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="font-bold text-slate-900">✉️ Aperçu de la Lettre</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Générée par GPT-4o · Cliquez sur Éditer pour modifier</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="showPage('letter')" class="text-xs font-semibold text-brand-600 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Éditer
+            </button>
+            <button onclick="showPage('letter')" class="text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              PDF
+            </button>
+          </div>
+        </div>
+        <div class="letter-paper rounded-xl p-6 text-sm leading-relaxed max-h-72 overflow-y-auto">
+          <div class="mb-6">
+            <div class="font-bold text-slate-900">Jean Dupont</div>
+            <div class="text-slate-600 text-xs">42 Rue de la Paix, 75001 Paris</div>
+            <div class="text-slate-500 text-xs mt-1">N° Client : <strong>SFR-2023-847291</strong></div>
+          </div>
+          <div class="text-right mb-5">
+            <div class="font-bold text-slate-800 text-xs">SFR Business</div>
+            <div class="text-slate-500 text-xs">Service Résiliations</div>
+          </div>
+          <div class="text-right text-slate-500 text-xs mb-5 italic">Paris, le 27 mars 2026</div>
+          <div class="font-bold text-slate-900 text-xs underline mb-4">Objet : Résiliation du contrat Fibre Pro 1 Gb — LRE</div>
+          <div class="text-slate-700 text-xs space-y-3">
+            <p>Madame, Monsieur,</p>
+            <p>Par la présente, je vous informe de ma décision de résilier le contrat <strong>Fibre Pro 1 Gb</strong> (réf. SFR-2023-847291), conclu le 15 mars 2023.</p>
+            <p>Cette résiliation intervient conformément à <strong>l'Article L.215-3 du Code de la Consommation</strong> (Loi Chatel). Le délai de préavis de 3 mois est respecté.</p>
+            <div class="border-l-4 border-brand-500 bg-brand-50 px-3 py-2 rounded-r-lg my-3">
+              <div class="font-bold text-brand-800 text-xs mb-1">Fondement juridique :</div>
+              <div class="text-brand-700 text-xs">Art. L.215-3 Code de la Consommation — Loi Chatel</div>
+            </div>
+            <p>Résiliation effective au <strong>15 juin 2026</strong>.</p>
+            <p>Dans l'attente de votre accusé de réception, veuillez agréer mes sincères salutations.</p>
+            <div class="pt-2">
+              <div class="font-bold text-slate-800">Jean Dupont</div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center gap-2 text-xs text-slate-400 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+          <svg width="12" height="12" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Intégrité: <code class="font-mono text-slate-600">sha256:a3f7c2b1e9d4...</code></span>
+          <span class="ml-auto text-emerald-500 font-semibold">✓ Vérifié</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PLAN D'ACTION -->
+    <div class="card card-hover p-6">
+      <h2 class="font-bold text-slate-900 mb-4">🚀 Plan d'Action — 4 Étapes</h2>
+      <div class="grid grid-cols-4 gap-3 mb-6">
+
+        <div id="audit-step-1" class="step-done border rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" onclick="toggleStep(1)">
+          <div class="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold mb-3">✓</div>
+          <div class="text-xs font-bold text-emerald-800 mb-1">📄 Lettre générée</div>
+          <div class="text-xs text-emerald-600">Template Jinja2 + GPT-4o</div>
+          <div class="text-xs text-emerald-500 mt-2 font-semibold">✓ Complété</div>
+        </div>
+
+        <div id="audit-step-2" class="step-active border rounded-xl p-4 relative cursor-pointer transition-all hover:shadow-md" onclick="showPage('letter')">
+          <div class="absolute -top-2 -right-2 bg-brand-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">EN COURS</div>
+          <div class="w-7 h-7 rounded-full bg-brand-600 flex items-center justify-center text-white text-xs font-bold mb-3">2</div>
+          <div class="text-xs font-bold text-brand-900 mb-1">✍️ Signer</div>
+          <div class="text-xs text-brand-700">eIDAS Niveau 1</div>
+          <div class="text-xs text-brand-500 mt-2 font-semibold">→ Cliquer pour signer</div>
+        </div>
+
+        <div id="audit-step-3" class="bg-slate-50 border border-slate-200 rounded-xl p-4 cursor-pointer transition-all hover:border-brand-300 hover:bg-brand-50/30" onclick="showPage('letter')">
+          <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold mb-3">3</div>
+          <div class="text-xs font-bold text-slate-700 mb-1">📮 Envoyer LRE</div>
+          <div class="text-xs text-slate-500">AR24 · eIDAS · Preuve opposable</div>
+          <div class="text-xs text-red-500 mt-2 font-semibold">⚠ Avant le 02/04/2026</div>
+        </div>
+
+        <div id="audit-step-4" class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold mb-3">4</div>
+          <div class="text-xs font-bold text-slate-700 mb-1">✅ Vérifier AR</div>
+          <div class="text-xs text-slate-500">Accusé de réception AR24</div>
+          <div class="text-xs text-slate-400 mt-2">Sous 48h après envoi</div>
+        </div>
+
+      </div>
+
+      <!-- Alerte deadline -->
+      <div class="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-5">
+        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+          <svg width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="flex-1">
+          <div class="text-xs font-bold text-red-700">Deadline dans <span class="text-red-600">6 jours</span> — LRE avant le 02/04/2026</div>
+          <div class="text-xs text-red-500 mt-0.5">Passé cette date : renouvellement automatique → 2 400 € supplémentaires</div>
+        </div>
+        <div class="text-2xl font-black text-red-500 flex-shrink-0">J–6</div>
+      </div>
+
+      <!-- CTA -->
+      <div class="flex items-center gap-3">
+        <button onclick="showPage('letter')" class="btn-lre flex-1 text-white font-bold py-4 rounded-2xl text-base shadow-lg hover:shadow-brand-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">
+          <svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          Envoyer par LRE · AR24 (eIDAS)
+        </button>
+        <button onclick="printLetter()" class="w-14 h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors" title="Télécharger PDF">
+          <svg width="20" height="20" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+      </div>
+      <div class="mt-3 flex items-center justify-center gap-2 text-xs text-slate-400">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Facturation au succès · 4,90 € par LRE · Économies estimées : <strong class="text-emerald-600 ml-1">2 400 €/an</strong>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- FIN PAGE AUDIT -->
+
+<!-- ══════════════════════════════════════════════════════ PAGE: LETTER -->
+<div id="page-letter" class="page animate-slide-in">
+
+  <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200 px-8 py-4 flex items-center justify-between no-print">
+    <div>
+      <div class="flex items-center gap-2 text-xs text-slate-400 mb-0.5">
+        <span class="cursor-pointer hover:text-brand-600" onclick="showPage('audit')">Audit</span>
+        <span>›</span><span class="text-brand-600 font-medium">Lettre & Envoi</span>
+      </div>
+      <h1 class="text-lg font-bold text-slate-900">Lettre de Résiliation — SFR Business</h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleEdit()" id="btn-edit" class="text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-xl transition-colors flex items-center gap-2">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Éditer
+      </button>
+      <button onclick="printLetter()" class="text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-xl transition-colors flex items-center gap-2">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        PDF
+      </button>
+      <button onclick="showSignModal()" id="btn-sign" class="text-sm font-semibold text-brand-600 bg-brand-50 hover:bg-brand-100 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 border border-brand-200">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+        <span id="sign-label">Signer</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="px-8 py-6 grid grid-cols-3 gap-6">
+
+    <!-- Colonne lettre (2/3) -->
+    <div class="col-span-2 space-y-4">
+
+      <!-- Barre d'édition -->
+      <div id="edit-toolbar" class="hidden card p-3 flex items-center gap-2 flex-wrap no-print">
+        <span class="text-xs font-semibold text-slate-500 mr-1">Formatage :</span>
+        <button onclick="document.execCommand('bold')"   class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-xs transition-colors">B</button>
+        <button onclick="document.execCommand('italic')" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 italic text-xs transition-colors">I</button>
+        <button onclick="document.execCommand('underline')" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 underline text-xs transition-colors">U</button>
+        <div class="w-px h-5 bg-slate-200 mx-1"></div>
+        <button onclick="resetLetter()" class="text-xs font-semibold text-slate-500 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">Réinitialiser</button>
+        <div class="ml-auto text-xs text-emerald-600 font-semibold flex items-center gap-1.5">
+          <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+          Mode édition actif
+        </div>
+      </div>
+
+      <!-- Lettre -->
+      <div class="card p-2">
+        <div id="letter-body" class="letter-paper rounded-xl p-8 text-sm leading-relaxed min-h-96 outline-none" spellcheck="false">
+          <div class="mb-6">
+            <div class="font-bold text-slate-900">Jean Dupont</div>
+            <div class="text-slate-600 text-xs">Directeur Général</div>
+            <div class="text-slate-600 text-xs">TechCorp SAS — 42 Rue de la Paix, 75001 Paris</div>
+            <div class="text-slate-500 text-xs mt-1">N° Client : <strong>SFR-2023-847291</strong></div>
+          </div>
+          <div class="text-right mb-5">
+            <div class="font-bold text-slate-800 text-xs">SFR Business</div>
+            <div class="text-slate-500 text-xs">Service des Résiliations</div>
+            <div class="text-slate-500 text-xs">TSA 40000 — 93289 Saint-Denis Cedex</div>
+          </div>
+          <div class="text-right text-slate-500 text-xs mb-6 italic">Paris, le 27 mars 2026</div>
+          <div class="font-bold text-slate-900 text-xs underline mb-5">
+            Objet : Résiliation du contrat Fibre Pro 1 Gb (réf. SFR-2023-847291) — Envoi par Lettre Recommandée Électronique
+          </div>
+          <div class="text-slate-700 text-xs space-y-4">
+            <p>Madame, Monsieur,</p>
+            <p>Par la présente lettre, je vous informe de ma décision de résilier le contrat intitulé <strong>Fibre Pro 1 Gb</strong>, portant la référence <strong>SFR-2023-847291</strong>, conclu le <strong>15 mars 2023</strong> avec la société SFR Business.</p>
+            <p>Cette résiliation intervient conformément aux dispositions légales applicables, notamment :</p>
+            <div class="border-l-4 border-brand-500 bg-brand-50 px-4 py-3 rounded-r-lg my-2">
+              <div class="font-bold text-brand-800 text-xs mb-1">⚖️ Fondement juridique :</div>
+              <div class="text-brand-700 text-xs font-medium">Article L.215-3 du Code de la Consommation (Loi Chatel)</div>
+              <div class="text-brand-600 text-xs mt-1">applicable aux contrats de communications électroniques à renouvellement tacite souscrits par des professionnels.</div>
+              <div class="text-brand-600 text-xs mt-2 italic">Extrait contrat (p. 8) : « Le présent contrat est renouvelable par tacite reconduction... préavis de 3 mois avant la date anniversaire. »</div>
+            </div>
+            <p>Le délai de préavis contractuel de <strong>trois (3) mois</strong> étant respecté, je vous demande de procéder à la résiliation effective du contrat à la date du <strong>15 juin 2026</strong>.</p>
+            <p>Je vous prie de bien vouloir me confirmer la bonne prise en compte de cette résiliation dans les meilleurs délais, et de cesser tout prélèvement à compter de la date de résiliation effective.</p>
+            <p>Dans l'attente de votre accusé de réception, je vous adresse, Madame, Monsieur, mes sincères salutations.</p>
+            <div class="pt-4 border-t border-slate-200 mt-4">
+              <div class="text-slate-500 text-xs italic mb-2">Signature électronique eIDAS Niveau 1 :</div>
+              <div id="sig-display" class="hidden mb-3">
+                <canvas id="sig-preview-canvas" width="200" height="60" class="border border-slate-200 rounded-lg"></canvas>
+              </div>
+              <div class="font-bold text-slate-800">Jean Dupont</div>
+              <div class="text-xs text-slate-400 mt-0.5">Directeur Général — TechCorp SAS</div>
+              <div class="text-xs text-slate-400 mt-0.5" id="sig-ref-display"></div>
+            </div>
+          </div>
+        </div>
+        <!-- SHA -->
+        <div class="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 rounded-b-xl px-4 py-2.5 border-t border-slate-100">
+          <svg width="12" height="12" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Intégrité: <code class="font-mono text-slate-600">sha256:a3f7c2b1e9d4f8a2c...</code></span>
+          <span class="ml-auto text-emerald-500 font-semibold">✓ Vérifié</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Colonne actions (1/3) -->
+    <div class="col-span-1 space-y-4 no-print">
+
+      <!-- Statut envoi -->
+      <div class="card p-5">
+        <h3 class="font-bold text-slate-900 text-sm mb-4">📋 Statut d'envoi</h3>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0"><svg width="12" height="12" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div><div class="text-xs font-bold text-slate-700">Lettre générée</div><div class="text-xs text-slate-400">GPT-4o · Template Jinja2</div></div>
+          </div>
+          <div class="flex items-center gap-3" id="status-signed">
+            <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 text-xs font-bold text-slate-500">2</div>
+            <div><div class="text-xs font-bold text-slate-600">Signature eIDAS</div><div class="text-xs text-slate-400">En attente</div></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 text-xs font-bold text-slate-500">3</div>
+            <div><div class="text-xs font-bold text-slate-600">Envoi LRE AR24</div><div class="text-xs text-slate-400">En attente signature</div></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 text-xs font-bold text-slate-500">4</div>
+            <div><div class="text-xs font-bold text-slate-600">Accusé réception</div><div class="text-xs text-slate-400">Sous 48h</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bouton LRE -->
+      <div class="card p-5">
+        <h3 class="font-bold text-slate-900 text-sm mb-1">📮 Envoi LRE</h3>
+        <p class="text-xs text-slate-400 mb-4">AR24 · Valeur légale eIDAS · Preuve opposable</p>
+        <button id="btn-lre" onclick="sendLRE()" class="btn-lre w-full text-white font-bold py-3.5 rounded-xl text-sm shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+          <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          <span id="btn-lre-text">Envoyer par LRE</span>
+        </button>
+        <div class="mt-3 text-center text-xs text-slate-400">
+          Facturation : <strong class="text-slate-600">4,90 €</strong> à l'envoi
+        </div>
+      </div>
+
+      <!-- Deadline -->
+      <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+        <div class="flex items-center gap-2 mb-2">
+          <svg width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span class="text-xs font-bold text-red-700">Deadline critique</span>
+        </div>
+        <div class="text-2xl font-black text-red-500 mb-1">J–6</div>
+        <div class="text-xs text-red-600 font-semibold">02/04/2026 avant 18h</div>
+        <div class="text-xs text-red-500 mt-2">2 400 €/an en jeu si deadline ratée</div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+<!-- FIN PAGE LETTER -->
+
+<!-- ══════════════════════════════════════════════════════ PAGE: SAVINGS -->
+<div id="page-savings" class="page animate-slide-in">
+
+  <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200 px-8 py-4 no-print">
+    <div class="flex items-center gap-2 text-xs text-slate-400 mb-0.5">
+      <span class="cursor-pointer hover:text-brand-600" onclick="showPage('dashboard')">Dashboard</span>
+      <span>›</span><span class="text-brand-600 font-medium">Mes Économies</span>
+    </div>
+    <h1 class="text-lg font-bold text-slate-900">Tableau des Économies Réalisées</h1>
+  </header>
+
+  <div class="px-8 py-6 space-y-6">
+
+    <!-- Total hero -->
+    <div class="card p-8 bg-gradient-to-br from-brand-600 to-purple-600 text-white rounded-2xl relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-24 translate-x-24"></div>
+      <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-16 -translate-x-16"></div>
+      <div class="relative">
+        <div class="text-sm font-semibold text-white/70 mb-2">Total économisé depuis le 01/01/2025</div>
+        <div class="text-5xl font-black mb-2" id="sav-total">0 €</div>
+        <div class="text-white/60 text-sm">sur 4 contrats résiliés · 3 en cours</div>
+        <div class="flex items-center gap-2 mt-4 text-sm font-semibold text-emerald-300">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+          +38% vs année précédente
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs secondaires -->
+    <div class="grid grid-cols-3 gap-4">
+      <div class="card card-hover p-5">
+        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Résiliations réussies</div>
+        <div class="text-3xl font-black text-slate-900" id="sav-count">0</div>
+        <div class="text-xs text-slate-400 mt-1">contrats résiliés</div>
+        <div class="mt-3 w-full bg-slate-100 rounded-full h-1.5">
+          <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" id="sav-bar" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="card card-hover p-5">
+        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Économies mensuelles</div>
+        <div class="text-3xl font-black text-brand-600" id="sav-monthly">0 €</div>
+        <div class="text-xs text-slate-400 mt-1">en moyenne / mois</div>
+        <div class="mt-3 text-xs text-emerald-600 font-semibold flex items-center gap-1">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+          +12% ce mois
+        </div>
+      </div>
+      <div class="card card-hover p-5">
+        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Projection annuelle</div>
+        <div class="text-3xl font-black text-purple-600" id="sav-proj">0 €</div>
+        <div class="text-xs text-slate-400 mt-1">sur 12 mois glissants</div>
+        <div class="mt-3 text-xs text-slate-500">3 contrats en attente résiliation</div>
+      </div>
+    </div>
+
+    <!-- Graphe bar chart SVG + historique -->
+    <div class="grid grid-cols-5 gap-4">
+
+      <!-- Bar chart -->
+      <div class="col-span-3 card p-6">
+        <h3 class="font-bold text-slate-900 mb-1">Économies par mois</h3>
+        <p class="text-xs text-slate-400 mb-5">12 derniers mois · €</p>
+        <div class="flex items-end gap-2 h-32">
+          <!-- 12 barres SVG inline -->
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">0</span>
+            <div class="w-full bg-slate-100 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="4"></div>
+            <span class="text-xs text-slate-400">Avr</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">0</span>
+            <div class="w-full bg-slate-100 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="4"></div>
+            <span class="text-xs text-slate-400">Mai</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">800</span>
+            <div class="w-full bg-brand-200 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="25"></div>
+            <span class="text-xs text-slate-400">Juin</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">600</span>
+            <div class="w-full bg-brand-200 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="19"></div>
+            <span class="text-xs text-slate-400">Jul</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">0</span>
+            <div class="w-full bg-slate-100 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="4"></div>
+            <span class="text-xs text-slate-400">Aoû</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">1800</span>
+            <div class="w-full bg-brand-400 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="57"></div>
+            <span class="text-xs text-slate-400">Sep</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">0</span>
+            <div class="w-full bg-slate-100 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="4"></div>
+            <span class="text-xs text-slate-400">Oct</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">0</span>
+            <div class="w-full bg-slate-100 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="4"></div>
+            <span class="text-xs text-slate-400">Nov</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">0</span>
+            <div class="w-full bg-slate-100 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="4"></div>
+            <span class="text-xs text-slate-400">Déc</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">1800</span>
+            <div class="w-full bg-emerald-400 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="57"></div>
+            <span class="text-xs text-slate-400">Jan</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">0</span>
+            <div class="w-full bg-slate-100 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="4"></div>
+            <span class="text-xs text-slate-400">Fév</span>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-1 group">
+            <span class="text-xs text-slate-300 group-hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">3200</span>
+            <div class="w-full bg-emerald-500 rounded-t-sm transition-all duration-700 bar-chart" style="height:4px" data-h="100"></div>
+            <span class="text-xs font-bold text-brand-600">Mar ★</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historique résiliations -->
+      <div class="col-span-2 card p-5">
+        <h3 class="font-bold text-slate-900 text-sm mb-4">Résiliations réussies</h3>
+        <div class="space-y-3">
+
+          <div class="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-slate-700 truncate">Orange Pro — Standard</div>
+              <div class="text-xs text-slate-400">LRE 10/01/2026</div>
+            </div>
+            <div class="text-sm font-black text-emerald-600 flex-shrink-0">+1 800 €</div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-slate-700 truncate">Bouygues Telecom Pro</div>
+              <div class="text-xs text-slate-400">LRE 15/09/2025</div>
+            </div>
+            <div class="text-sm font-black text-emerald-600 flex-shrink-0">+1 800 €</div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <svg width="14" height="14" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-slate-700 truncate">Salesforce CRM Starter</div>
+              <div class="text-xs text-slate-400">LRE 20/06/2025</div>
+            </div>
+            <div class="text-sm font-black text-emerald-600 flex-shrink-0">+800 €</div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-brand-50 rounded-xl border border-brand-100">
+            <div class="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center flex-shrink-0">
+              <svg width="14" height="14" fill="none" stroke="#4f46e5" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-slate-700 truncate">SFR Business Fibre</div>
+              <div class="text-xs text-slate-400">En cours · J–6</div>
+            </div>
+            <div class="text-sm font-black text-brand-600 flex-shrink-0">+2 400 €</div>
+          </div>
+
+          <button onclick="showPage('dashboard')" class="w-full text-xs font-semibold text-brand-600 hover:text-brand-700 text-center py-2 transition-colors">
+            Voir tous les contrats →
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+<!-- FIN PAGE SAVINGS -->
+
+</main>
+</div>
+<!-- FIN LAYOUT -->
+
+<!-- ══════════════════════════════════════════════════════ MODAL SIGNATURE -->
+<div id="modal-sign" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden" onclick="closeSignModal()">
+  <div class="bg-white rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl animate-slide-in" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="text-base font-black text-slate-900">Signature électronique</h3>
+        <p class="text-xs text-slate-400 mt-0.5">eIDAS Niveau 1 · Dropbox Sign</p>
+      </div>
+      <button onclick="closeSignModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors text-slate-500 text-lg font-bold">×</button>
+    </div>
+    <div class="border-2 border-dashed border-slate-300 rounded-2xl p-2 mb-3 relative" id="sig-container">
+      <canvas id="sig-canvas" width="420" height="140" class="w-full rounded-xl bg-slate-50"></canvas>
+      <div id="sig-placeholder" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <span class="text-slate-300 text-sm font-medium">Signez ici avec votre souris ou doigt</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 mb-5">
+      <button onclick="clearSig()" class="text-xs font-semibold text-slate-500 hover:text-red-500 bg-slate-100 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Effacer
+      </button>
+      <div class="flex-1 text-xs text-slate-400 text-center">Format PNG · Haché SHA-256</div>
+      <button onclick="validateSig()" class="text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 px-4 py-1.5 rounded-lg transition-colors">
+        Valider la signature
+      </button>
+    </div>
+    <div class="bg-brand-50 rounded-xl p-3 text-xs text-brand-700 border border-brand-100">
+      ⚖️ Cette signature a valeur légale au titre du règlement eIDAS (UE) n°910/2014 — Niveau 1 (signature électronique simple).
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ MODAL LRE SUCCESS -->
+<div id="modal-lre" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden" onclick="closeLreModal()">
   <div class="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl text-center animate-slide-in" onclick="event.stopPropagation()">
     <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5">
       <svg width="40" height="40" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
     </div>
-    <h3 class="text-xl font-black text-slate-900 mb-2">LRE Envoyée ! 🎉</h3>
-    <p class="text-sm text-slate-500 mb-5 leading-relaxed">Votre lettre de résiliation a été envoyée via <strong>AR24</strong> avec valeur légale eIDAS. Preuve de dépôt disponible.</p>
+    <h3 class="text-xl font-black text-slate-900 mb-2">LRE Envoyée !</h3>
+    <p class="text-sm text-slate-500 mb-5 leading-relaxed">Votre lettre a été envoyée via <strong>AR24</strong> avec valeur légale eIDAS. Preuve de dépôt disponible.</p>
     <div class="bg-slate-50 rounded-xl p-4 text-left mb-5 space-y-2">
       <div class="flex justify-between text-xs"><span class="text-slate-400">LRE ID</span><span class="font-mono font-semibold text-slate-700">AR24-2026-8F3A</span></div>
       <div class="flex justify-between text-xs"><span class="text-slate-400">Envoyé le</span><span class="font-semibold text-slate-700">27/03/2026 à 14:32</span></div>
       <div class="flex justify-between text-xs"><span class="text-slate-400">Résiliation effective</span><span class="font-semibold text-emerald-600">15/06/2026</span></div>
       <div class="flex justify-between text-xs"><span class="text-slate-400">Économies annuelles</span><span class="font-bold text-emerald-600">2 400 €/an</span></div>
     </div>
-    <button onclick="closeModal()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl transition-colors">
+    <button onclick="closeLreModal()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl transition-colors">
       Voir la preuve de dépôt →
     </button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     JAVASCRIPT
-═══════════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════ JAVASCRIPT COMPLET -->
 <script>
-// ── Count-up animé ──────────────────────────────────────────
-function countUp(el, target, prefix='', suffix='', duration=1400) {
-  let start = 0, startTime = null;
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + name);
+  const nav  = document.getElementById('nav-' + name);
+  if (page) {
+    page.classList.add('active');
+    page.classList.remove('animate-slide-in');
+    void page.offsetWidth;
+    page.classList.add('animate-slide-in');
+  }
+  if (nav) nav.classList.add('active');
+  document.getElementById('main-scroll').scrollTop = 0;
+  if (name === 'dashboard') initDashboard();
+  if (name === 'audit')     initAudit();
+  if (name === 'savings')   initSavings();
+}
+
+// ═══════════════════════════════════════════════════════════
+// COUNT-UP
+// ═══════════════════════════════════════════════════════════
+function countUp(el, target, suffix, duration) {
+  if (!el) return;
+  suffix   = suffix   || '';
+  duration = duration || 1400;
+  let startTime = null;
   function step(ts) {
     if (!startTime) startTime = ts;
     const p = Math.min((ts - startTime) / duration, 1);
-    const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = prefix + Math.round(eased * target).toLocaleString('fr-FR') + suffix;
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(e * target).toLocaleString('fr-FR') + suffix;
     if (p < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
 }
 
-// ── Gauge SVG ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function initDashboard() {
+  setTimeout(function() {
+    countUp(document.getElementById('dash-savings'), 14800, ' €');
+  }, 200);
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUDIT
+// ═══════════════════════════════════════════════════════════
+var auditInited = false;
+function initAudit() {
+  if (auditInited) return;
+  auditInited = true;
+  setTimeout(function() {
+    countUp(document.getElementById('audit-savings'), 2400, ' €');
+    animateGauge(82);
+  }, 200);
+}
+
 function animateGauge(score) {
-  const arc = document.getElementById('gauge-arc');
-  const txt = document.getElementById('gauge-score');
-  const total = 220; // longueur totale de l'arc semi-circulaire
-  const offset = total - (score / 100) * total;
-
-  // Couleur selon le score
-  const color = score >= 80 ? '#ef4444' : score >= 60 ? '#f59e0b' : '#10b981';
+  var arc   = document.getElementById('gauge-arc');
+  var txt   = document.getElementById('gauge-score');
+  if (!arc) return;
+  var total  = 220;
+  var offset = total - (score / 100) * total;
+  var color  = score >= 80 ? '#ef4444' : score >= 60 ? '#f59e0b' : '#10b981';
   arc.setAttribute('stroke', color);
-
-  setTimeout(() => {
+  setTimeout(function() {
     arc.style.strokeDashoffset = offset;
-    countUp(txt, score, '', '', 1400);
+    countUp(txt, score, '', 1400);
   }, 300);
 }
 
-// ── Bouton LRE avec états ───────────────────────────────────
-function sendLRE() {
-  const btn = document.getElementById('btn-lre');
-  const txt = document.getElementById('btn-lre-text');
+function toggleStep(n) {
+  var el = document.getElementById('audit-step-' + n);
+  if (!el) return;
+  if (el.classList.contains('step-done')) {
+    el.classList.remove('step-done');
+    el.classList.add('bg-slate-50', 'border-slate-200');
+    el.querySelector('div').classList.replace('bg-emerald-500','bg-slate-200');
+    el.querySelector('div').classList.replace('text-white','text-slate-500');
+    el.querySelector('div').textContent = n;
+  } else {
+    el.classList.add('step-done');
+    el.classList.remove('bg-slate-50','border-slate-200');
+    el.querySelector('div').classList.replace('bg-slate-200','bg-emerald-500');
+    el.querySelector('div').classList.replace('text-slate-500','text-white');
+    el.querySelector('div').textContent = '✓';
+  }
+}
 
-  // État: envoi en cours
+// ═══════════════════════════════════════════════════════════
+// SAVINGS
+// ═══════════════════════════════════════════════════════════
+var savingsInited = false;
+function initSavings() {
+  if (savingsInited) return;
+  savingsInited = true;
+  setTimeout(function() {
+    countUp(document.getElementById('sav-total'),   14800, ' €');
+    countUp(document.getElementById('sav-count'),       4, '');
+    countUp(document.getElementById('sav-monthly'), 1233, ' €');
+    countUp(document.getElementById('sav-proj'),   17200, ' €');
+    setTimeout(function() {
+      document.getElementById('sav-bar').style.width = '72%';
+      animateBars();
+    }, 300);
+  }, 200);
+}
+
+function animateBars() {
+  document.querySelectorAll('.bar-chart').forEach(function(bar) {
+    var h = parseInt(bar.getAttribute('data-h')) || 4;
+    bar.style.height = h + '%';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════════════════════════════
+function handleDrop(ev) {
+  ev.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  var file = ev.dataTransfer.files[0];
+  if (file) startUpload(file.name, (file.size / 1024 / 1024).toFixed(1) + ' Mo');
+}
+
+function handleFileSelect(input) {
+  var file = input.files[0];
+  if (file) startUpload(file.name, (file.size / 1024 / 1024).toFixed(1) + ' Mo');
+}
+
+function selectDemo(name, size) {
+  startUpload(name + '.pdf', size);
+}
+
+function startUpload(name, size) {
+  // Afficher le fichier sélectionné
+  document.getElementById('drop-default').classList.add('hidden');
+  document.getElementById('drop-file').classList.remove('hidden');
+  document.getElementById('file-name').textContent = name + ' · ' + size;
+  // Afficher la carte d'analyse
+  var card = document.getElementById('analysis-card');
+  card.classList.remove('hidden');
+  // Lancer la simulation
+  runAnalysis();
+}
+
+var analysisSteps = [
+  { id:'ocr',     label:'OCR terminé',          pct: 25 },
+  { id:'clauses', label:'7 clauses détectées',   pct: 50 },
+  { id:'legal',   label:'Base légale matchée',   pct: 75 },
+  { id:'plan',    label:'Plan généré',           pct:100 }
+];
+
+function runAnalysis() {
+  var delays = [600, 1400, 2300, 3400];
+  // Étape 1 active immédiatement
+  setStepActive('ocr');
+  analysisSteps.forEach(function(s, i) {
+    setTimeout(function() {
+      setStepDone(s.id, s.label);
+      setProgress(s.pct);
+      // Activer la suivante
+      if (i + 1 < analysisSteps.length) setStepActive(analysisSteps[i+1].id);
+      // Fin → naviguer vers audit
+      if (i === analysisSteps.length - 1) {
+        setTimeout(function() { showPage('audit'); }, 800);
+      }
+    }, delays[i]);
+  });
+}
+
+function setStepActive(id) {
+  var step = document.getElementById('step-' + id);
+  if (!step) return;
+  step.classList.replace('bg-slate-50', 'bg-brand-50');
+  document.getElementById('step-' + id + '-status').textContent = 'En cours...';
+  document.getElementById('step-' + id + '-status').className = 'text-xs text-brand-600 font-semibold spin';
+}
+
+function setStepDone(id, label) {
+  var step = document.getElementById('step-' + id);
+  if (!step) return;
+  step.classList.replace('bg-brand-50', 'bg-emerald-50');
+  var icon   = document.getElementById('step-' + id + '-icon');
+  var status = document.getElementById('step-' + id + '-status');
+  icon.classList.replace('bg-slate-200', 'bg-emerald-500');
+  icon.classList.replace('text-slate-500', 'text-white');
+  icon.textContent = '✓';
+  status.className = 'text-xs text-emerald-600 font-semibold';
+  status.textContent = label;
+}
+
+function setProgress(pct) {
+  document.getElementById('analysis-bar').style.width = pct + '%';
+  document.getElementById('analysis-pct').textContent = pct + '%';
+}
+
+// ═══════════════════════════════════════════════════════════
+// LETTER EDITOR
+// ═══════════════════════════════════════════════════════════
+var editMode = false;
+function toggleEdit() {
+  editMode = !editMode;
+  var body    = document.getElementById('letter-body');
+  var toolbar = document.getElementById('edit-toolbar');
+  var btn     = document.getElementById('btn-edit');
+  if (editMode) {
+    body.contentEditable = 'true';
+    body.classList.add('ring-2','ring-brand-400','ring-offset-2');
+    toolbar.classList.remove('hidden');
+    toolbar.classList.add('flex');
+    btn.classList.replace('bg-slate-100','bg-brand-100');
+    btn.classList.replace('text-slate-600','text-brand-700');
+  } else {
+    body.contentEditable = 'false';
+    body.classList.remove('ring-2','ring-brand-400','ring-offset-2');
+    toolbar.classList.add('hidden');
+    toolbar.classList.remove('flex');
+    btn.classList.replace('bg-brand-100','bg-slate-100');
+    btn.classList.replace('text-brand-700','text-slate-600');
+  }
+}
+
+function resetLetter() {
+  if (!confirm('Réinitialiser la lettre ? Vos modifications seront perdues.')) return;
+  document.getElementById('letter-body').innerHTML = document.getElementById('letter-body').innerHTML; // no-op, would reset to original in real app
+  toggleEdit();
+}
+
+function printLetter() {
+  showPage('letter');
+  setTimeout(function() { window.print(); }, 300);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIGNATURE CANVAS
+// ═══════════════════════════════════════════════════════════
+var sigCanvas, sigCtx, signing = false, hasSig = false;
+
+function showSignModal() {
+  document.getElementById('modal-sign').classList.remove('hidden');
+  initSigCanvas();
+}
+
+function closeSignModal() {
+  document.getElementById('modal-sign').classList.add('hidden');
+}
+
+function initSigCanvas() {
+  sigCanvas = document.getElementById('sig-canvas');
+  sigCtx    = sigCanvas.getContext('2d');
+  sigCtx.strokeStyle = '#1e293b';
+  sigCtx.lineWidth   = 2;
+  sigCtx.lineCap     = 'round';
+  sigCtx.lineJoin    = 'round';
+
+  sigCanvas.onmousedown  = function(e) { signing = true; hasSig = true; document.getElementById('sig-placeholder').style.display = 'none'; sigCtx.beginPath(); sigCtx.moveTo(pos(e).x, pos(e).y); };
+  sigCanvas.onmousemove  = function(e) { if (!signing) return; sigCtx.lineTo(pos(e).x, pos(e).y); sigCtx.stroke(); };
+  sigCanvas.onmouseup    = function()  { signing = false; };
+  sigCanvas.onmouseleave = function()  { signing = false; };
+
+  // Touch
+  sigCanvas.ontouchstart = function(e) { e.preventDefault(); signing = true; hasSig = true; document.getElementById('sig-placeholder').style.display = 'none'; var t = e.touches[0]; sigCtx.beginPath(); sigCtx.moveTo(pos(t).x, pos(t).y); };
+  sigCanvas.ontouchmove  = function(e) { e.preventDefault(); if (!signing) return; var t = e.touches[0]; sigCtx.lineTo(pos(t).x, pos(t).y); sigCtx.stroke(); };
+  sigCanvas.ontouchend   = function()  { signing = false; };
+}
+
+function pos(e) {
+  var rect = sigCanvas.getBoundingClientRect();
+  var scaleX = sigCanvas.width  / rect.width;
+  var scaleY = sigCanvas.height / rect.height;
+  return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+}
+
+function clearSig() {
+  sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+  hasSig = false;
+  document.getElementById('sig-placeholder').style.display = '';
+}
+
+function validateSig() {
+  if (!hasSig) { alert('Veuillez signer avant de valider.'); return; }
+  // Copier la signature dans le preview de la lettre
+  var previewCanvas = document.getElementById('sig-preview-canvas');
+  if (previewCanvas) {
+    var ctx2 = previewCanvas.getContext('2d');
+    ctx2.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+    ctx2.drawImage(sigCanvas, 0, 0, previewCanvas.width, previewCanvas.height);
+    document.getElementById('sig-display').classList.remove('hidden');
+  }
+  // Mettre à jour le statut
+  var ref  = 'ESIGN-2026-' + Math.random().toString(36).substring(2,6).toUpperCase();
+  var disp = document.getElementById('sig-ref-display');
+  if (disp) disp.textContent = 'Réf. signature : ' + ref;
+  // Mettre à jour le statut d'envoi
+  var statusSigned = document.getElementById('status-signed');
+  if (statusSigned) {
+    statusSigned.innerHTML = '<div class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0"><svg width="12" height="12" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="text-xs font-bold text-emerald-700">Signé eIDAS</div><div class="text-xs text-emerald-500">' + ref + '</div></div>';
+  }
+  // Mettre à jour le label du bouton
+  var signLabel = document.getElementById('sign-label');
+  if (signLabel) signLabel.textContent = '✓ Signé';
+  document.getElementById('btn-sign').classList.replace('text-brand-600','text-emerald-600');
+  document.getElementById('btn-sign').classList.replace('bg-brand-50','bg-emerald-50');
+  document.getElementById('btn-sign').classList.replace('border-brand-200','border-emerald-200');
+
+  closeSignModal();
+}
+
+// ═══════════════════════════════════════════════════════════
+// LRE BUTTON
+// ═══════════════════════════════════════════════════════════
+function sendLRE() {
+  var btn = document.getElementById('btn-lre');
+  var txt = document.getElementById('btn-lre-text');
+  if (!btn || !txt) return;
   btn.disabled = true;
   btn.style.opacity = '0.85';
-  txt.innerHTML = '<span style="display:inline-block;animation:spin 0.8s linear infinite">⟳</span>&nbsp; Connexion AR24 · eIDAS...';
+  txt.innerHTML = '<span class="spin">⟳</span>&nbsp;Connexion AR24 · eIDAS...';
 
-  setTimeout(() => {
-    txt.textContent = '📡 Authentification HMAC-SHA256...';
-  }, 900);
-
-  setTimeout(() => {
-    txt.textContent = '🔏 Signature eIDAS Niveau 1...';
-  }, 1800);
-
-  setTimeout(() => {
-    txt.textContent = '📮 Envoi en cours...';
-  }, 2600);
-
-  setTimeout(() => {
-    // Succès
+  setTimeout(function() { txt.innerHTML = '📡 Authentification HMAC-SHA256...'; }, 900);
+  setTimeout(function() { txt.innerHTML = '🔏 Signature eIDAS Niveau 1...';      }, 1800);
+  setTimeout(function() { txt.innerHTML = '📮 Envoi en cours...';                }, 2600);
+  setTimeout(function() {
     btn.style.opacity = '1';
     btn.disabled = false;
-    btn.className = btn.className.replace('btn-lre', '') + ' bg-emerald-500 hover:bg-emerald-600';
+    btn.className = 'w-full text-white font-bold py-3.5 rounded-xl text-sm shadow-lg transition-all flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600';
     btn.style.animation = 'none';
     txt.textContent = '✅ LRE envoyée — Preuve AR24 disponible';
-    document.getElementById('modal-success').classList.remove('hidden');
+    document.getElementById('modal-lre').classList.remove('hidden');
   }, 3500);
 }
 
-function closeModal() {
-  document.getElementById('modal-success').classList.add('hidden');
+function closeLreModal() {
+  document.getElementById('modal-lre').classList.add('hidden');
+  // Naviguer vers savings pour voir les économies
+  showPage('savings');
 }
 
-// ── Spin keyframe ───────────────────────────────────────────
-const styleEl = document.createElement('style');
-styleEl.textContent = '@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }';
-document.head.appendChild(styleEl);
-
-// ── Init au chargement ──────────────────────────────────────
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    countUp(document.getElementById('kpi-savings'), 14800, '', ' €');
-    countUp(document.getElementById('kpi-pending'), 8400, '', ' €');
-    // Progress bar
-    setTimeout(() => {
-      document.getElementById('progress-bar').style.width = '62%';
-    }, 200);
-    // Gauge
-    animateGauge(82);
-  }, 200);
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('load', function() {
+  initDashboard();
 });
 </script>
+
 </body>
 </html>
